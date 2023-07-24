@@ -1,20 +1,15 @@
-﻿using Polly;
-using Quartz;
-using Discord;
-using Serilog;
-using Polly.Registry;
+﻿using Discord;
 using Serilog.Events;
 using WeatherGoat.Data;
-using WeatherGoat.Jobs;
 using Discord.WebSocket;
 using WeatherGoat.Shared;
-using WeatherGoat.Services;
 using Discord.Interactions;
-using Microsoft.EntityFrameworkCore;
+using WeatherGoat.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Tomlyn.Extensions.Configuration;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace WeatherGoat;
 
@@ -95,49 +90,14 @@ public class WeatherGoat
                              })
                              .ConfigureServices((_, services) =>
                              {
-                                 services.Configure<QuartzOptions>(o => o.SchedulerName = "WeatherGoat Scheduler");
                                  services.AddMemoryCache();
-                                 services.AddHttpClient("core", c => c.DefaultRequestHeaders.Add("user-agent", Strings.UserAgent))
-                                         .AddPolicyHandlerFromRegistry("GenericHttpRetryPolicy");
-                                 services.AddSingleton<IReadOnlyPolicyRegistry<string>>(new PolicyRegistry
-                                 {
-                                     {
-                                         "GenericHttpRetryPolicy",
-                                         Policy.HandleResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
-                                               .WaitAndRetryAsync(5, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
-                                     }
-                                 });
-                                 services.AddDbContextFactory<AppDbContext>(o => o.UseSqlite($"Data Source={Files.Database}"));
+                                 services.AddWeatherGoatDatabase();
                                  services.AddSingleton(_client);
                                  services.AddSingleton(_interactions);
-                                 services.AddSingleton<QueueService>();
-                                 services.AddSingleton<AlertService>();
-                                 services.AddSingleton<ForecastService>();
-                                 services.AddHostedService<DiscordService>();
-                                 services.AddQuartz(q =>
-                                 {
-                                     q.UseMicrosoftDependencyInjectionJobFactory();
-                                     q.ScheduleJob<CleanupJob>(t =>
-                                     {
-                                         t.WithIdentity("Cleanup Job");
-                                         t.WithDescription("Cleans up sent messages");
-                                         t.WithCronSchedule("0 59 23 * * ?");
-                                     });
-                                     q.ScheduleJob<AlertReportingJob>(t =>
-                                     {
-                                         t.WithIdentity("Alert Reporting Job");
-                                         t.WithDescription("Reports weather alerts to the specified channel");
-                                         t.StartAt(DateBuilder.EvenSecondDate(DateTimeOffset.Now.AddSeconds(5)));
-                                         t.WithSimpleSchedule(x => x.WithIntervalInSeconds(30).RepeatForever());
-                                     });
-                                     q.ScheduleJob<ForecastReportingJob>(t =>
-                                     {
-                                         t.WithIdentity("Forecast Reporting Job");
-                                         t.WithDescription("Reports the hourly forecast to the specified channel");
-                                         t.WithCronSchedule("0 0 0-23 * * ?");
-                                     });
-                                 });
-                                 services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+                                 services.AddWeatherGoatHttpClients();
+                                 services.AddWeatherGoatServices();
+                                 services.AddWeatherGoatHostedServices();
+                                 services.AddWeatherGoatJobs();
                              })
                              .Build();
 

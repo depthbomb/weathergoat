@@ -10,19 +10,16 @@ public class ForecastReportingJob : IJob
 {
     private readonly ILogger<ForecastReportingJob>      _logger;
     private readonly DiscordSocketClient                _client;
-    private readonly QueueService                       _queue;
     private readonly ForecastService                    _forecast;
     private readonly IReadOnlyList<ForecastDestination> _destinations;
 
     public ForecastReportingJob(ILogger<ForecastReportingJob> logger,
                                 IConfiguration                config,
                                 DiscordSocketClient           client,
-                                QueueService                  queue,
                                 ForecastService               forecast)
     {
         _logger       = logger;
         _client       = client;
-        _queue        = queue;
         _forecast     = forecast;
         _destinations = config.GetSection("ForecastDestination").Get<ForecastDestination[]>();
     }
@@ -39,7 +36,7 @@ public class ForecastReportingJob : IJob
             var channelId = dest.ChannelId;
             var lat       = dest.Latitude;
             var lon       = dest.Longitude;
-            var channel   = await _client.GetChannelAsync(channelId) as IMessageChannel;
+            var channel   = await _client.GetChannelAsync(channelId) as SocketTextChannel;
             if (channel == null)
             {
                 _logger.LogError("Could not find channel by ID {Id}", channelId);
@@ -56,12 +53,14 @@ public class ForecastReportingJob : IJob
                         .AddField("At a glance", report.ShortForecast)
                         .WithTimestamp(DateTimeOffset.Now);
 
-            await _queue.EnqueueActionAsync(async () =>
-            {
-                await channel.SendMessageAsync(embed: embed.Build());
+            await channel.SendMessageAsync(embed: embed.Build());
                 
-                _logger.LogInformation("Reported forecast for {Lat},{Lon}", dest.Latitude, dest.Longitude);
-            });
+            _logger.LogInformation("Reported forecast for {Lat},{Lon}", dest.Latitude, dest.Longitude);
+
+            if (_destinations.Count > 1)
+            {
+                await Task.Delay(500, cancelToken);
+            }
         }
     }
     #endregion

@@ -2,7 +2,6 @@
 using WeatherGoat.Models;
 using WeatherGoat.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace WeatherGoat.Services;
 
@@ -18,7 +17,7 @@ public class ForecastService : IDisposable
     {
         _logger       = logger;
         _scopeFactory = scopeFactory;
-        _http         = httpFactory.CreateClient("core");
+        _http         = httpFactory.CreateClient("NWS");
     }
 
     public async Task<ForecastReport> GetCurrentForecastReportAsync(string lat, string lon, CancellationToken cancelToken)
@@ -77,7 +76,7 @@ public class ForecastService : IDisposable
 
             _logger.LogDebug("Requesting coordinate info from API");
 
-            var endpointUrl = $"https://api.weather.gov/points/{latitude},{longitude}";
+            var endpointUrl = $"/points/{latitude},{longitude}";
             var res         = await _http.GetAsync(endpointUrl, ct);
             if (!res.IsSuccessStatusCode)
             {

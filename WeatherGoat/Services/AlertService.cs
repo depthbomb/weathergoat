@@ -10,20 +10,20 @@ public class AlertService : IDisposable
     public AlertService(ILogger<AlertService> logger, IHttpClientFactory httpFactory)
     {
         _logger = logger;
-        _http   = httpFactory.CreateClient("core");
+        _http   = httpFactory.CreateClient("NWS");
     }
 
-    public async Task<AlertReport?> GetAlertForZoneAsync(string zoneId, CancellationToken cancelToken)
+    public async Task<AlertReport> GetAlertForZoneAsync(string zoneId, CancellationToken cancelToken)
     {
         _logger.LogDebug("Fetching alerts for {Zone}", zoneId);
         
-        var res = await _http.GetAsync($"https://api.weather.gov/alerts/active/zone/{zoneId}", cancelToken);
+        var res = await _http.GetAsync($"/alerts/active/zone/{zoneId}", cancelToken);
             
         res.EnsureSuccessStatusCode();
 
         var json = await res.Content.ReadAsStringAsync(cancelToken);
         var data = JsonSerializer.Deserialize<AlertCollectionGeoJson>(json);
-        if (!data.Features.Any())
+        if (data == null || !data.Features.Any())
         {
             // Since the return of this method is nullable, it should be clear what returning null means. In this case
             // null means that there aren't any alerts to be found. All other responsibilities (tests, already-reported

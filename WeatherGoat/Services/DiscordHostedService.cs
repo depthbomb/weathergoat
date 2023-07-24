@@ -6,17 +6,17 @@ using WeatherGoat.Shared.Extensions;
 
 namespace WeatherGoat.Services;
 
-public class DiscordService : IHostedService, IDisposable
+public class DiscordHostedService : IHostedService, IDisposable
 {
     private Timer _activityUpdateTimer;
 
-    private readonly ILogger<DiscordService>  _logger;
-    private readonly IHostApplicationLifetime _lifetime;
-    private readonly DiscordSocketClient      _client;
-    private readonly DateTime                 _startTime;
+    private readonly ILogger<DiscordHostedService> _logger;
+    private readonly IHostApplicationLifetime      _lifetime;
+    private readonly DiscordSocketClient           _client;
+    private readonly DateTime                      _startTime;
 
-    public DiscordService(
-        ILogger<DiscordService> logger,
+    public DiscordHostedService(
+        ILogger<DiscordHostedService> logger,
         IHostApplicationLifetime lifetime,
         DiscordSocketClient client)
     {
@@ -62,7 +62,7 @@ public class DiscordService : IHostedService, IDisposable
     {
         _logger.LogInformation("Stopping bot");
 
-        _activityUpdateTimer?.Change(Timeout.Infinite, 0);
+        _activityUpdateTimer.Change(Timeout.Infinite, 0);
         
         await _client.StopAsync();
         await _client.LogoutAsync();
@@ -77,7 +77,7 @@ public class DiscordService : IHostedService, IDisposable
         _client.Ready          -= ClientOnReady;
         _client.Disconnected   -= ClientOnDisconnected;
         
-        _activityUpdateTimer?.Dispose();
+        _activityUpdateTimer.Dispose();
     }
     #endregion
     
@@ -89,8 +89,10 @@ public class DiscordService : IHostedService, IDisposable
 
         if (!message.IsNullOrEmpty())
         {
+            // ReSharper disable TemplateIsNotCompileTimeConstantProblem
             switch (level)
             {
+                
                 case LogSeverity.Critical:
                     _logger.LogCritical(message);
                     break;
@@ -111,6 +113,7 @@ public class DiscordService : IHostedService, IDisposable
                     _logger.LogTrace(message);
                     break;
             }
+            // ReSharper enable TemplateIsNotCompileTimeConstantProblem
         }
         
         return Task.CompletedTask;

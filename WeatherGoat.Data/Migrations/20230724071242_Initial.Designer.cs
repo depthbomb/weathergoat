@@ -11,14 +11,14 @@ using WeatherGoat.Data;
 namespace WeatherGoat.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20221014061149_Initial")]
+    [Migration("20230724071242_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.0-rc.2.22472.11");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.0-preview.6.23329.4");
 
             modelBuilder.Entity("WeatherGoat.Data.Entities.CoordinateInfo", b =>
                 {

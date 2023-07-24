@@ -6,7 +6,6 @@ using WeatherGoat.Models;
 using WeatherGoat.Services;
 using WeatherGoat.Data.Entities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace WeatherGoat.Jobs;
 
@@ -15,7 +14,6 @@ public class AlertReportingJob : IJob
     private readonly ILogger<AlertReportingJob>      _logger;
     private readonly IServiceScopeFactory            _scopeFactory;
     private readonly DiscordSocketClient             _client;
-    private readonly QueueService                    _queue;
     private readonly AlertService                    _alert;
     private readonly IReadOnlyList<AlertDestination> _destinations;
 
@@ -23,13 +21,11 @@ public class AlertReportingJob : IJob
                              IConfiguration             config,
                              IServiceScopeFactory       scopeFactory,
                              DiscordSocketClient        client,
-                             QueueService               queue,
                              AlertService               alert)
     {
         _logger       = logger;
         _scopeFactory = scopeFactory;
         _client       = client;
-        _queue        = queue;
         _alert        = alert;
         _destinations = config.GetSection("AlertDestination").Get<AlertDestination[]>();
     }
@@ -102,19 +98,21 @@ public class AlertReportingJob : IJob
                     embed.AddField("Instructions", alertInstructions);
                 }
 
-                await _queue.EnqueueActionAsync(async () =>
+                await channel.SendMessageAsync(embed: embed.Build());
+
+                _logger.LogInformation("Reported alert {AlertId} to {ChannelId}", alertId, channelId);
+
+                await db.Alerts.AddAsync(new SentAlert
                 {
-                    await channel.SendMessageAsync(embed: embed.Build());
+                    AlertId = alertId
+                }, cancelToken);
 
-                    _logger.LogInformation("Reported alert {AlertId} to {ChannelId}", alertId, channelId);
+                await db.SaveChangesAsync(cancelToken);
 
-                    await db.Alerts.AddAsync(new SentAlert
-                    {
-                        AlertId = alertId
-                    }, cancelToken);
-
-                    await db.SaveChangesAsync(cancelToken);
-                });
+                if (_destinations.Count > 1)
+                {
+                    await Task.Delay(500, cancelToken);
+                }
             }
         }
     }

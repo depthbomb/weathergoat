@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-using WeatherGoat.Data.Entities;
+﻿using WeatherGoat.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace WeatherGoat.Data;
 
