@@ -7,4 +7,6 @@ public record RelativeLocation
 	
     [JsonPropertyName("state")]
     public string State { get; set; }
+
+    public string CityAndState => $"{City}, {State}";
 }

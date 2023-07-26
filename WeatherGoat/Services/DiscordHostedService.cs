@@ -48,7 +48,7 @@ public class DiscordHostedService : IHostedService, IDisposable
                 await _client.LoginAsync(TokenType.Bot, token);
                 await _client.StartAsync();
                 
-                _activityUpdateTimer = new Timer(UpdateActivityAsync, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15));
+                _activityUpdateTimer = new Timer(UpdateActivityAsync, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(15));
             }
             catch (Exception e)
             {
@@ -64,7 +64,7 @@ public class DiscordHostedService : IHostedService, IDisposable
 
         _activityUpdateTimer.Change(Timeout.Infinite, 0);
         
-        await _client.StopAsync();
+        await _client.SetStatusAsync(UserStatus.Invisible);
         await _client.LogoutAsync();
         await _client.DisposeAsync();
     }
@@ -138,6 +138,6 @@ public class DiscordHostedService : IHostedService, IDisposable
     private async void UpdateActivityAsync(object state)
     {
         var uptime = DateTime.Now - _startTime;
-        await _client.SetActivityAsync(new Game($"the weather for {uptime.Humanize()}", ActivityType.Watching));
+        await _client.SetActivityAsync(new Game($"the weather for {uptime.Humanize(2)}", ActivityType.Watching));
     }
 }

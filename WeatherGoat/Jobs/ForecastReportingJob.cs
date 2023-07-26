@@ -1,6 +1,7 @@
 ﻿using Quartz;
 using Discord;
 using Discord.WebSocket;
+using WeatherGoat.Models;
 using WeatherGoat.Services;
 using Microsoft.Extensions.Configuration;
 
@@ -8,20 +9,20 @@ namespace WeatherGoat.Jobs;
 
 public class ForecastReportingJob : IJob
 {
-    private readonly ILogger<ForecastReportingJob>      _logger;
-    private readonly DiscordSocketClient                _client;
-    private readonly ForecastService                    _forecast;
-    private readonly IReadOnlyList<ForecastDestination> _destinations;
+    private readonly ILogger<ForecastReportingJob> _logger;
+    private readonly DiscordSocketClient           _client;
+    private readonly ForecastService               _forecast;
+    private readonly IReadOnlyList<ReportLocation> _locations;
 
     public ForecastReportingJob(ILogger<ForecastReportingJob> logger,
                                 IConfiguration                config,
                                 DiscordSocketClient           client,
                                 ForecastService               forecast)
     {
-        _logger       = logger;
-        _client       = client;
-        _forecast     = forecast;
-        _destinations = config.GetSection("ForecastDestination").Get<ForecastDestination[]>();
+        _logger    = logger;
+        _client    = client;
+        _forecast  = forecast;
+        _locations = config.GetSection("ReportLocation").Get<ReportLocation[]>();
     }
     
     #region Implementation of IJob
@@ -31,11 +32,16 @@ public class ForecastReportingJob : IJob
         
         var cancelToken = context.CancellationToken;
         
-        foreach (var dest in _destinations)
+        foreach (var loc in _locations)
         {
-            var channelId = dest.ChannelId;
-            var lat       = dest.Latitude;
-            var lon       = dest.Longitude;
+            if (!loc.ReportForecast)
+            {
+                continue;
+            }
+            
+            var channelId = loc.ForecastChannel;
+            var lat       = loc.Latitude;
+            var lon       = loc.Longitude;
             var channel   = await _client.GetChannelAsync(channelId) as SocketTextChannel;
             if (channel == null)
             {
@@ -49,27 +55,19 @@ public class ForecastReportingJob : IJob
                         .WithColor(Color.Blue)
                         .WithThumbnailUrl(report.Icon)
                         .WithDescription(report.DetailedForecast)
-                        .WithImageUrl($"{dest.RadarImage}?{Guid.NewGuid()}")
+                        .WithImageUrl($"{report.RadarImageUrl}?{Guid.NewGuid()}")
                         .AddField("At a glance", report.ShortForecast)
                         .WithTimestamp(DateTimeOffset.Now);
 
             await channel.SendMessageAsync(embed: embed.Build());
                 
-            _logger.LogInformation("Reported forecast for {Lat},{Lon}", dest.Latitude, dest.Longitude);
+            _logger.LogInformation("Reported forecast for {Lat},{Lon}", loc.Latitude, loc.Longitude);
 
-            if (_destinations.Count > 1)
+            if (_locations.Count > 1)
             {
                 await Task.Delay(500, cancelToken);
             }
         }
     }
     #endregion
-
-    private record ForecastDestination
-    {
-        public ulong  ChannelId  { get; set; }
-        public string Latitude   { get; set; }
-        public string Longitude  { get; set; }
-        public string RadarImage { get; set; }
-    }
 }

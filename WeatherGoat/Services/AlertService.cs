@@ -5,19 +5,22 @@ namespace WeatherGoat.Services;
 public class AlertService : IDisposable
 {
     private readonly ILogger<AlertService> _logger;
+    private readonly LocationService       _locations;
     private readonly HttpClient            _http;
     
-    public AlertService(ILogger<AlertService> logger, IHttpClientFactory httpFactory)
+    public AlertService(ILogger<AlertService> logger, IHttpClientFactory httpFactory, LocationService locations)
     {
-        _logger = logger;
-        _http   = httpFactory.CreateClient("NWS");
+        _logger    = logger;
+        _locations = locations;
+        _http      = httpFactory.CreateClient("NWS");
     }
 
-    public async Task<AlertReport> GetAlertForZoneAsync(string zoneId, CancellationToken cancelToken)
+    public async Task<AlertReport> GetAlertsForLocationAsync(string latitude, string longitude, CancellationToken cancelToken)
     {
-        _logger.LogDebug("Fetching alerts for {Zone}", zoneId);
-        
-        var res = await _http.GetAsync($"/alerts/active/zone/{zoneId}", cancelToken);
+        _logger.LogDebug("Fetching alerts for {Lat},{Lon}", latitude, longitude);
+
+        var coordinateInfo = await _locations.GetLocationInfoAsync(latitude, longitude, cancelToken);
+        var res            = await _http.GetAsync($"/alerts/active/zone/{coordinateInfo.ZoneId}", cancelToken);
             
         res.EnsureSuccessStatusCode();
 
@@ -44,7 +47,8 @@ public class AlertService : IDisposable
             Certainty       = alert.Certainty,
             Headline        = alert.Headline,
             Description     = alert.Description,
-            Instructions    = alert.Instructions
+            Instructions    = alert.Instructions,
+            RadarImageUrl   = coordinateInfo.RadarImageUrl
         };
     }
     

@@ -19,7 +19,8 @@ public static class ServiceCollectionExtensions
         });
 
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
-        services.AddSingleton<AlertService>()
+        services.AddSingleton<LocationService>()
+                .AddSingleton<AlertService>()
                 .AddSingleton<ForecastService>();
     
     public static void AddWeatherGoatHostedServices(this IServiceCollection services) =>

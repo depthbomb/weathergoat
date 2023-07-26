@@ -11,11 +11,11 @@ namespace WeatherGoat.Jobs;
 
 public class AlertReportingJob : IJob
 {
-    private readonly ILogger<AlertReportingJob>      _logger;
-    private readonly IServiceScopeFactory            _scopeFactory;
-    private readonly DiscordSocketClient             _client;
-    private readonly AlertService                    _alert;
-    private readonly IReadOnlyList<AlertDestination> _destinations;
+    private readonly ILogger<AlertReportingJob>    _logger;
+    private readonly IServiceScopeFactory          _scopeFactory;
+    private readonly DiscordSocketClient           _client;
+    private readonly AlertService                  _alert;
+    private readonly IReadOnlyList<ReportLocation> _locations;
 
     public AlertReportingJob(ILogger<AlertReportingJob> logger,
                              IConfiguration             config,
@@ -27,9 +27,9 @@ public class AlertReportingJob : IJob
         _scopeFactory = scopeFactory;
         _client       = client;
         _alert        = alert;
-        _destinations = config.GetSection("AlertDestination").Get<AlertDestination[]>();
+        _locations    = config.GetSection("ReportLocation").Get<ReportLocation[]>();
     }
-    
+
     #region Implementation of IJob
     public async Task Execute(IJobExecutionContext context)
     {
@@ -40,31 +40,33 @@ public class AlertReportingJob : IJob
             
             _logger.LogDebug("Checking alerts");
 
-            foreach (var dest in _destinations)
+            foreach (var loc in _locations)
             {
-                var channelId = dest.ChannelId;
-                var zone      = dest.Zone;
-                var imageUrl  = dest.RadarImage;
-
+                if (!loc.ReportAlerts)
+                {
+                    continue;
+                }
+                
+                var channelId = loc.AlertChannel;
                 if (await _client.GetChannelAsync(channelId) is not IMessageChannel channel)
                 {
                     _logger.LogError("Could not find channel by ID {Id}", channelId);
                     continue;
                 }
 
-                var alert = await _alert.GetAlertForZoneAsync(zone, cancelToken);
+                var alert = await _alert.GetAlertsForLocationAsync(loc.Latitude, loc.Longitude, cancelToken);
                 if (alert == null)
                 {
-                    _logger.LogInformation("No active alerts for {Zone}", zone);
+                    _logger.LogInformation("No active alerts for {Coordinates}", loc.Coordinates);
                     continue;
                 }
                 
                 if (alert.Status is AlertStatus.Test or AlertStatus.Draft)
                 {
-                    _logger.LogInformation("Current active alert for {Zone} is a test or draft, skipping", zone);
+                    _logger.LogInformation("Current active alert for {Coordinates} is a test or draft, skipping", loc.Coordinates);
                     continue;
                 }
-                
+
                 var alertId           = alert.Id;
                 var alertEvent        = alert.Event;
                 var alertAreas        = alert.AreaDescription;
@@ -85,7 +87,7 @@ public class AlertReportingJob : IJob
                 var embed = new EmbedBuilder()
                             .WithTitle(alertHeadline)
                             .WithDescription($"```md\n{alertDescription}```")
-                            .WithImageUrl($"{imageUrl}?{Guid.NewGuid()}")
+                            .WithImageUrl($"{alert.RadarImageUrl}?{Guid.NewGuid()}")
                             .WithColor(GetSeverityColor(alertSeverity))
                             .WithFooter(alertEvent)
                             .AddField("Certainty", alertCertainty.ToString(), true)
@@ -109,7 +111,7 @@ public class AlertReportingJob : IJob
 
                 await db.SaveChangesAsync(cancelToken);
 
-                if (_destinations.Count > 1)
+                if (_locations.Count > 1)
                 {
                     await Task.Delay(500, cancelToken);
                 }
@@ -127,11 +129,4 @@ public class AlertReportingJob : IJob
             AlertSeverity.Minor    => Color.Gold,
             _                      => Color.Blue
         };
-
-    private record AlertDestination
-    {
-        public ulong  ChannelId  { get; set; }
-        public string Zone       { get; set; }
-        public string RadarImage { get; set; }
-    }
 }

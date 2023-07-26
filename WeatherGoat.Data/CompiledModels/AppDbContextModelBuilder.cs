@@ -34,6 +34,11 @@ namespace WeatherGoat.Data.CompiledModels
             var defaultTableMappings = new List<TableMappingBase<ColumnMappingBase>>();
             coordinateInfo.SetRuntimeAnnotation("Relational:DefaultMappings", defaultTableMappings);
             var weatherGoatDataEntitiesCoordinateInfoTableBase = new TableBase("WeatherGoat.Data.Entities.CoordinateInfo", null, relationalModel);
+            var countyIdColumnBase = new ColumnBase<ColumnMappingBase>("CountyId", "TEXT", weatherGoatDataEntitiesCoordinateInfoTableBase)
+            {
+                IsNullable = true
+            };
+            weatherGoatDataEntitiesCoordinateInfoTableBase.Columns.Add("CountyId", countyIdColumnBase);
             var forecastUrlColumnBase = new ColumnBase<ColumnMappingBase>("ForecastUrl", "TEXT", weatherGoatDataEntitiesCoordinateInfoTableBase)
             {
                 IsNullable = true
@@ -56,21 +61,39 @@ namespace WeatherGoat.Data.CompiledModels
                 IsNullable = true
             };
             weatherGoatDataEntitiesCoordinateInfoTableBase.Columns.Add("Longitude", longitudeColumnBase);
+            var radarImageUrlColumnBase = new ColumnBase<ColumnMappingBase>("RadarImageUrl", "TEXT", weatherGoatDataEntitiesCoordinateInfoTableBase)
+            {
+                IsNullable = true
+            };
+            weatherGoatDataEntitiesCoordinateInfoTableBase.Columns.Add("RadarImageUrl", radarImageUrlColumnBase);
+            var zoneIdColumnBase = new ColumnBase<ColumnMappingBase>("ZoneId", "TEXT", weatherGoatDataEntitiesCoordinateInfoTableBase)
+            {
+                IsNullable = true
+            };
+            weatherGoatDataEntitiesCoordinateInfoTableBase.Columns.Add("ZoneId", zoneIdColumnBase);
             relationalModel.DefaultTables.Add("WeatherGoat.Data.Entities.CoordinateInfo", weatherGoatDataEntitiesCoordinateInfoTableBase);
             var weatherGoatDataEntitiesCoordinateInfoMappingBase = new TableMappingBase<ColumnMappingBase>(coordinateInfo, weatherGoatDataEntitiesCoordinateInfoTableBase, true);
             weatherGoatDataEntitiesCoordinateInfoTableBase.AddEntityTypeMapping(weatherGoatDataEntitiesCoordinateInfoMappingBase, false);
             defaultTableMappings.Add(weatherGoatDataEntitiesCoordinateInfoMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("Id")!, coordinateInfo.FindProperty("Id")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("CountyId")!, coordinateInfo.FindProperty("CountyId")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("ForecastUrl")!, coordinateInfo.FindProperty("ForecastUrl")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("Latitude")!, coordinateInfo.FindProperty("Latitude")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("Location")!, coordinateInfo.FindProperty("Location")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("Longitude")!, coordinateInfo.FindProperty("Longitude")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("RadarImageUrl")!, coordinateInfo.FindProperty("RadarImageUrl")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)weatherGoatDataEntitiesCoordinateInfoTableBase.FindColumn("ZoneId")!, coordinateInfo.FindProperty("ZoneId")!, weatherGoatDataEntitiesCoordinateInfoMappingBase);
 
             var tableMappings = new List<TableMapping>();
             coordinateInfo.SetRuntimeAnnotation("Relational:TableMappings", tableMappings);
             var coordinateInfoTable = new Table("CoordinateInfo", null, relationalModel);
             var idColumn = new Column("Id", "TEXT", coordinateInfoTable);
             coordinateInfoTable.Columns.Add("Id", idColumn);
+            var countyIdColumn = new Column("CountyId", "TEXT", coordinateInfoTable)
+            {
+                IsNullable = true
+            };
+            coordinateInfoTable.Columns.Add("CountyId", countyIdColumn);
             var forecastUrlColumn = new Column("ForecastUrl", "TEXT", coordinateInfoTable)
             {
                 IsNullable = true
@@ -91,6 +114,16 @@ namespace WeatherGoat.Data.CompiledModels
                 IsNullable = true
             };
             coordinateInfoTable.Columns.Add("Longitude", longitudeColumn);
+            var radarImageUrlColumn = new Column("RadarImageUrl", "TEXT", coordinateInfoTable)
+            {
+                IsNullable = true
+            };
+            coordinateInfoTable.Columns.Add("RadarImageUrl", radarImageUrlColumn);
+            var zoneIdColumn = new Column("ZoneId", "TEXT", coordinateInfoTable)
+            {
+                IsNullable = true
+            };
+            coordinateInfoTable.Columns.Add("ZoneId", zoneIdColumn);
             var pK_CoordinateInfo = new UniqueConstraint("PK_CoordinateInfo", coordinateInfoTable, new[] { idColumn });
             coordinateInfoTable.PrimaryKey = pK_CoordinateInfo;
             var pK_CoordinateInfoUc = RelationalModel.GetKey(this,
@@ -104,10 +137,13 @@ namespace WeatherGoat.Data.CompiledModels
             coordinateInfoTable.AddEntityTypeMapping(coordinateInfoTableMapping, false);
             tableMappings.Add(coordinateInfoTableMapping);
             RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("Id")!, coordinateInfo.FindProperty("Id")!, coordinateInfoTableMapping);
+            RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("CountyId")!, coordinateInfo.FindProperty("CountyId")!, coordinateInfoTableMapping);
             RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("ForecastUrl")!, coordinateInfo.FindProperty("ForecastUrl")!, coordinateInfoTableMapping);
             RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("Latitude")!, coordinateInfo.FindProperty("Latitude")!, coordinateInfoTableMapping);
             RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("Location")!, coordinateInfo.FindProperty("Location")!, coordinateInfoTableMapping);
             RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("Longitude")!, coordinateInfo.FindProperty("Longitude")!, coordinateInfoTableMapping);
+            RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("RadarImageUrl")!, coordinateInfo.FindProperty("RadarImageUrl")!, coordinateInfoTableMapping);
+            RelationalModel.CreateColumnMapping(coordinateInfoTable.FindColumn("ZoneId")!, coordinateInfo.FindProperty("ZoneId")!, coordinateInfoTableMapping);
 
             var sentAlert = FindEntityType("WeatherGoat.Data.Entities.SentAlert")!;
 

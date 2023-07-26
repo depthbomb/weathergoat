@@ -27,6 +27,13 @@ namespace WeatherGoat.Data.CompiledModels
                 afterSaveBehavior: PropertySaveBehavior.Throw,
                 sentinel: new Guid("00000000-0000-0000-0000-000000000000"));
 
+            var countyId = runtimeEntityType.AddProperty(
+                "CountyId",
+                typeof(string),
+                propertyInfo: typeof(CoordinateInfo).GetProperty("CountyId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(CoordinateInfo).GetField("<CountyId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+
             var forecastUrl = runtimeEntityType.AddProperty(
                 "ForecastUrl",
                 typeof(string),
@@ -53,6 +60,20 @@ namespace WeatherGoat.Data.CompiledModels
                 typeof(string),
                 propertyInfo: typeof(CoordinateInfo).GetProperty("Longitude", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 fieldInfo: typeof(CoordinateInfo).GetField("<Longitude>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+
+            var radarImageUrl = runtimeEntityType.AddProperty(
+                "RadarImageUrl",
+                typeof(string),
+                propertyInfo: typeof(CoordinateInfo).GetProperty("RadarImageUrl", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(CoordinateInfo).GetField("<RadarImageUrl>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+
+            var zoneId = runtimeEntityType.AddProperty(
+                "ZoneId",
+                typeof(string),
+                propertyInfo: typeof(CoordinateInfo).GetProperty("ZoneId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(CoordinateInfo).GetField("<ZoneId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 nullable: true);
 
             var key = runtimeEntityType.AddKey(
