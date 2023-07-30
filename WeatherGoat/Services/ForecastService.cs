@@ -17,16 +17,16 @@ public class ForecastService
         _http      = httpFactory.CreateClient("NWS");
     }
 
-    public async Task<ForecastReport> GetCurrentForecastReportAsync(string lat, string lon, CancellationToken cancelToken)
+    public async Task<ForecastReport> GetCurrentForecastReportAsync(string lat, string lon, CancellationToken ct = default)
     {
         _logger.LogDebug("Request forecast for coordinates {Lat},{Lon}", lat, lon);
         
-        var coordinateInfo = await _locations.GetLocationInfoAsync(lat, lon, cancelToken);
-        var res            = await _http.GetAsync(coordinateInfo.ForecastUrl, cancelToken);
+        var coordinateInfo = await _locations.GetLocationInfoAsync(lat, lon, ct);
+        var res            = await _http.GetAsync(coordinateInfo.ForecastUrl, ct);
 
         res.EnsureSuccessStatusCode();
 
-        var json             = await res.Content.ReadAsStringAsync(cancelToken);
+        var json             = await res.Content.ReadAsStringAsync(ct);
         var data             = JsonSerializer.Deserialize<GridpointForecastGeoJson>(json);
         var periods          = data.Properties.Periods.ToList();
         var forecast         = periods.First();

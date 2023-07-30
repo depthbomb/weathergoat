@@ -1,39 +1,56 @@
 ﻿using Discord;
 using Humanizer;
 using Discord.WebSocket;
+using System.Reflection;
+using Discord.Interactions;
 using Microsoft.Extensions.Hosting;
 using WeatherGoat.Shared.Extensions;
+using Microsoft.Extensions.Configuration;
 
 namespace WeatherGoat.Services;
 
 public class DiscordHostedService : IHostedService, IDisposable
 {
+    private bool  _modulesLoaded;
     private Timer _activityUpdateTimer;
 
     private readonly ILogger<DiscordHostedService> _logger;
+    private readonly IConfiguration                _config;
     private readonly IHostApplicationLifetime      _lifetime;
+    private readonly IServiceProvider              _services;
     private readonly DiscordSocketClient           _client;
+    private readonly InteractionService            _interactions;
+    private readonly CommandsService               _commands;
     private readonly DateTime                      _startTime;
 
     public DiscordHostedService(
         ILogger<DiscordHostedService> logger,
-        IHostApplicationLifetime lifetime,
-        DiscordSocketClient client)
+        IConfiguration                config,
+        IHostApplicationLifetime      lifetime,
+        IServiceProvider              services,
+        DiscordSocketClient           client,
+        InteractionService            interactions,
+        CommandsService               commands)
     {
-        _logger    = logger;
-        _lifetime  = lifetime;
-        _client    = client;
-        _startTime = DateTime.Now;
+        _logger       = logger;
+        _config       = config;
+        _lifetime     = lifetime;
+        _services     = services;
+        _client       = client;
+        _interactions = interactions;
+        _commands     = commands;
+        _startTime    = DateTime.Now;
 
-        _client.Log          += ClientOnLog;
-        _client.Ready        += ClientOnReady;
-        _client.Disconnected += ClientOnDisconnected;
+        _client.Log                += ClientOnLog;
+        _client.Ready              += ClientOnReady;
+        _client.Disconnected       += ClientOnDisconnected;
+        _client.InteractionCreated += ClientOnInteractionCreated;
     }
 
     #region Implementation of IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var token = Environment.GetEnvironmentVariable("TOKEN");
+        var token = Environment.GetEnvironmentVariable("TOKEN") ?? _config.GetValue<string>("token");
         if (string.IsNullOrEmpty(token))
         {
             _logger.LogCritical("Missing bot token");
@@ -121,7 +138,57 @@ public class DiscordHostedService : IHostedService, IDisposable
     
     private async Task ClientOnReady()
     {
+        if (!_modulesLoaded)
+        {
+            try
+            {
+                var modules = await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+                foreach (var module in modules)
+                {
+                    _logger.LogDebug("Module {Name} loaded", module.Name);
+                }
+
+                _modulesLoaded = true;
+
+                var registerCommandsOption = _config.GetValue<string>("register-commands");
+                if (!string.IsNullOrEmpty(registerCommandsOption))
+                {
+                    await _commands.RegisterCommandsAsync(registerCommandsOption == "globally");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error occurred in Ready handler");
+            }
+        }
+        
         await _client.SetStatusAsync(UserStatus.DoNotDisturb);
+    }
+    
+    private async Task ClientOnInteractionCreated(SocketInteraction interaction)
+    {
+        try
+        {
+            _logger.LogInformation("Received interaction");
+
+            if (interaction is SocketSlashCommand)
+            {
+                await interaction.Channel.TriggerTypingAsync();
+            }
+
+            var ctx = new SocketInteractionContext(_client, interaction);
+            await _interactions.ExecuteCommandAsync(ctx, _services);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error in InteractionCreated handler");
+
+            await interaction.RespondAsync("Whoops! It appears you tried to execute a command that I cannot handle. You should report this to my creator.");
+        }
+        finally
+        {
+            _logger.LogInformation("Finished interaction");
+        }
     }
     
     private Task ClientOnDisconnected(Exception e)

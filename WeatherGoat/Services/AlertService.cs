@@ -1,4 +1,5 @@
-﻿using WeatherGoat.Models;
+﻿using Discord;
+using WeatherGoat.Models;
 
 namespace WeatherGoat.Services;
 
@@ -15,41 +16,43 @@ public class AlertService : IDisposable
         _http      = httpFactory.CreateClient("NWS");
     }
 
-    public async Task<AlertReport> GetAlertsForLocationAsync(string latitude, string longitude, CancellationToken cancelToken)
+    public async Task<IReadOnlyList<AlertReport>> GetAlertsForLocationAsync(string latitude, string longitude, CancellationToken ct = default)
     {
         _logger.LogDebug("Fetching alerts for {Lat},{Lon}", latitude, longitude);
 
-        var coordinateInfo = await _locations.GetLocationInfoAsync(latitude, longitude, cancelToken);
-        var res            = await _http.GetAsync($"/alerts/active/zone/{coordinateInfo.ZoneId}", cancelToken);
+        var alertReports   = new List<AlertReport>();
+        var coordinateInfo = await _locations.GetLocationInfoAsync(latitude, longitude, ct);
+        var res            = await _http.GetAsync($"/alerts/active/zone/{coordinateInfo.ZoneId}", ct);
             
         res.EnsureSuccessStatusCode();
 
-        var json = await res.Content.ReadAsStringAsync(cancelToken);
+        var json = await res.Content.ReadAsStringAsync(ct);
         var data = JsonSerializer.Deserialize<AlertCollectionGeoJson>(json);
         if (data == null || !data.Features.Any())
         {
-            // Since the return of this method is nullable, it should be clear what returning null means. In this case
-            // null means that there aren't any alerts to be found. All other responsibilities (tests, already-reported
-            // alerts) should be handled in whatever other services consume this one.
-
-            return null;
+            return alertReports;
+        }
+        
+        foreach (var feature in data.Features)
+        {
+            var alert = feature.Properties;
+            alertReports.Add(new AlertReport
+            {
+                Id              = alert.Id,
+                Status          = alert.Status,
+                Event           = alert.Event,
+                AreaDescription = alert.AreaDescription,
+                Expires         = alert.Expires,
+                Severity        = alert.Severity,
+                Certainty       = alert.Certainty,
+                Headline        = alert.Headline,
+                Description     = alert.Description,
+                Instructions    = alert.Instructions,
+                RadarImageUrl   = coordinateInfo.RadarImageUrl
+            });
         }
 
-        var alert = data.Features.First().Properties;
-        return new AlertReport
-        {
-            Id              = alert.Id,
-            Status          = alert.Status,
-            Event           = alert.Event,
-            AreaDescription = alert.AreaDescription,
-            Expires         = alert.Expires,
-            Severity        = alert.Severity,
-            Certainty       = alert.Certainty,
-            Headline        = alert.Headline,
-            Description     = alert.Description,
-            Instructions    = alert.Instructions,
-            RadarImageUrl   = coordinateInfo.RadarImageUrl
-        };
+        return alertReports.AsReadOnly();
     }
     
     #region IDisposable
@@ -58,4 +61,14 @@ public class AlertService : IDisposable
         _http.Dispose();
     }
     #endregion
+    
+    public Color GetSeverityColor(AlertSeverity severity) =>
+        severity switch
+        {
+            AlertSeverity.Extreme  => Color.DarkRed,
+            AlertSeverity.Severe   => Color.Red,
+            AlertSeverity.Moderate => Color.Orange,
+            AlertSeverity.Minor    => Color.Gold,
+            _                      => Color.Blue
+        };
 }

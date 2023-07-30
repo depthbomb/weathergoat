@@ -15,18 +15,21 @@ public class AlertReportingJob : IJob
     private readonly IServiceScopeFactory          _scopeFactory;
     private readonly DiscordSocketClient           _client;
     private readonly AlertService                  _alert;
+    private readonly WebhookService                _webhooks;
     private readonly IReadOnlyList<ReportLocation> _locations;
 
     public AlertReportingJob(ILogger<AlertReportingJob> logger,
                              IConfiguration             config,
                              IServiceScopeFactory       scopeFactory,
                              DiscordSocketClient        client,
-                             AlertService               alert)
+                             AlertService               alert,
+                             WebhookService             webhooks)
     {
         _logger       = logger;
         _scopeFactory = scopeFactory;
         _client       = client;
         _alert        = alert;
+        _webhooks     = webhooks;
         _locations    = config.GetSection("ReportLocation").Get<ReportLocation[]>();
     }
 
@@ -54,79 +57,56 @@ public class AlertReportingJob : IJob
                     continue;
                 }
 
-                var alert = await _alert.GetAlertsForLocationAsync(loc.Latitude, loc.Longitude, cancelToken);
-                if (alert == null)
+                var alerts = await _alert.GetAlertsForLocationAsync(loc.Latitude, loc.Longitude, cancelToken);
+                if (alerts.Count == 0)
                 {
-                    _logger.LogInformation("No active alerts for {Coordinates}", loc.Coordinates);
+                    _logger.LogDebug("No active alerts for {Coordinates}", loc.Coordinates);
                     continue;
                 }
                 
-                if (alert.Status is AlertStatus.Test or AlertStatus.Draft)
+                foreach (var alert in alerts)
                 {
-                    _logger.LogInformation("Current active alert for {Coordinates} is a test or draft, skipping", loc.Coordinates);
-                    continue;
-                }
+                    if (alert.Status is AlertStatus.Test or AlertStatus.Draft)
+                    {
+                        _logger.LogInformation("Current active alert for {Coordinates} is a test or draft, skipping", loc.Coordinates);
+                        continue;
+                    }
 
-                var alertId           = alert.Id;
-                var alertEvent        = alert.Event;
-                var alertAreas        = alert.AreaDescription;
-                var alertExpires      = alert.Expires;
-                var alertSeverity     = alert.Severity;
-                var alertCertainty    = alert.Certainty;
-                var alertHeadline     = alert.Headline;
-                var alertDescription  = alert.Description;
-                var alertInstructions = alert.Instructions;
+                    var alertReported = await db.HasAlertBeenReportedAsync(alert.Id);
+                    if (alertReported)
+                    {
+                        _logger.LogDebug("Alert {Id} has already been reported", alert.Id);
+                        continue;
+                    }
 
-                var alertReported = await db.HasAlertBeenReportedAsync(alertId);
-                if (alertReported)
-                {
-                    _logger.LogDebug("Alert {Id} has already been broadcast", alertId);
-                    continue;
-                }
+                    var embed = new EmbedBuilder()
+                                .WithTitle("🚨 " + alert.Headline)
+                                .WithDescription($"```md\n{alert.Description}```")
+                                .WithImageUrl($"{alert.RadarImageUrl}?{Guid.NewGuid()}")
+                                .WithColor(_alert.GetSeverityColor(alert.Severity))
+                                .WithFooter(alert.Event)
+                                .AddField("Certainty",       alert.Certainty.ToString(),  true)
+                                .AddField("Effective Until", alert.Expires.ToString("g"), true)
+                                .AddField("Affected Areas",  alert.AreaDescription)
+                                .WithCurrentTimestamp();
 
-                var embed = new EmbedBuilder()
-                            .WithTitle(alertHeadline)
-                            .WithDescription($"```md\n{alertDescription}```")
-                            .WithImageUrl($"{alert.RadarImageUrl}?{Guid.NewGuid()}")
-                            .WithColor(GetSeverityColor(alertSeverity))
-                            .WithFooter(alertEvent)
-                            .AddField("Certainty", alertCertainty.ToString(), true)
-                            .AddField("Effective Until", alertExpires.ToString("g"), true)
-                            .AddField("Affected Areas", alertAreas)
-                            .WithCurrentTimestamp();
-
-                if (alertInstructions != null)
-                {
-                    embed.AddField("Instructions", alertInstructions);
-                }
-
-                await channel.SendMessageAsync(embed: embed.Build());
-
-                _logger.LogInformation("Reported alert {AlertId} to {ChannelId}", alertId, channelId);
-
-                await db.Alerts.AddAsync(new SentAlert
-                {
-                    AlertId = alertId
-                }, cancelToken);
-
-                await db.SaveChangesAsync(cancelToken);
-
-                if (_locations.Count > 1)
-                {
-                    await Task.Delay(500, cancelToken);
+                    if (alert.Instructions != null)
+                    {
+                        embed.AddField("Instructions", alert.Instructions);
+                    }
+                    
+                    await _webhooks.SendWebhookMessageAsync(channel as ITextChannel, null, embed.Build());
+                    
+                    _logger.LogInformation("Reported alert {Id} to {ChannelId}", alert.Id, channelId);
+                    
+                    await db.Alerts.AddAsync(new SentAlert
+                    {
+                        AlertId = alert.Id
+                    }, cancelToken);
+                    await db.SaveChangesAsync(cancelToken);
                 }
             }
         }
     }
     #endregion
-    
-    private static Color GetSeverityColor(AlertSeverity severity) =>
-        severity switch
-        {
-            AlertSeverity.Extreme  => Color.DarkRed,
-            AlertSeverity.Severe   => Color.Red,
-            AlertSeverity.Moderate => Color.Orange,
-            AlertSeverity.Minor    => Color.Gold,
-            _                      => Color.Blue
-        };
 }

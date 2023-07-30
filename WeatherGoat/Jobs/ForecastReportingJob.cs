@@ -51,7 +51,7 @@ public class ForecastReportingJob : IJob
 
             var report = await _forecast.GetCurrentForecastReportAsync(lat, lon, cancelToken);
             var embed = new EmbedBuilder()
-                        .WithTitle($"{report.Time}'s Forecast for {report.Location}")
+                        .WithTitle($"⛅ {report.Time}'s Forecast for {report.Location}")
                         .WithColor(Color.Blue)
                         .WithThumbnailUrl(report.Icon)
                         .WithDescription(report.DetailedForecast)
@@ -60,13 +60,8 @@ public class ForecastReportingJob : IJob
                         .WithTimestamp(DateTimeOffset.Now);
 
             await channel.SendMessageAsync(embed: embed.Build());
-                
-            _logger.LogInformation("Reported forecast for {Lat},{Lon}", loc.Latitude, loc.Longitude);
 
-            if (_locations.Count > 1)
-            {
-                await Task.Delay(500, cancelToken);
-            }
+            _logger.LogInformation("Reported forecast for {Lat},{Lon}", loc.Latitude, loc.Longitude);
         }
     }
     #endregion

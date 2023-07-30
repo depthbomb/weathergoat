@@ -27,7 +27,7 @@ public class WeatherGoat
             AlwaysDownloadUsers           = false,
             AlwaysResolveStickers         = false,
             AlwaysDownloadDefaultStickers = false,
-            MessageCacheSize              = 5_000,
+            MessageCacheSize              = 500,
             GatewayIntents = GatewayIntents.Guilds       |
                              GatewayIntents.GuildMembers |
                              GatewayIntents.GuildMessages,
@@ -46,6 +46,15 @@ public class WeatherGoat
     {
         using var host = Host.CreateDefaultBuilder(_args)
                              .UseConsoleLifetime()
+                             .ConfigureAppConfiguration((_, config) =>
+                             {
+                                 config.AddTomlFile("Config.toml");
+
+                                 if (_args.Length > 0)
+                                 {
+                                     config.AddCommandLine(_args);
+                                 }
+                             })
                              .UseSerilog((_, config) =>
                              {
                                  #if DEBUG
@@ -78,15 +87,6 @@ public class WeatherGoat
                                      rollOnFileSizeLimit: true,
                                      flushToDiskInterval: TimeSpan.FromSeconds(1)
                                  );
-                             })
-                             .ConfigureAppConfiguration((_, config) =>
-                             {
-                                 config.AddTomlFile("Config.toml");
-
-                                 if (_args.Length > 0)
-                                 {
-                                     config.AddCommandLine(_args);
-                                 }
                              })
                              .ConfigureServices((_, services) =>
                              {

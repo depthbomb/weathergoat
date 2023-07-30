@@ -2,8 +2,7 @@
 
 public static class Paths
 {
-    private static readonly string StoreRoot = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-    public static readonly  string Store     = Path.Combine(StoreRoot, ".weathergoat");
-    public static readonly  string Logs      = Path.Combine(Store, "Logs");
-    public static readonly  string Data      = Path.Combine(Store, "Data");
+    private static readonly string Root = Path.GetFullPath(".");
+    public static readonly  string Logs = Path.Combine(Root, "Logs");
+    public static readonly  string Data = Path.Combine(Root, "Data");
 }

@@ -21,17 +21,27 @@ public static class ServiceCollectionExtensions
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
         services.AddSingleton<LocationService>()
                 .AddSingleton<AlertService>()
-                .AddSingleton<ForecastService>();
+                .AddSingleton<ForecastService>()
+                .AddSingleton<CommandsService>()
+                .AddSingleton<WebhookService>();
     
     public static void AddWeatherGoatHostedServices(this IServiceCollection services) =>
-        services.AddHostedService<DiscordHostedService>();
+        services.AddHostedService<DiscordHostedService>()
+                .AddHostedService<SlashCommandInteractionHostedService>();
 
-    public static void AddWeatherGoatHttpClients(this IServiceCollection services) =>
+    public static void AddWeatherGoatHttpClients(this IServiceCollection services)
+    {
         services.AddHttpClient("NWS", client =>
         {
             client.BaseAddress = new Uri("https://api.weather.gov");
             client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, Strings.UserAgent);
         });
+
+        services.AddHttpClient("Bot", client =>
+        {
+            client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, Strings.UserAgent);
+        });
+    }
 
     public static void AddWeatherGoatJobs(this IServiceCollection services) =>
         services.Configure<QuartzOptions>(o => o.SchedulerName = "WeatherGoat Scheduler")
