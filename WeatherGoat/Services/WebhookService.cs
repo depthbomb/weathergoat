@@ -10,16 +10,13 @@ public class WebhookService
     
     private readonly ILogger<WebhookService> _logger;
     private readonly DiscordSocketClient     _client;
-    private readonly HttpClient              _http;
 
     public WebhookService(
         ILogger<WebhookService> logger,
-        DiscordSocketClient     client,
-        IHttpClientFactory      httpFactory)
+        DiscordSocketClient     client)
     {
         _logger = logger;
         _client = client;
-        _http   = httpFactory.CreateClient("Bot");
     }
 
     public async Task<DiscordWebhookClient> GetWebhookAsync(ITextChannel channel)
@@ -36,8 +33,7 @@ public class WebhookService
 
     public async Task<DiscordWebhookClient> CreateWebhookAsync(ITextChannel channel)
     {
-        var avatar  = await GetClientAvatarStreamAsync();
-        var webhook = await channel.CreateWebhookAsync(WebhookName, avatar);
+        var webhook = await channel.CreateWebhookAsync(WebhookName);
         
         _logger.LogInformation("Created webhook {Id} in channel {ChannelId}", webhook.Id, channel.Id);
 
@@ -57,13 +53,5 @@ public class WebhookService
             username: _client.CurrentUser.Username,
             avatarUrl: _client.CurrentUser.GetAvatarUrl(ImageFormat.WebP, 1024)
         );
-    }
-
-    private async Task<Stream> GetClientAvatarStreamAsync()
-    {
-        var avatarUrl = _client.CurrentUser.GetAvatarUrl(ImageFormat.WebP, 1024);
-        var res       = await _http.GetAsync(avatarUrl);
-
-        return await res.Content.ReadAsStreamAsync();
     }
 }
