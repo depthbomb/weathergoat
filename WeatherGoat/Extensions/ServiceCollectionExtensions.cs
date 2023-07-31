@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         {
             client.BaseAddress = new Uri("https://api.weather.gov");
             client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, Strings.UserAgent);
+            client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/ld+json");
         });
 
         services.AddHttpClient("Bot", client =>

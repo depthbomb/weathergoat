@@ -3,6 +3,7 @@
 public record AlertReport
 {
     public string         Id              { get; set; }
+    public bool           IsUpdate        { get; set; }
     public AlertStatus    Status          { get; set; }
     public string         Event           { get; set; }
     public string         AreaDescription { get; set; }

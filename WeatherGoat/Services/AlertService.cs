@@ -16,29 +16,32 @@ public class AlertService : IDisposable
         _http      = httpFactory.CreateClient("NWS");
     }
 
-    public async Task<IReadOnlyList<AlertReport>> GetAlertsForLocationAsync(string latitude, string longitude, CancellationToken ct = default)
+    public async Task<IReadOnlyList<AlertReport>> GetAlertsForLocationAsync(
+        string            latitude,
+        string            longitude,
+        CancellationToken ct = default)
     {
         _logger.LogDebug("Fetching alerts for {Lat},{Lon}", latitude, longitude);
 
         var alertReports   = new List<AlertReport>();
         var coordinateInfo = await _locations.GetLocationInfoAsync(latitude, longitude, ct);
         var res            = await _http.GetAsync($"/alerts/active/zone/{coordinateInfo.ZoneId}", ct);
-            
+
         res.EnsureSuccessStatusCode();
 
         var json = await res.Content.ReadAsStringAsync(ct);
-        var data = JsonSerializer.Deserialize<AlertCollectionGeoJson>(json);
-        if (data == null || !data.Features.Any())
+        var data = JsonSerializer.Deserialize<AlertCollectionJsonLd>(json);
+        if (data == null || data.Alerts.Count == 0)
         {
             return alertReports;
         }
-        
-        foreach (var feature in data.Features)
+
+        foreach (var alert in data.Alerts)
         {
-            var alert = feature.Properties;
             alertReports.Add(new AlertReport
             {
                 Id              = alert.Id,
+                IsUpdate        = alert.MessageType == AlertMessageType.Update,
                 Status          = alert.Status,
                 Event           = alert.Event,
                 AreaDescription = alert.AreaDescription,
@@ -54,14 +57,14 @@ public class AlertService : IDisposable
 
         return alertReports.AsReadOnly();
     }
-    
+
     #region IDisposable
     public void Dispose()
     {
         _http.Dispose();
     }
     #endregion
-    
+
     public Color GetSeverityColor(AlertSeverity severity) =>
         severity switch
         {

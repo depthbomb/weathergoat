@@ -45,12 +45,10 @@ public class LocationService : IDisposable
                 throw new Exception($"Failed to retrieve coordinate info from {endpointUrl} - {res.ReasonPhrase}");
             }
 
-            var json = await res.Content.ReadAsStringAsync(ct);
-
-            var data        = JsonSerializer.Deserialize<PointGeoJson>(json);
-            var point       = data.Properties;
-            var location    = point.RelativeLocation.Properties;
-            var forecastUrl = point.Forecast;
+            var json        = await res.Content.ReadAsStringAsync(ct);
+            var point       = JsonSerializer.Deserialize<PointJsonLd>(json);
+            var location    = point.RelativeLocation;
+            var forecastUrl = point.ForecastUrl;
 
             record = new CoordinateInfo
             {
@@ -58,9 +56,9 @@ public class LocationService : IDisposable
                 Longitude     = longitude,
                 Location      = location.CityAndState,
                 ZoneId        = point.ZoneId,
-                CountyId      = point.CountId,
+                CountyId      = point.CountyId,
                 ForecastUrl   = forecastUrl,
-                RadarImageUrl = point.RadarStationUrl,
+                RadarImageUrl = point.RadarImageLoopUrl,
             };
             
             await db.CoordinateInfo.AddAsync(record, ct);

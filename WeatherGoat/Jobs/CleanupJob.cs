@@ -22,17 +22,16 @@ public class CleanupJob : IJob
     public async Task Execute(IJobExecutionContext context)
     {
         var cancelToken = context.CancellationToken;
-        foreach (ulong channelId in _channels)
+        foreach (var channelId in _channels)
         {
             var chan = await _client.GetChannelAsync(channelId);
             if (chan is not SocketTextChannel channel)
             {
                 continue;
             }
-            
+
             var messages = await channel.GetMessagesAsync().FlattenAsync();
-            
-            _logger.LogInformation("Cleaning up {Count} messages in {Channel}", messages.Count(), channel.Name);
+            _logger.LogInformation("Cleaning up messages in {Channel}", channel.Name);
 
             try
             {

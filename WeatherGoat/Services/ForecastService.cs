@@ -27,9 +27,8 @@ public class ForecastService
         res.EnsureSuccessStatusCode();
 
         var json             = await res.Content.ReadAsStringAsync(ct);
-        var data             = JsonSerializer.Deserialize<GridpointForecastGeoJson>(json);
-        var periods          = data.Properties.Periods.ToList();
-        var forecast         = periods.First();
+        var data             = JsonSerializer.Deserialize<GridpointForecastJsonLd>(json);
+        var forecast         = data.Periods[0];
         var time             = forecast.Name;
         var icon             = forecast.Icon.Replace("medium", "large");
         var shortForecast    = forecast.ShortForecast;
