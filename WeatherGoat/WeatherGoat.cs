@@ -45,6 +45,7 @@ public class WeatherGoat
     public async Task StartAsync()
     {
         using var host = Host.CreateDefaultBuilder(_args)
+                             .UseSystemd()
                              .UseConsoleLifetime()
                              .ConfigureAppConfiguration((_, config) =>
                              {
@@ -76,7 +77,7 @@ public class WeatherGoat
                                  config.WriteTo.Console(
                                      debug ? LogEventLevel.Debug : LogEventLevel.Information,
                                      theme: AnsiConsoleTheme.Code,
-                                     outputTemplate: "{Timestamp:HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                                     outputTemplate: "{Timestamp:HH:mm:ss.fff} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
                                  );
                                  config.WriteTo.File(
                                      Files.Log,

@@ -19,11 +19,11 @@ public static class ServiceCollectionExtensions
         });
 
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
-        services.AddSingleton<LocationService>()
+        services.AddSingleton<DispatcherService>()
+                .AddSingleton<LocationService>()
                 .AddSingleton<AlertService>()
                 .AddSingleton<ForecastService>()
-                .AddSingleton<CommandsService>()
-                .AddSingleton<WebhookService>();
+                .AddSingleton<CommandsService>();
     
     public static void AddWeatherGoatHostedServices(this IServiceCollection services) =>
         services.AddHostedService<DiscordHostedService>()

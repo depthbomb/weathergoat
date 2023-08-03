@@ -1,7 +1,6 @@
 ﻿using Quartz;
 using Discord;
 using WeatherGoat.Data;
-using Discord.WebSocket;
 using WeatherGoat.Models;
 using WeatherGoat.Services;
 using WeatherGoat.Data.Entities;
@@ -13,23 +12,20 @@ public class AlertReportingJob : IJob
 {
     private readonly ILogger<AlertReportingJob>    _logger;
     private readonly IServiceScopeFactory          _scopeFactory;
-    private readonly DiscordSocketClient           _client;
+    private readonly DispatcherService             _dispatcher;
     private readonly AlertService                  _alert;
-    private readonly WebhookService                _webhooks;
     private readonly IReadOnlyList<ReportLocation> _locations;
 
     public AlertReportingJob(ILogger<AlertReportingJob> logger,
                              IConfiguration             config,
                              IServiceScopeFactory       scopeFactory,
-                             DiscordSocketClient        client,
-                             AlertService               alert,
-                             WebhookService             webhooks)
+                             DispatcherService          dispatcher,
+                             AlertService               alert)
     {
         _logger       = logger;
         _scopeFactory = scopeFactory;
-        _client       = client;
+        _dispatcher   = dispatcher;
         _alert        = alert;
-        _webhooks     = webhooks;
         _locations    = config.GetSection("ReportLocation").Get<ReportLocation[]>();
     }
 
@@ -47,13 +43,6 @@ public class AlertReportingJob : IJob
             {
                 if (!loc.ReportAlerts)
                 {
-                    continue;
-                }
-                
-                var channelId = loc.AlertChannel;
-                if (await _client.GetChannelAsync(channelId) is not IMessageChannel channel)
-                {
-                    _logger.LogError("Could not find channel by ID {Id}", channelId);
                     continue;
                 }
 
@@ -94,10 +83,14 @@ public class AlertReportingJob : IJob
                     {
                         embed.AddField("Instructions", alert.Instructions);
                     }
+
+                    var channelId = loc.AlertChannel;
+                    await _dispatcher.EnqueueMessageAsync(channelId, new DispatcherMessagePayload
+                    {
+                        Embed = embed.Build()
+                    });
                     
-                    await _webhooks.SendWebhookMessageAsync(channel as ITextChannel, null, embed.Build());
-                    
-                    _logger.LogInformation("Reported alert {Id} to {ChannelId}", alert.Id, channelId);
+                    _logger.LogInformation("Enqueued alert {Id} for {ChannelId}", alert.Id, channelId);
                     
                     await db.Alerts.AddAsync(new SentAlert
                     {
