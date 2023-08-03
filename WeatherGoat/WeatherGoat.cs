@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Polly;
+using Discord;
 using Serilog.Events;
 using WeatherGoat.Data;
 using Discord.WebSocket;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Tomlyn.Extensions.Configuration;
 using Microsoft.Extensions.Configuration;
+using Polly.Retry;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace WeatherGoat;
@@ -99,6 +101,15 @@ public class WeatherGoat
                                  services.AddWeatherGoatServices();
                                  services.AddWeatherGoatHostedServices();
                                  services.AddWeatherGoatJobs();
+                                 services.AddResilienceStrategy("generic-exponential-retry", (builder, _) =>
+                                 {
+                                     builder.AddRetry(new RetryStrategyOptions
+                                     {
+                                         RetryCount = 5,
+                                         BackoffType = RetryBackoffType.Exponential,
+                                         BaseDelay = TimeSpan.FromSeconds(1)
+                                     });
+                                 });
                              })
                              .Build();
 
