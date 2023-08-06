@@ -36,24 +36,21 @@ public class AlertService : IDisposable
             return alertReports;
         }
 
-        foreach (var alert in data.Alerts)
+        alertReports.AddRange(data.Alerts.Select(alert => new AlertReport
         {
-            alertReports.Add(new AlertReport
-            {
-                Id              = alert.Id,
-                IsUpdate        = alert.MessageType == AlertMessageType.Update,
-                Status          = alert.Status,
-                Event           = alert.Event,
-                AreaDescription = alert.AreaDescription,
-                Expires         = alert.Expires,
-                Severity        = alert.Severity,
-                Certainty       = alert.Certainty,
-                Headline        = alert.Headline,
-                Description     = alert.Description,
-                Instructions    = alert.Instructions,
-                RadarImageUrl   = coordinateInfo.RadarImageUrl
-            });
-        }
+            Id              = alert.Id,
+            IsUpdate        = alert.MessageType == AlertMessageType.Update,
+            Status          = alert.Status,
+            Event           = alert.Event,
+            AreaDescription = alert.AreaDescription,
+            Expires         = alert.Expires,
+            Severity        = alert.Severity,
+            Certainty       = alert.Certainty,
+            Headline        = alert.Headline,
+            Description     = alert.Description,
+            Instructions    = alert.Instructions,
+            RadarImageUrl   = coordinateInfo.RadarImageUrl
+        }));
 
         return alertReports.AsReadOnly();
     }

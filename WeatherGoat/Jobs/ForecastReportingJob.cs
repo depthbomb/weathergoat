@@ -52,7 +52,7 @@ public class ForecastReportingJob : IJob
                         .WithColor(Color.Blue)
                         .WithThumbnailUrl(report.Icon)
                         .WithDescription(report.DetailedForecast)
-                        .WithImageUrl($"{report.RadarImageUrl}?{Guid.NewGuid()}")
+                        .WithImageUrl($"{loc.RadarImageUrlOverride ?? report.RadarImageUrl}?{Guid.NewGuid()}")
                         .AddField("At a glance", report.ShortForecast)
                         .WithTimestamp(DateTimeOffset.Now);
 

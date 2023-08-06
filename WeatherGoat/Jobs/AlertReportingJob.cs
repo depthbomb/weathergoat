@@ -67,11 +67,11 @@ public class AlertReportingJob : IJob
                         _logger.LogDebug("Alert {Id} has already been reported", alert.Id);
                         continue;
                     }
-                    
+
                     var embed = new EmbedBuilder()
                                 .WithTitle($"🚨 {(alert.IsUpdate ? "[UPDATE] " : "")}{alert.Headline}")
                                 .WithDescription($"```md\n{alert.Description}```")
-                                .WithImageUrl($"{alert.RadarImageUrl}?{Guid.NewGuid()}")
+                                .WithImageUrl($"{loc.RadarImageUrlOverride ?? alert.RadarImageUrl}?{Guid.NewGuid()}")
                                 .WithColor(_alert.GetSeverityColor(alert.Severity))
                                 .WithFooter(alert.Event)
                                 .AddField("Certainty",       alert.Certainty.ToString(),  true)
