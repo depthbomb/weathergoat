@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:../.weathergoat/data.db"
+}
+
+model AlertDestination {
+    id            Int     @id @default(autoincrement())
+    /// The unique snowflake that identifies this record.
+    snowflake     String? @unique
+    latitude      Float
+    longitude     Float
+    zoneId        String
+    countyId      String
+    guildId       String
+    channelId     String
+    autoCleanup   Boolean @default(true)
+    /// Overrides the radar image URL retrieved from the location info.
+    radarImageUrl String?
+}
+
+model ForecastDestination {
+    id            Int     @id @default(autoincrement())
+    /// The unique snowflake that identifies this record.
+    snowflake     String? @unique
+    latitude      Float
+    longitude     Float
+    guildId       String
+    channelId     String
+    autoCleanup   Boolean @default(true)
+    /// Overrides the radar image URL retrieved from the location info.
+    radarImageUrl String?
+}
+
+/// Alerts that have already been sent.
+model SentAlert {
+    id      Int    @id @default(autoincrement())
+    alertId String @unique
+}
+
+/// Volatile Messages are sent messages that will be deleted after a certain period of time, most
+/// normally used for cleaning up.
+model VolatileMessage {
+    id        Int      @id @default(autoincrement())
+    guildId   String
+    channelId String
+    messageId String   @unique
+    expires   DateTime
+}

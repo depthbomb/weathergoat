@@ -1,4 +1,9 @@
-.idea/
-bin/
-obj/
-Config.toml
+**/.data
+**/.weathergoat
+**/.logs
+**/.yarn/cache/
+**/dist/
+**/node_modules/
+
+.env
+config.toml

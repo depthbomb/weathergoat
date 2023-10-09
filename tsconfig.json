@@ -1,0 +1,58 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"#*": ["src/@types/*"],
+			"@*": ["src/*", "src/*/index.ts"],
+		},
+
+		"ignoreDeprecations": "5.0",
+
+		// Type Checking
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"exactOptionalPropertyTypes": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noUncheckedIndexedAccess": true,
+		"strict": true,
+		"useUnknownInCatchVariables": true,
+
+		// Modules
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+		"resolveJsonModule": true,
+
+		// Emit
+		"declaration": false,
+		"importHelpers": true,
+		"importsNotUsedAsValues": "error",
+		"newLine": "lf",
+		"noEmitHelpers": false,
+		"outDir": "dist",
+		"preserveConstEnums": false,
+		"removeComments": true,
+		"esModuleInterop": true,
+		"sourceMap": true,
+		"forceConsistentCasingInFileNames": true,
+
+		// Language and Environment
+		"emitDecoratorMetadata": false,
+		"experimentalDecorators": false,
+		"lib": ["ESNext"],
+		"target": "ESNext",
+		"useDefineForClassFields": true,
+
+		// Projects
+		//"incremental": true,
+
+		// Completeness
+		"skipLibCheck": true
+	},
+	"include": [
+		"./src/**/*.ts"
+	]
+}

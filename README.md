@@ -1,5 +1,5 @@
-﻿# WeatherGoat
+# WeatherGoat
 
----
+Discord bot for reporting weather alerts and hourly forecasts to channels built with Discord.js and the National Weather Service API.
 
-WeatherGoat is my personal Discord bot that reports weather alerts and forecasts to channels.
+More to come.

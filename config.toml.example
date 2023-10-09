@@ -1,0 +1,17 @@
+[bot]
+id = "12345"
+token = "..."
+owner_ids = ["12345"]
+
+[sentry]
+dsn = "..."
+
+[cron]
+timezone = "America/Chicago"
+
+[limits]
+# The maximum amount of destinations per guild. Note that there is a hard upper-limit of 25
+# destinations that will be displayed with the `list` subcommand, but this does not prevent creating
+# destinations over the limit.
+alert_destinations = 5
+forecast_destinations = 5
