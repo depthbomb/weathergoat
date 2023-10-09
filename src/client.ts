@@ -198,7 +198,7 @@ export class WeatherGoat extends Client {
 
 				const timezone = getOrThrow<string>('cron.timezone');
 
-				schedule(cron, async () => await execute(), { timezone });
+				schedule(cron, execute, { timezone });
 			}
 		}
 
