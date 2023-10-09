@@ -1,5 +1,5 @@
 <div align="center">
-	![WeatherGoat Banner](https://raw.githubusercontent.com/depthbomb/WeatherGoatNext/master/art/hero.png)
+	<img src="./art/hero.png" alt="WeatherGoat Banner" title="WeatherGoat">
 </div>
 
 ---
