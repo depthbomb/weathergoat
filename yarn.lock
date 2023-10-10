@@ -750,13 +750,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/eslint@npm:^8.44.3":
-  version: 8.44.3
-  resolution: "@types/eslint@npm:8.44.3"
+"@types/eslint@npm:^8.44.4":
+  version: 8.44.4
+  resolution: "@types/eslint@npm:8.44.4"
   dependencies:
     "@types/estree": "npm:*"
     "@types/json-schema": "npm:*"
-  checksum: 53796ff6009512775490403647577946ff924dbef5339898e361e1b29527492e5738cbd67d94202d6ebd6d45e7ac5c5da1c95fe710f16476e2dda3316d1970f6
+  checksum: 8508e33126b19a4d5d84cfeccf838f383c2880ef5d96fd2a85634c33cdbf2154af7c40268cc3042c69f4cddadf07b0a96fb9f6c057903010861d282b213e3c99
   languageName: node
   linkType: hard
 
@@ -3813,7 +3813,7 @@ __metadata:
     "@sapphire/stopwatch": "npm:^1.5.0"
     "@sapphire/time-utilities": "npm:^1.7.10"
     "@sentry/node": "npm:^7.73.0"
-    "@types/eslint": "npm:^8.44.3"
+    "@types/eslint": "npm:^8.44.4"
     "@types/node": "npm:^20.8.4"
     "@types/node-cron": "npm:^3.0.9"
     "@types/source-map-support": "npm:^0.5.8"
