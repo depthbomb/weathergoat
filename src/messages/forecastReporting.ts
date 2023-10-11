@@ -1,18 +1,19 @@
-import { MessageFlags, MessageTarget, MessagePayload, channelMention } from 'discord.js';
+import { MessageTarget, MessagePayload, channelMention } from 'discord.js';
 
 export class ForecastReportingMessages {
 	private constructor() {}
 
 	public static limitReached(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'The maximum amount of forecast destinations for this server has been reached. Please delete some to make more.'
+			content: 'The maximum amount of forecast destinations for this server has been reached. Please delete some to make more.',
+			ephemeral: true,
 		});
 	}
 
 	public static destinationRemoved(target: MessageTarget, channelId: string): MessagePayload {
 		return new MessagePayload(target, {
 			content: `Forecast reporting has been removed from ${channelMention(channelId)}.`,
-			flags: MessageFlags.SuppressNotifications
+			ephemeral: true,
 		});
 	}
 
@@ -27,25 +28,28 @@ export class ForecastReportingMessages {
 
 		return new MessagePayload(target, {
 			content,
-			flags: MessageFlags.SuppressNotifications
+			ephemeral: true,
 		});
 	}
 
 	public static destinationNonexistent(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'No alert reporting record exists in this server with the provided snowflake.'
+			content: 'No alert reporting record exists in this server with the provided snowflake.',
+			ephemeral: true,
 		});
 	}
 
 	public static destinationRemoveFailed(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'Failed to remove forecast reporting.'
+			content: 'Failed to remove forecast reporting.',
+			ephemeral: true,
 		});
 	}
 
 	public static destinationCreateFailed(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'Failed to create forecast destination.'
+			content: 'Failed to create forecast destination.',
+			ephemeral: true,
 		});
 	}
 }

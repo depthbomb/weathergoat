@@ -5,13 +5,15 @@ export class GenericMessages {
 
 	public static nonexistentChannel(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'The provided channel does not exist in this server.'
+			content: 'The provided channel does not exist in this server.',
+			ephemeral: true,
 		});
 	}
 
 	public static commandNotImplemented(target: MessageTarget): MessagePayload {
 		return new MessagePayload(target, {
-			content: 'This command has not been implemented yet.'
+			content: 'This command has not been implemented yet.',
+			ephemeral: true,
 		});
 	}
 }
