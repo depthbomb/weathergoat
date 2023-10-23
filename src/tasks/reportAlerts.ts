@@ -90,7 +90,7 @@ export default ({
 								guildId,
 								channelId,
 								messageId: sentMessage.id,
-								expires:   new Duration('24 hours').fromNow
+								expires:   new Duration('48 hours').fromNow
 							}
 						});
 					}
