@@ -59,6 +59,8 @@ export default ({
 						continue;
 					}
 
+					const startDate = new Date(alert.effective);
+					const endDate = new Date(alert.expires);
 					const embed = new EmbedBuilder()
 						.setTitle(`🚨 ${alert.messageType === 'Update' ? '[UPDATE] ' : ''}${alert.headline}`)
 						.setDescription(codeBlock('md', alert.description))
@@ -66,8 +68,8 @@ export default ({
 						.setFooter({ text: alert.event })
 						.addFields([
 							{ name: 'Certainty', value: alert.certainty, inline: true },
-							{ name: 'Effective', value: time(new Date(alert.effective), 'R'), inline: true },
-							{ name: 'Expires', value: time(new Date(alert.expires), 'R'), inline: true },
+							{ name: 'Effective', value: time(startDate, 'R'), inline: true },
+							{ name: 'Expires', value: time(endDate, 'R'), inline: true },
 							{ name: 'Affected Areas', value: alert.areaDesc },
 						])
 						.setTimestamp();
