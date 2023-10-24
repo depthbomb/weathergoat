@@ -1,6 +1,7 @@
 import 'source-map-support/register';
 import { client } from '@client';
 import { logger } from '@logger';
+import { startWebServer } from '@web';
 import * as Sentry from '@sentry/node';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { loadConfig, getOrThrow } from '@config';
@@ -45,6 +46,8 @@ async function boot(): Promise<void> {
 
 	try {
 		await client.boot();
+
+		await startWebServer();
 
 		logger.info('Successfully logged in', startupSw.toString());
 	} catch (err: unknown) {

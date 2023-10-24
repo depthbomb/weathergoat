@@ -2,7 +2,6 @@ import { client } from '@client';
 import { logger } from '@logger';
 import { database } from '@data';
 import { snowflake } from '@snowflake';
-import { Duration } from '@sapphire/time-utilities';
 import { getActiveAlertsForZone } from '@lib/alerts';
 import { time, codeBlock, ChannelType, EmbedBuilder } from 'discord.js';
 import type { ITask } from '#ITask';
@@ -92,8 +91,24 @@ export default ({
 								guildId,
 								channelId,
 								messageId: sentMessage.id,
-								expires:   new Duration('48 hours').fromNow
+								expires:   endDate
 							}
+						});
+					}
+
+					if (alert.messageType === 'Alert') {
+						await guild.scheduledEvents.create({
+							name: `${alert.severity} Weather Alert`,
+							description: alert.description,
+							scheduledStartTime: new Date(),
+							scheduledEndTime: endDate,
+							entityType: 3,
+							privacyLevel: 2,
+							image: radarImageUrl + `?${snowflake.generate()}`,
+							entityMetadata: {
+								location: sentMessage.url
+							},
+							reason: 'Created automatically due to an active alert for an alert destination in this server. This event will automatically be deleted when the alert expires.'
 						});
 					}
 				}
