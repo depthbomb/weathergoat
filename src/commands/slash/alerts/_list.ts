@@ -1,5 +1,5 @@
 import { database } from '@data';
-import { EmbedBuilder, MessageFlags, channelMention } from 'discord.js';
+import { EmbedBuilder, channelMention } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default async function listSubcommand(interaction: ChatInputCommandInteraction): Promise<any> {

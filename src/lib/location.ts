@@ -1,7 +1,8 @@
 import { logger } from '@logger';
 import { storage } from '@storage';
-import { nwsClient } from '@lib/nwsClient';
-import type { IPointJsonLd } from '#IPointJsonLd';
+import { Point } from '@models/point';
+import { makeRequest } from '@lib/http';
+import { plainToClass } from 'class-transformer';
 
 type CoordinateInfo = {
 	latitude:      number;
@@ -27,30 +28,24 @@ export async function getCoordinateInfo(latitude: number, longitude: number): Pr
 
 	logger.debug('Requesting info from API');
 
-	const {
-		forecast,
-		county,
-		forecastZone,
-		radarStation,
-		relativeLocation
-	} = await nwsClient<IPointJsonLd>(`/points/${latitude},${longitude}`);
+	const res = await makeRequest(`/points/${latitude},${longitude}`);
+	if (!res.ok) {
+		throw new Error(res.statusText);
+	}
 
+	const json         = await res.json();
+	const point        = plainToClass(Point, json);
 	const locationInfo = {
 		latitude,
 		longitude,
-		location: `${relativeLocation.city}, ${relativeLocation.state}`,
-		zoneId: extractLocationID(forecastZone),
-		countyId: county ? extractLocationID(county) : '',
-		forecastUrl: forecast,
-		radarImageUrl: `https://radar.weather.gov/ridge/standard/${radarStation}_loop.gif`
+		location: point.relativeLocation.cityState,
+		zoneId: point.zoneId,
+		countyId: point.countyId,
+		forecastUrl: point.forecast,
+		radarImageUrl: point.radarImageUrl
 	};
 
 	await storage.setItem(itemKey, locationInfo);
 
 	return locationInfo!;
-}
-
-function extractLocationID(url: string): string {
-	const segments = url.split('/');
-	return segments[segments.length - 1]!;
 }

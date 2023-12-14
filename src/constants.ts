@@ -1,10 +1,7 @@
 import { join } from 'node:path';
 
-const { platform } = process;
-
-export const IS_WIN32 = platform === 'win32';
-export const IS_LINUX = ['freebsd', 'openbsd', 'linux'].includes(platform);
-export const IS_MACOS = ['macos', 'darwin'].includes(platform);
+export const BOOT_DATE  = new Date();
+export const BUILD_DATE = new Date(__BUILD_DATE__);
 
 export const ROOT_DIR     = __dirname;
 export const PROJECT_ROOT = join(ROOT_DIR, '..');

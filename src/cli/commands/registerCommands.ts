@@ -14,7 +14,7 @@ export class RegisterCommandsCommand extends Command<BaseContext> {
 
 	public async execute(): Promise<number> {
 		const rest = new REST().setToken(getOrThrow<string>('bot.token'));
-		const body = [];
+		const body = [] as unknown[];
 
 		await client.boot(false, false);
 

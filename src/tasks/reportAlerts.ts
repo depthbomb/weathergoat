@@ -5,7 +5,6 @@ import { snowflake } from '@snowflake';
 import { getActiveAlertsForZone } from '@lib/alerts';
 import { time, codeBlock, ChannelType, EmbedBuilder } from 'discord.js';
 import type { ITask } from '#ITask';
-import type { AlertSeverity } from '#AlertSeverity';
 import type { Webhook, TextChannel, ColorResolvable } from 'discord.js';
 
 const webhookName = 'WeatherGoat#Alerts' as const;
@@ -58,8 +57,6 @@ export default ({
 						continue;
 					}
 
-					const startDate = new Date(alert.effective);
-					const endDate = new Date(alert.expires);
 					const embed = new EmbedBuilder()
 						.setTitle(`🚨 ${alert.messageType === 'Update' ? '[UPDATE] ' : ''}${alert.headline}`)
 						.setDescription(codeBlock('md', alert.description))
@@ -67,8 +64,8 @@ export default ({
 						.setFooter({ text: alert.event })
 						.addFields([
 							{ name: 'Certainty', value: alert.certainty, inline: true },
-							{ name: 'Effective', value: time(startDate, 'R'), inline: true },
-							{ name: 'Expires', value: time(endDate, 'R'), inline: true },
+							{ name: 'Effective', value: time(alert.effective, 'R'), inline: true },
+							{ name: 'Expires', value: time(alert.expires, 'R'), inline: true },
 							{ name: 'Affected Areas', value: alert.areaDesc },
 						])
 						.setTimestamp();
@@ -91,7 +88,7 @@ export default ({
 								guildId,
 								channelId,
 								messageId: sentMessage.id,
-								expires:   endDate
+								expires:   alert.expires
 							}
 						});
 					}
@@ -101,14 +98,14 @@ export default ({
 							name: `${alert.severity} Weather Alert`,
 							description: alert.description,
 							scheduledStartTime: new Date(),
-							scheduledEndTime: endDate,
+							scheduledEndTime: alert.expires,
 							entityType: 3,
 							privacyLevel: 2,
 							image: radarImageUrl + `?${snowflake.generate()}`,
 							entityMetadata: {
 								location: sentMessage.url
 							},
-							reason: 'Created automatically due to an active alert for an alert destination in this server. This event will automatically be deleted when the alert expires.'
+							reason: 'Created automatically due to an active weather alert in this server. This event will be deleted when the alert expires.'
 						});
 					}
 				}
@@ -119,7 +116,7 @@ export default ({
 	}
 }) satisfies ITask;
 
-function getSeverityColor(severity: AlertSeverity): ColorResolvable {
+function getSeverityColor(severity: string): ColorResolvable {
 	switch (severity) {
 		case 'Extreme':
 			return '#7f1d1d';

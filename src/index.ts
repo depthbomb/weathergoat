@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import 'source-map-support/register';
 import { client } from '@client';
 import { logger } from '@logger';

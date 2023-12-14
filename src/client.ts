@@ -10,7 +10,7 @@ import { Client, Partials, Collection, GatewayIntentBits } from 'discord.js';
 import type { ITask } from '#ITask';
 import type { IEvent } from '#IEvent';
 import type { ICommand } from '#ICommand';
-import type { CommandInteraction, ClientEvents, ChatInputCommandInteraction } from 'discord.js';
+import type { CommandInteraction, ClientEvents, InteractionReplyOptions, ChatInputCommandInteraction } from 'discord.js';
 
 type SubcommandDict = {
 	[subcommandName: string]: (interaction: ChatInputCommandInteraction) => Promise<any>;
@@ -69,6 +69,23 @@ export class WeatherGoat extends Client {
 		if (logIn) {
 			await this.login(getOrThrow<string>('bot.token'));
 		}
+	}
+
+	public async reply(interaction: CommandInteraction, options: string | InteractionReplyOptions) {
+		const { replied, deferred } = interaction;
+		if (!deferred) {
+			if (replied) {
+				return interaction.followUp(options);
+			}
+
+			if (typeof options === 'string') {
+				return interaction.reply({ content: options, fetchReply: true });
+			}
+
+			return interaction.reply({ ...options, fetchReply: true });
+		}
+
+		return interaction.editReply(options);
 	}
 
 	public getCommand(name: string): ICommand | null {
