@@ -1,7 +1,7 @@
 import { logger } from '@logger';
 import { storage } from '@storage';
 import { Point } from '@models/point';
-import { makeRequest } from '@lib/http';
+import { HttpClient } from '@lib/http';
 import { plainToClass } from 'class-transformer';
 
 type CoordinateInfo = {
@@ -13,6 +13,8 @@ type CoordinateInfo = {
 	forecastUrl:   string;
 	radarImageUrl: string;
 }
+
+const http = new HttpClient({ baseUrl: 'https://api.weather.gov', retry: true });
 
 export async function getCoordinateInfo(latitude: number, longitude: number): Promise<CoordinateInfo> {
 	logger.debug('Retrieving info from coordinates', { latitude, longitude });
@@ -28,7 +30,7 @@ export async function getCoordinateInfo(latitude: number, longitude: number): Pr
 
 	logger.debug('Requesting info from API');
 
-	const res = await makeRequest(`/points/${latitude},${longitude}`);
+	const res = await http.get(`/points/${latitude},${longitude}`);
 	if (!res.ok) {
 		throw new Error(res.statusText);
 	}

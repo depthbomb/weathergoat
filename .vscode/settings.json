@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		".weathergoatrc": "json5"
+	},
+	"typescript.tsdk": "node_modules\\typescript\\lib"
+}

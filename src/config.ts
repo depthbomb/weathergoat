@@ -1,4 +1,4 @@
-import { parse } from 'toml';
+import { parse } from 'json5';
 import { existsSync } from 'node:fs';
 import { CONFIG_PATH } from '@constants';
 import { readFile } from 'node:fs/promises';

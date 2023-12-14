@@ -4,7 +4,6 @@ import { database } from '@data';
 import { snowflake } from '@snowflake';
 import { getCoordinateInfo } from '@lib/location';
 import { Duration } from '@sapphire/time-utilities';
-import { retryAsync, isTooManyTries } from 'ts-retry';
 import { getForecastForCoordinates } from '@lib/forecast';
 import { ChannelType, EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ITask } from '#ITask';
@@ -46,11 +45,7 @@ export default ({
 			}
 
 			try {
-				const forecast = await retryAsync(async () => await getForecastForCoordinates(latitude, longitude), {
-					delay: 1_000,
-					maxTry: 15
-				});
-
+				const forecast = await getForecastForCoordinates(latitude, longitude);
 				const location = await getCoordinateInfo(latitude, longitude);
 				const embed    = new EmbedBuilder()
 					.setTitle(`⛅ ${forecast.name}'s Forecast for ${location.location}`)
@@ -80,11 +75,7 @@ export default ({
 					});
 				}
 			} catch (err) {
-				if (isTooManyTries(err)) {
-					logger.error('Failed too many times to report forecast', { latitude, longitude, err });
-				} else {
-					logger.error('Failed to report forecast', { latitude, longitude, err });
-				}
+				logger.error('Failed to report forecast', { latitude, longitude, err });
 			}
 		}
 	}

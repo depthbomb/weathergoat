@@ -7,6 +7,7 @@ declare global {
 	declare const __PLATFORM__:   string;
 	declare const __BUILD_DATE__: string;
 	declare const __BUILD_HASH__: string;
+	declare const __VERSION__:    string;
 }
 
 declare module 'discord.js' {

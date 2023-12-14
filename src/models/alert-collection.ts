@@ -8,4 +8,8 @@ export class AlertCollection {
 	@Type(() => Alert)
 	@Expose({ name: '@graph' })
 	public alerts!: Alert[];
+
+	public get hasAlerts(): boolean {
+		return this.alerts.length > 0;
+	}
 }

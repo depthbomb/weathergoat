@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import { version } from './package.json';
 import { execSync } from 'node:child_process';
 
 const { platform }  = process;
@@ -36,5 +37,6 @@ export default defineConfig(() => ({
 		__PLATFORM__:   JSON.stringify(platformOs),
 		__BUILD_DATE__: JSON.stringify(new Date()),
 		__BUILD_HASH__: JSON.stringify(getCurrentGitHash()),
+		__VERSION__:    JSON.stringify(version),
 	}
 }));

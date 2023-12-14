@@ -1,15 +1,17 @@
 import { logger } from '@logger';
-import { makeRequest } from '@lib/http';
+import { HttpClient } from '@lib/http';
 import { plainToClass } from 'class-transformer';
 import { getCoordinateInfo } from '@lib/location';
 import { GridpointForecast } from '@models/gridpoint-forecast';
 import { GridpointForecastPeriod } from '@models/gridpoint-forecast-period';
 
+const http = new HttpClient({ baseUrl: 'https://api.weather.gov', retry: true });
+
 export async function getForecastForCoordinates(lat: number, lon: number): Promise<GridpointForecastPeriod> {
 	logger.debug('Retrieving forecast', { lat, lon });
 
 	const locationInfo = await getCoordinateInfo(lat, lon);
-	const res          = await makeRequest(locationInfo.forecastUrl);
+	const res          = await http.get(locationInfo.forecastUrl);
 	if (!res.ok) {
 		throw new Error(res.statusText);
 	}

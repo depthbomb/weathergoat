@@ -16,7 +16,7 @@ export default async function forecastReportingSubcommand(interaction: ChatInput
 			guildId: guild.id
 		}
 	});
-	if (currentCount >= getOrThrow<number>('limits.forecast_destinations')) {
+	if (currentCount >= getOrThrow<number>('limits.forecastDestinations')) {
 		return await interaction.reply(ForecastReportingMessages.limitReached(interaction));
 	}
 

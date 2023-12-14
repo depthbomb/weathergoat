@@ -47,8 +47,11 @@ export default ({
 			}
 
 			try {
-				const activeAlerts   = await getActiveAlertsForZone([zoneId], countyId ? [countyId] : []);
-				const relevantAlerts = activeAlerts.filter(a => a.status !== 'Test' && a.status !== 'Draft');
+				const activeAlerts = await getActiveAlertsForZone([zoneId], countyId ? [countyId] : []);
+
+				if (!activeAlerts) continue;
+
+				const relevantAlerts = activeAlerts!.filter(a => a.status !== 'Test' && a.status !== 'Draft');
 				const webhook        = await getChannelWebhook(channel);
 
 				for (const alert of relevantAlerts) {

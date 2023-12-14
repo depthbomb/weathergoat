@@ -16,7 +16,7 @@ export default async function addSubcommand(interaction: ChatInputCommandInterac
 			guildId: guild.id
 		}
 	});
-	if (currentCount >= getOrThrow<number>('limits.alert_destinations')) {
+	if (currentCount >= getOrThrow<number>('limits.alertDestinations')) {
 		return await interaction.reply(AlertReportingMessages.limitReached(interaction));
 	}
 
