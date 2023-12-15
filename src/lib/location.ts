@@ -20,7 +20,7 @@ const cache = new Cache('1 day');
 export async function getCoordinateInfo(latitude: number, longitude: number): Promise<CoordinateInfo> {
 	logger.debug('Retrieving info from coordinates', { latitude, longitude });
 
-	const itemKey = `coordinateInfo:${latitude},${longitude}`;
+	const itemKey = `coords:${latitude},${longitude}`;
 	if (cache.has(itemKey)) {
 		logger.debug('Using cached results');
 

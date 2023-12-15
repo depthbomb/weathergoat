@@ -26,7 +26,7 @@ export class Cache {
 			return;
 		}
 
-		return this._cache.get(key) as T;
+		return this._cache.get(key)!.value as T;
 	}
 
 	public set<T>(key: string, value: T): T {

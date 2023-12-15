@@ -11,11 +11,7 @@ export default async function forecastReportingSubcommand(interaction: ChatInput
 		return;
 	}
 
-	const currentCount = await database.forecastDestination.count({
-		where: {
-			guildId: guild.id
-		}
-	});
+	const currentCount = await database.forecastDestination.count({ where: { guildId: guild.id } });
 	if (currentCount >= getOrThrow<number>('limits.forecastDestinations')) {
 		return await interaction.reply(ForecastReportingMessages.limitReached(interaction));
 	}
@@ -27,7 +23,6 @@ export default async function forecastReportingSubcommand(interaction: ChatInput
 
 	try {
 		const { radarImageUrl } = await getCoordinateInfo(latitude, longitude);
-
 		const res = await database.forecastDestination.create({
 			data: {
 				latitude,

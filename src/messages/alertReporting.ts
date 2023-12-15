@@ -17,7 +17,7 @@ export class AlertReportingMessages {
 			content = content.concat(' ', 'My messages will automatically be deleted after some time.');
 		}
 
-		content = content.concat('\n', `You can remove this reporting by using the \`/remove\` command and using the snowflake: \`${snowflake}\`.`);
+		content = content.concat('\n', `You can remove this reporting by using the \`/alert remove\` command and using the snowflake: \`${snowflake}\`.`);
 
 		return new MessagePayload(target, {
 			content,

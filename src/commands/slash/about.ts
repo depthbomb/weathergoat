@@ -1,7 +1,6 @@
 import { hyperlink, userMention, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ICommand } from '#ICommand';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { client } from '@client';
 
 export default ({
 	data: new SlashCommandBuilder()
@@ -11,7 +10,7 @@ export default ({
 		const embed = new EmbedBuilder()
 			.setTitle('About me!')
 			.setDescription(`I'm a Discord bot made by ${userMention('133325534548590594')} to retrive info from the ${hyperlink('National Weather Service', 'https://www.weather.gov/')} and use that data to post weather alerts and forecasts to channels.`)
-			.setThumbnail(client.user!.avatarURL())
+			.setThumbnail(interaction.client.user!.avatarURL())
 			.setFields([
 				{
 					name: 'Technology',
