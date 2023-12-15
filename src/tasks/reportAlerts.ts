@@ -24,9 +24,7 @@ export default ({
 			}
 		});
 
-		if (!destinations.length) {
-			return;
-		}
+		if (!destinations.length) return;
 
 		for (const { zoneId, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 			const guild = await client.guilds.fetch(guildId);
@@ -51,7 +49,7 @@ export default ({
 
 				if (!activeAlerts) continue;
 
-				const relevantAlerts = activeAlerts!.filter(a => a.status !== 'Test' && a.status !== 'Draft');
+				const relevantAlerts = activeAlerts.filter(a => a.status !== 'Test' && a.status !== 'Draft');
 				const webhook        = await getChannelWebhook(channel);
 
 				for (const alert of relevantAlerts) {
@@ -91,7 +89,7 @@ export default ({
 								guildId,
 								channelId,
 								messageId: sentMessage.id,
-								expires:   alert.expires
+								expires: alert.expires
 							}
 						});
 					}

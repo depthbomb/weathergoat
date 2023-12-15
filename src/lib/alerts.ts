@@ -1,7 +1,6 @@
 import { logger } from '@logger';
 import { Alert } from '@models/alert';
 import { HttpClient } from '@lib/http';
-import { URLSearchParams } from 'node:url';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/alert-collection';
 
@@ -24,11 +23,11 @@ export async function getActiveAlerts(): Promise<Alert[]> {
 export async function getActiveAlertsForZone(zoneIds: string[] = [], countyIds: string[] = []): Promise<Alert[] | null> {
 	logger.debug('Retrieving active alerts', { zoneIds, countyIds });
 
-	const searchParams = new URLSearchParams();
-
-	[...zoneIds, ...countyIds].map(id => searchParams.append('zone[]', id));
-
-	const res = await http.get(`/alerts/active?${searchParams}`);
+	const res = await http.get('/alerts/active', {
+		query: {
+			'zone[]': [...zoneIds, ...countyIds]
+		}
+	});
 	if (!res.ok) {
 		throw new Error(res.statusText);
 	}

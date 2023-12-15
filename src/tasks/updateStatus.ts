@@ -11,7 +11,7 @@ export default ({
 	async execute() {
 		client.user?.setPresence({
 			activities: [{
-				name: `Forecasting for ${formatter.format(client?.uptime ?? 0, 3)}`,
+				name: `Forecasting for ${formatter.format(client?.uptime ?? 0, 3)} (version ${__VERSION__}/${__BUILD_HASH__})`,
 				type: ActivityType.Custom
 			}],
 			status: 'dnd'

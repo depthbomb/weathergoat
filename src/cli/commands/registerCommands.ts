@@ -18,7 +18,7 @@ export class RegisterCommandsCommand extends Command<BaseContext> {
 
 		await client.boot(false, false);
 
-		for (const [, command] of client.commands) {
+		for (const [,command] of client.commands) {
 			body.push(command.data.toJSON());
 		}
 

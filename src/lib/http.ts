@@ -60,8 +60,6 @@ export class HttpClient {
 
 		let requestUrl = this._baseUrl ? joinURL(this._baseUrl, input) : input;
 
-		console.log(requestUrl);
-
 		if (init?.query) {
 			requestUrl = withQuery(requestUrl, init.query);
 		}

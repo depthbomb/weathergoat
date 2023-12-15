@@ -22,9 +22,7 @@ export default ({
 			}
 		});
 
-		if (!destinations.length) {
-			return;
-		}
+		if (!destinations.length) return;
 
 		for (const { latitude, longitude, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 			const guild = await client.guilds.fetch(guildId);
@@ -70,7 +68,7 @@ export default ({
 							guildId,
 							channelId,
 							messageId: sentMessage.id,
-							expires:   new Duration('4 hours').fromNow
+							expires: new Duration('4 hours').fromNow
 						}
 					});
 				}

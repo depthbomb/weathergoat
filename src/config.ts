@@ -46,7 +46,6 @@ export function getEnv<T>(name: string): T | undefined {
 	return process.env[name] as T;
 }
 
-
 export function getEnvOrThrow<T>(name: string): T {
 	const retval = getEnv<T>(name);
 	if (retval === undefined) {

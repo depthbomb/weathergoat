@@ -59,11 +59,11 @@ export class WeatherGoat extends Client {
 	 * skip logging in when you want to register application commands in Discord.
 	 */
 	public async boot(loadTasks: boolean = true, logIn: boolean = true): Promise<void> {
-		await this.loadEvents();
-		await this.loadCommands();
+		await this._loadEvents();
+		await this._loadCommands();
 
 		if (loadTasks) {
-			await this.loadTasks();
+			await this._loadTasks();
 		}
 
 		if (logIn) {
@@ -101,7 +101,7 @@ export class WeatherGoat extends Client {
 	}
 
 	public async executeSubcommand(interaction: ChatInputCommandInteraction, subcommandDict: SubcommandDict) {
-		const signature = this.getCommandSignature(interaction);
+		const signature = this._getCommandSignature(interaction);
 		if (signature in subcommandDict) {
 			const method = subcommandDict[signature]!;
 			await method(interaction);
@@ -115,14 +115,14 @@ export class WeatherGoat extends Client {
 		await database.$disconnect();
 	}
 
-	private async loadEvents(eventsDirectory: string = this._eventsDirectory): Promise<void> {
+	private async _loadEvents(eventsDirectory: string = this._eventsDirectory): Promise<void> {
 		const files = await readdir(eventsDirectory);
 		for (const file of files) {
 			const filePath = join(eventsDirectory, file);
 
 			const stats = await stat(filePath);
 			if (stats.isDirectory()) {
-				await this.loadEvents(filePath);
+				await this._loadEvents(filePath);
 				continue;
 			}
 
@@ -130,11 +130,11 @@ export class WeatherGoat extends Client {
 				continue;
 			}
 
-			await this.loadEvent(filePath);
+			await this._loadEvent(filePath);
 		}
 	}
 
-	private async loadEvent(modulePath: string): Promise<void> {
+	private async _loadEvent(modulePath: string): Promise<void> {
 		const { default: ev }: { default: IEvent } = await import(modulePath);
 		const { event, once, disabled, handle }    = ev;
 
@@ -153,7 +153,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async loadCommands(commandsDirectory: string = this._commandsDirectory): Promise<Collection<string, ICommand>> {
+	private async _loadCommands(commandsDirectory: string = this._commandsDirectory): Promise<Collection<string, ICommand>> {
 		const files = await readdir(commandsDirectory);
 		for (const file of files) {
 			if (file.startsWith('_')) {
@@ -163,7 +163,7 @@ export class WeatherGoat extends Client {
 			const filePath = join(commandsDirectory, file);
 			const stats    = await stat(filePath);
 			if (stats.isDirectory()) {
-				await this.loadCommands(filePath);
+				await this._loadCommands(filePath);
 				continue;
 			}
 
@@ -171,13 +171,13 @@ export class WeatherGoat extends Client {
 				continue;
 			}
 
-			await this.loadCommand(filePath);
+			await this._loadCommand(filePath);
 		}
 
 		return this.commands;
 	}
 
-	private async loadCommand(modulePath: string): Promise<void> {
+	private async _loadCommand(modulePath: string): Promise<void> {
 		const { default: command }: { default: ICommand } = await import(modulePath);
 		const { name }                                    = command.data;
 		if (!this.commands.has(name)) {
@@ -185,7 +185,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async loadTasks(): Promise<void> {
+	private async _loadTasks(): Promise<void> {
 		const files = await readdir(this._tasksDirectory);
 		for (const file of files) {
 			if (file.startsWith('_')) {
@@ -197,11 +197,11 @@ export class WeatherGoat extends Client {
 				continue;
 			}
 
-			await this.loadTask(filePath);
+			await this._loadTask(filePath);
 		}
 	}
 
-	private async loadTask(modulePath: string): Promise<void> {
+	private async _loadTask(modulePath: string): Promise<void> {
 		const { default: task }: { default: ITask }        = await import(modulePath);
 		const { immediate, once, cron, interval, execute } = task;
 
@@ -239,7 +239,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private getCommandSignature(interaction: ChatInputCommandInteraction): string {
+	private _getCommandSignature(interaction: ChatInputCommandInteraction): string {
 		const { options }     = interaction;
 		const subcommand      = options.getSubcommand(true);
 		const subcommandGroup = options.getSubcommandGroup(false);
