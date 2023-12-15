@@ -1,5 +1,5 @@
 import { logger } from '@logger';
-import { storage } from '@storage';
+import { Cache } from '@lib/cache';
 import { Point } from '@models/point';
 import { HttpClient } from '@lib/http';
 import { plainToClass } from 'class-transformer';
@@ -14,18 +14,17 @@ type CoordinateInfo = {
 	radarImageUrl: string;
 }
 
-const http = new HttpClient({ baseUrl: 'https://api.weather.gov', retry: true });
+const http  = new HttpClient({ baseUrl: 'https://api.weather.gov', retry: true });
+const cache = new Cache('1 day');
 
 export async function getCoordinateInfo(latitude: number, longitude: number): Promise<CoordinateInfo> {
 	logger.debug('Retrieving info from coordinates', { latitude, longitude });
 
 	const itemKey = `coordinateInfo:${latitude},${longitude}`;
-
-	const cachedInfo = await storage.getItem<CoordinateInfo>(itemKey);
-	if (cachedInfo) {
+	if (cache.has(itemKey)) {
 		logger.debug('Using cached results');
 
-		return cachedInfo;
+		return cache.get<CoordinateInfo>(itemKey)!;
 	}
 
 	logger.debug('Requesting info from API');
@@ -47,7 +46,7 @@ export async function getCoordinateInfo(latitude: number, longitude: number): Pr
 		radarImageUrl: point.radarImageUrl
 	};
 
-	await storage.setItem(itemKey, locationInfo);
+	cache.set(itemKey, locationInfo);
 
 	return locationInfo!;
 }
