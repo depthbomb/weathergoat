@@ -28,7 +28,6 @@
 			"yarn.lock": true,
 			".data": true,
 			".vscode": true,
-			".yarn": true,
 			"dist": true,
 			"node_modules": true
 		},
