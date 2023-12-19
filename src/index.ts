@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/node';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { loadConfig, getOrThrow } from '@config';
 
-async function boot(): Promise<void> {
+async function boot() {
 	const startupSw = new Stopwatch();
 
 	await loadConfig();
@@ -16,7 +16,9 @@ async function boot(): Promise<void> {
 	for (const shutdownSignal of ['SIGINT', 'SIGHUP', 'SIGTERM']) {
 		process.once(shutdownSignal, async () => {
 			logger.info('Shutting down');
+
 			await client.shutDown();
+
 			process.exit(0);
 		});
 	}
@@ -25,7 +27,9 @@ async function boot(): Promise<void> {
 		process.once(errorEvent, async (err: unknown) => {
 			Sentry.captureException(err);
 			logger.prettyError(<Error>err);
+
 			await client.shutDown();
+
 			process.exit(1);
 		});
 	}

@@ -103,9 +103,6 @@ export default ({
 							entityType: 3,
 							privacyLevel: 2,
 							image: radarImageUrl + `?${snowflake.generate()}`,
-							entityMetadata: {
-								location: sentMessage.url
-							},
 							reason: 'Created automatically due to an active weather alert in this server. This event will be deleted when the alert expires.'
 						});
 					}

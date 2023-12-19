@@ -32,7 +32,7 @@ export class Queue<T extends Queueable> {
 		this._logger.debug('Enqueued entry', { entry });
 	}
 
-	private async _runNext(): Promise<void> {
+	private async _runNext() {
 		if (!this._queue.length) {
 			return;
 		}

@@ -46,7 +46,7 @@ export class WeatherGoat extends Client {
 		this._commands          = new Collection<string, ICommand>();
 	}
 
-	public get commands(): Collection<string, ICommand> {
+	public get commands() {
 		return this._commands;
 	}
 
@@ -58,7 +58,7 @@ export class WeatherGoat extends Client {
 	 * @param logIn Whether to log in after loading events, commands, and tasks. You may want to
 	 * skip logging in when you want to register application commands in Discord.
 	 */
-	public async boot(loadTasks: boolean = true, logIn: boolean = true): Promise<void> {
+	public async boot(loadTasks: boolean = true, logIn: boolean = true) {
 		await this._loadEvents();
 		await this._loadCommands();
 
@@ -96,7 +96,7 @@ export class WeatherGoat extends Client {
 		return null;
 	}
 
-	public async executeCommand(command: ICommand, interaction: CommandInteraction): Promise<void> {
+	public async executeCommand(command: ICommand, interaction: CommandInteraction) {
 		return command.execute(interaction);
 	}
 
@@ -115,7 +115,7 @@ export class WeatherGoat extends Client {
 		await database.$disconnect();
 	}
 
-	private async _loadEvents(eventsDirectory: string = this._eventsDirectory): Promise<void> {
+	private async _loadEvents(eventsDirectory: string = this._eventsDirectory) {
 		const files = await readdir(eventsDirectory);
 		for (const file of files) {
 			const filePath = join(eventsDirectory, file);
@@ -134,7 +134,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async _loadEvent(modulePath: string): Promise<void> {
+	private async _loadEvent(modulePath: string) {
 		const { default: ev }: { default: IEvent } = await import(modulePath);
 		const { event, once, disabled, handle }    = ev;
 
@@ -153,7 +153,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async _loadCommands(commandsDirectory: string = this._commandsDirectory): Promise<Collection<string, ICommand>> {
+	private async _loadCommands(commandsDirectory: string = this._commandsDirectory) {
 		const files = await readdir(commandsDirectory);
 		for (const file of files) {
 			if (file.startsWith('_')) {
@@ -177,7 +177,7 @@ export class WeatherGoat extends Client {
 		return this.commands;
 	}
 
-	private async _loadCommand(modulePath: string): Promise<void> {
+	private async _loadCommand(modulePath: string) {
 		const { default: command }: { default: ICommand } = await import(modulePath);
 		const { name }                                    = command.data;
 		if (!this.commands.has(name)) {
@@ -185,7 +185,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async _loadTasks(): Promise<void> {
+	private async _loadTasks() {
 		const files = await readdir(this._tasksDirectory);
 		for (const file of files) {
 			if (file.startsWith('_')) {
@@ -201,7 +201,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private async _loadTask(modulePath: string): Promise<void> {
+	private async _loadTask(modulePath: string) {
 		const { default: task }: { default: ITask }        = await import(modulePath);
 		const { immediate, once, cron, interval, execute } = task;
 
@@ -239,7 +239,7 @@ export class WeatherGoat extends Client {
 		}
 	}
 
-	private _getCommandSignature(interaction: ChatInputCommandInteraction): string {
+	private _getCommandSignature(interaction: ChatInputCommandInteraction) {
 		const { options }     = interaction;
 		const subcommand      = options.getSubcommand(true);
 		const subcommandGroup = options.getSubcommandGroup(false);
