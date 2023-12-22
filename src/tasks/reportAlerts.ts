@@ -2,8 +2,10 @@ import { client } from '@client';
 import { logger } from '@logger';
 import { database } from '@data';
 import { snowflake } from '@snowflake';
+import { getCoordinateInfo } from '@lib/location';
+import { Duration } from '@sapphire/time-utilities';
 import { getActiveAlertsForZone } from '@lib/alerts';
-import { time, codeBlock, ChannelType, EmbedBuilder } from 'discord.js';
+import { time, codeBlock, ChannelType, EmbedBuilder, GuildScheduledEventEntityType, GuildScheduledEventPrivacyLevel } from 'discord.js';
 import type { ITask } from '#ITask';
 import type { Webhook, TextChannel, ColorResolvable } from 'discord.js';
 
@@ -15,6 +17,8 @@ export default ({
 	async execute() {
 		const destinations = await database.alertDestination.findMany({
 			select: {
+				latitude:      true,
+				longitude:     true,
 				zoneId:        true,
 				countyId:      true,
 				guildId:       true,
@@ -26,7 +30,7 @@ export default ({
 
 		if (!destinations.length) return;
 
-		for (const { zoneId, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
+		for (const { latitude, longitude, zoneId, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 			const guild = await client.guilds.fetch(guildId);
 			if (!guild) {
 				logger.error('Guild not found', guildId);
@@ -95,14 +99,16 @@ export default ({
 					}
 
 					if (alert.messageType === 'Alert') {
+						const { location } = await getCoordinateInfo(latitude, longitude);
 						await guild.scheduledEvents.create({
 							name: `${alert.severity} Weather Alert`,
 							description: alert.description,
-							scheduledStartTime: new Date(),
+							scheduledStartTime: new Duration('5 seconds').fromNow,
 							scheduledEndTime: alert.expires,
-							entityType: 3,
-							privacyLevel: 2,
+							entityType: GuildScheduledEventEntityType.External,
+							privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
 							image: radarImageUrl + `?${snowflake.generate()}`,
+							entityMetadata: { location },
 							reason: 'Created automatically due to an active weather alert in this server. This event will be deleted when the alert expires.'
 						});
 					}
