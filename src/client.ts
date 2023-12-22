@@ -55,8 +55,8 @@ export class WeatherGoat extends Client {
 	 *
 	 * @param loadTasks Whether to load background tasks.
 	 *
-	 * @param logIn Whether to log in after loading events, commands, and tasks. You may want to
-	 * skip logging in when you want to register application commands in Discord.
+	 * @param logIn Whether to log in after loading events, commands, and tasks. Useful for
+	 * registering application commands in Discord.
 	 */
 	public async boot(loadTasks: boolean = true, logIn: boolean = true) {
 		await this._loadEvents();
@@ -207,7 +207,7 @@ export class WeatherGoat extends Client {
 
 		if (cron) {
 			if (once) {
-				logger.warn('`once` is not supported for cron-based tasks');
+				logger.error('`once` is not supported for cron-based tasks');
 			} else {
 				if (!validate(cron)) {
 					throw new Error('Invalid cron expression');
@@ -220,7 +220,7 @@ export class WeatherGoat extends Client {
 		}
 
 		if (interval) {
-			let delay;
+			let delay: number;
 			if (typeof interval === 'number') {
 				delay = interval;
 			} else {
