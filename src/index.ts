@@ -53,6 +53,8 @@ async function boot() {
 
 		logger.info('Successfully logged in', startupSw.toString());
 	} catch (err: unknown) {
+		Sentry.captureException(err);
+
 		logger.fatal('Failed to log in', { err });
 
 		await client.shutDown();
