@@ -4,7 +4,7 @@ import { database } from '@data';
 import type { ITask } from '#ITask';
 
 export default ({
-	interval: '1 minute',
+	interval: '5 minutes',
 	immediate: true,
 	async execute() {
 		const destinations = await database.alertDestination.findMany({

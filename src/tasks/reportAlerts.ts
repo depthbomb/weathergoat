@@ -12,7 +12,7 @@ import type { Webhook, TextChannel, ColorResolvable } from 'discord.js';
 const webhookName = 'WeatherGoat#Alerts' as const;
 
 export default ({
-	interval: '1 minute',
+	interval: '45 seconds',
 	immediate: true,
 	async execute() {
 		const destinations = await database.alertDestination.findMany({
