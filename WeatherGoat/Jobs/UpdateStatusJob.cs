@@ -1,19 +1,19 @@
 ﻿using Quartz;
 using Humanizer;
 using System.Text;
-using Microsoft.Extensions.Caching.Memory;
+using WeatherGoat.Services;
 
 namespace WeatherGoat.Jobs;
 
 public class UpdateStatusJob : IJob
 {
-    private readonly IMemoryCache        _cache;
     private readonly DiscordSocketClient _client;
+    private readonly GitHubService       _github;
 
-    public UpdateStatusJob(IMemoryCache cache, DiscordSocketClient client)
+    public UpdateStatusJob(DiscordSocketClient client, GitHubService github)
     {
-        _cache  = cache;
         _client = client;
+        _github = github;
     }
 
     #region Implementation of IJob
@@ -30,7 +30,8 @@ public class UpdateStatusJob : IJob
           .Append(" | v")
           .Append(Constants.Version);
 
-        if (_cache.TryGetValue("GitHubService.LatestCommitHash", out var hash))
+        var hash = await _github.GetLatestCommitHashAsync();
+        if (hash != null)
         {
             sb.Append('/')
               .Append(hash);
