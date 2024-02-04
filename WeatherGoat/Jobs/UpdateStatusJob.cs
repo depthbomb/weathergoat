@@ -1,6 +1,6 @@
-﻿using System.Text;
-using Quartz;
+﻿using Quartz;
 using Humanizer;
+using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace WeatherGoat.Jobs;
@@ -27,7 +27,7 @@ public class UpdateStatusJob : IJob
         var sb = new StringBuilder();
         sb.Append("Forecasting for ")
           .Append(DateTime.Now.Subtract(Constants.StartDate).Humanize(3))
-          .Append(" | version ")
+          .Append(" | v")
           .Append(Constants.Version);
 
         if (_cache.TryGetValue("GitHubService.LatestCommitHash", out var hash))
