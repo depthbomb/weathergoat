@@ -6,13 +6,14 @@ namespace WeatherGoat.Services;
 
 public class GitHubService
 {
-    private const string CacheKey = "GitHubService.LatestCommitHash";
+    public const string CacheKey = "GitHubService.LatestCommitHash";
     
     private readonly ILogger<GitHubService> _logger;
     private readonly IMemoryCache           _cache;
     private readonly string                 _username;
     private readonly string                 _repo;
     private readonly GitHubClient           _client;
+    private readonly SemaphoreSlim          _semaphore;
 
     public GitHubService(ILogger<GitHubService> logger, IConfiguration config, IMemoryCache cache)
     {
@@ -30,27 +31,37 @@ public class GitHubService
         {
             Credentials = new Credentials(token)
         };
+        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task<string?> GetLatestCommitHashAsync()
     {
+        await _semaphore.WaitAsync();
+
         if (_cache.TryGetValue<string>(CacheKey, out var hash))
         {
             return hash;
         }
-        
-        var commits = await _client.Repository.Commit.GetAll(_username, _repo);
-        if (commits.Count == 0)
+
+        try
         {
-            _logger.LogError("Repository {Owner}/{RepoName} has no commits", _username, _repo);
+            var commits = await _client.Repository.Commit.GetAll(_username, _repo);
+            if (commits.Count == 0)
+            {
+                _logger.LogError("Repository {Owner}/{RepoName} has no commits", _username, _repo);
 
-            return null;
+                return null;
+            }
+
+            hash = commits[0].Sha[..7];
+
+            _cache.Set(CacheKey, hash, TimeSpan.FromMinutes(10));
+
+            return hash;
         }
-
-        hash = commits[0].Sha[..7];
-
-        _cache.Set(CacheKey, hash, TimeSpan.FromMinutes(10));
-
-        return hash;
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 }
