@@ -49,7 +49,7 @@ public class GitHubService
 
         hash = commits[0].Sha[..7];
 
-        _cache.Set(CacheKey, hash, TimeSpan.FromHours(1));
+        _cache.Set(CacheKey, hash, TimeSpan.FromMinutes(10));
 
         return hash;
     }

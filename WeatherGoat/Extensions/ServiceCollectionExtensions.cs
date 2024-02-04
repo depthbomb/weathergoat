@@ -91,7 +91,7 @@ public static class ServiceCollectionExtensions
                         j.WithDescription("Retrieves and caches the project's latest GitHub commit hash");
                         j.WithSimpleSchedule(s =>
                         {
-                            s.WithIntervalInHours(1);
+                            s.WithIntervalInMinutes(10);
                             s.RepeatForever();
                         });
                     });
