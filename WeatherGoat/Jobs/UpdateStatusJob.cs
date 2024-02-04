@@ -1,4 +1,5 @@
-﻿using Quartz;
+﻿using System.Text;
+using Quartz;
 using Humanizer;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -23,15 +24,19 @@ public class UpdateStatusJob : IJob
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
         }
 
-        var uptime  = DateTime.Now.Subtract(Constants.StartDate);
-        var message = $"Forecasting for {uptime.Humanize(3)} | version {Constants.Version}";
+        var sb = new StringBuilder();
+        sb.Append("Forecasting for ")
+          .Append(DateTime.Now.Subtract(Constants.StartDate).Humanize(3))
+          .Append(" | version ")
+          .Append(Constants.Version);
 
         if (_cache.TryGetValue("GitHubService.LatestCommitHash", out var hash))
         {
-            message += $"/{hash}";
+            sb.Append('/')
+              .Append(hash);
         }
 
-        await _client.SetCustomStatusAsync(message);
+        await _client.SetCustomStatusAsync(sb.ToString());
     }
     #endregion
 }
