@@ -1,10 +1,10 @@
-﻿using Quartz;
+﻿using Polly;
+using Quartz;
 using WeatherGoat.Data;
 using WeatherGoat.Jobs;
 using WeatherGoat.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 
 namespace WeatherGoat.Extensions;
 
@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
                 {
                     q.ScheduleJob<AlertReportingJob>(j =>
                     {
-                        j.WithIdentity("Weather Alert Reporting");
+                        j.WithIdentity("WeatherAlertReporting");
                         j.WithDescription("Reports active weather alerts to the appropriate destinations");
                         j.StartAt(DateTime.Now.AddSeconds(10));
                         j.WithSimpleSchedule(s =>
@@ -56,7 +56,7 @@ public static class ServiceCollectionExtensions
                     
                     q.ScheduleJob<ForecastReportingJob>(j =>
                     {
-                        j.WithIdentity("Weather Forecast Reporting");
+                        j.WithIdentity("WeatherForecastReporting");
                         j.WithDescription("Reports weather forecasts to the appropriate destinations");
                         j.StartAt(DateTime.Now.AddSeconds(10));
                         j.WithCronSchedule("0 0 0-23 * * ?");
@@ -64,7 +64,7 @@ public static class ServiceCollectionExtensions
                     
                     q.ScheduleJob<CleanupJob>(j =>
                     {
-                        j.WithIdentity("Volatile Message Cleanup");
+                        j.WithIdentity("VolatileMessageCleanup");
                         j.WithDescription("Deletes messages that are marked as \"volatile\"");
                         j.StartAt(DateTime.Now.AddSeconds(10));
                         j.WithSimpleSchedule(s =>
@@ -76,11 +76,22 @@ public static class ServiceCollectionExtensions
                     
                     q.ScheduleJob<UpdateStatusJob>(j =>
                     {
-                        j.WithIdentity("Update Status");
+                        j.WithIdentity("UpdateStatus");
                         j.WithDescription("Updates the bot's Discord status with our current uptime");
                         j.WithSimpleSchedule(s =>
                         {
                             s.WithIntervalInSeconds(15);
+                            s.RepeatForever();
+                        });
+                    });
+                    
+                    q.ScheduleJob<CommitHashRetrievalJob>(j =>
+                    {
+                        j.WithIdentity("GitHubLatestCommitHashRetrieval");
+                        j.WithDescription("Retrieves and caches the project's latest GitHub commit hash");
+                        j.WithSimpleSchedule(s =>
+                        {
+                            s.WithIntervalInHours(1);
                             s.RepeatForever();
                         });
                     });
