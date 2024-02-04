@@ -8,7 +8,7 @@ public static class Constants
     
     private const          int     VersionMajor    = 1;
     private const          int     VersionMinor    = 1;
-    private const          int     VersionPatch    = 0;
+    private const          int     VersionPatch    = 1;
     private const          int     VersionRevision = 0;
     public static readonly Version Version         = new(VersionMajor, VersionMinor, VersionPatch, VersionRevision);
 
