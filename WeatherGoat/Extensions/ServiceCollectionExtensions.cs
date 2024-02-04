@@ -4,6 +4,7 @@ using WeatherGoat.Data;
 using WeatherGoat.Jobs;
 using WeatherGoat.Services;
 using Microsoft.EntityFrameworkCore;
+using WeatherGoat.Data.CompiledModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WeatherGoat.Extensions;
@@ -11,7 +12,11 @@ namespace WeatherGoat.Extensions;
 public static class ServiceCollectionExtensions
 {
     public static void AddWeatherGoatDatabase(this IServiceCollection services) =>
-        services.AddDbContextFactory<AppDbContext>(o => o.UseSqlite($"Data Source={Constants.DatabaseFilePath}"));
+        services.AddDbContextFactory<AppDbContext>(o =>
+        {
+            o.UseModel(AppDbContextModel.Instance);
+            o.UseSqlite($"Data Source={Constants.DatabaseFilePath}");
+        });
 
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
         services.AddSingleton<GitHubService>()

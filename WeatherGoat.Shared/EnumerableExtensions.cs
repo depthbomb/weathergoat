@@ -1,4 +1,4 @@
-﻿namespace WeatherGoat.Extensions;
+﻿namespace WeatherGoat.Shared;
 
 public static class EnumerableExtensions
 {

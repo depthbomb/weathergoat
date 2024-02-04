@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace WeatherGoat;
+namespace WeatherGoat.Shared;
 
 public static class Constants
 {

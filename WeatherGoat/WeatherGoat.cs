@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WeatherGoat.Services;
 
 namespace WeatherGoat;
 
@@ -24,7 +25,8 @@ public class WeatherGoat
             GatewayIntents = GatewayIntents.Guilds        |
                              GatewayIntents.GuildMembers  |
                              GatewayIntents.GuildMessages |
-                             GatewayIntents.GuildWebhooks,
+                             GatewayIntents.GuildWebhooks |
+                             GatewayIntents.GuildScheduledEvents,
             ConnectionTimeout = int.MaxValue,
             DefaultRetryMode  = RetryMode.AlwaysRetry
         });
@@ -64,6 +66,7 @@ public class WeatherGoat
         {
             var db                = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var logger            = scope.ServiceProvider.GetRequiredService<ILogger<WeatherGoat>>();
+            var features          = scope.ServiceProvider.GetRequiredService<FeatureService>();
             var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
             var migrationCount    = pendingMigrations.Count();
             if (migrationCount > 0)

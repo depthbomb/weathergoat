@@ -1,10 +1,12 @@
-﻿using WeatherGoat.Data.Entities;
+﻿using WeatherGoat.Shared;
+using WeatherGoat.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace WeatherGoat.Data;
 
 public class AppDbContext : DbContext
 {
+    public DbSet<Feature>             Features             { get; set; }
     public DbSet<AlertDestination>    AlertDestinations    { get; set; }
     public DbSet<ForecastDestination> ForecastDestinations { get; set; }
     public DbSet<SentAlert>           SentAlerts           { get; set; }
@@ -16,4 +18,15 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     
     public async Task<bool> HasAlertBeenReportedAsync(string alertId) => await HasAlertBeenReported(this, alertId);
+
+    #region Overrides of DbContext
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Feature>()
+                    .Property(f => f.Name)
+                    .HasConversion(v => v.ToScreamingSnakeCase(), v => v);
+        
+        base.OnModelCreating(modelBuilder);
+    }
+    #endregion
 }
