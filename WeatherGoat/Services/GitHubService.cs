@@ -34,17 +34,17 @@ public class GitHubService
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public async Task<string?> GetLatestCommitHashAsync()
+    public async Task<string?> GetLatestCommitHashAsync(CancellationToken ct = default)
     {
-        await _semaphore.WaitAsync();
-
-        if (_cache.TryGetValue<string>(CacheKey, out var hash))
-        {
-            return hash;
-        }
-
+        await _semaphore.WaitAsync(ct);
+        
         try
         {
+            if (_cache.TryGetValue<string>(CacheKey, out var hash))
+            {
+                return hash;
+            }
+
             var commits = await _client.Repository.Commit.GetAll(_username, _repo);
             if (commits.Count == 0)
             {
