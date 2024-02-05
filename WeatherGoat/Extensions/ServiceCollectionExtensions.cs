@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContextFactory<AppDbContext>(o =>
         {
             o.UseModel(AppDbContextModel.Instance);
-            o.UseSqlite($"Data Source={Constants.DatabaseFilePath}");
+            o.UseSqlite($"Data Source={Globals.DatabaseFilePath}");
         });
 
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
@@ -32,12 +32,12 @@ public static class ServiceCollectionExtensions
 
     public static void AddWeatherGoatHttpClients(this IServiceCollection services)
     {
-        services.AddHttpClient("Browser", client => client.DefaultRequestHeaders.Add("User-Agent", Constants.BrowserUserAgent));
-        services.AddHttpClient("Bot", client => client.DefaultRequestHeaders.Add("User-Agent", Constants.BrowserUserAgent));
+        services.AddHttpClient("Browser", client => client.DefaultRequestHeaders.Add("User-Agent", Globals.BrowserUserAgent));
+        services.AddHttpClient("Bot", client => client.DefaultRequestHeaders.Add("User-Agent", Globals.BrowserUserAgent));
         services.AddHttpClient("NWS", client =>
                 {
                     client.BaseAddress = new Uri("https://api.weather.gov");
-                    client.DefaultRequestHeaders.Add("User-Agent", Constants.BotUserAgent);
+                    client.DefaultRequestHeaders.Add("User-Agent", Globals.BotUserAgent);
                     client.DefaultRequestHeaders.Add("Accept", "application/ld+json");
                 })
                 .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(10, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));

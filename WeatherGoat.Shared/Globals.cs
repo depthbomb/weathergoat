@@ -2,12 +2,12 @@
 
 namespace WeatherGoat.Shared;
 
-public static class Constants
+public static class Globals
 {
     public static readonly DateTime StartDate = DateTime.Now;
     
     private const          int     VersionMajor    = 1;
-    private const          int     VersionMinor    = 2;
+    private const          int     VersionMinor    = 3;
     private const          int     VersionPatch    = 0;
     private const          int     VersionRevision = 0;
     public static readonly Version Version         = new(VersionMajor, VersionMinor, VersionPatch, VersionRevision);

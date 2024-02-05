@@ -19,6 +19,8 @@ public class UpdateStatusJob : IJob
     #region Implementation of IJob
     public async Task Execute(IJobExecutionContext context)
     {
+        var ct = context.CancellationToken;
+        
         if (_client.Status != UserStatus.DoNotDisturb)
         {
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
@@ -26,11 +28,11 @@ public class UpdateStatusJob : IJob
 
         var sb = new StringBuilder();
         sb.Append("Forecasting for ")
-          .Append(DateTime.Now.Subtract(Constants.StartDate).Humanize(3))
+          .Append(DateTime.Now.Subtract(Globals.StartDate).Humanize(3))
           .Append(" | v")
-          .Append(Constants.Version);
+          .Append(Globals.Version);
 
-        var hash = await _github.GetLatestCommitHashAsync();
+        var hash = await _github.GetLatestCommitHashAsync(ct);
         if (hash != null)
         {
             sb.Append('/')
