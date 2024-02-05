@@ -1,4 +1,4 @@
-﻿using Polly;
+using Polly;
 using Quartz;
 using WeatherGoat.Data;
 using WeatherGoat.Jobs;
