@@ -29,7 +29,7 @@ jobs:
 
       - name: Create release folder
         run: |
-          $FolderName = 'WeatherGoat'
+          $FolderName = 'dist'
           New-Item $FolderName -ItemType Directory
           Copy-Item WeatherGoat\bin\Release\net8.0\win-x64\publish\*.* $FolderName
           Compress-Archive -Path $FolderName -DestinationPath WeatherGoat-win-x64.zip
@@ -62,7 +62,7 @@ jobs:
 
       - name: Create release folder
         run: |
-          $FolderName = 'WeatherGoat'
+          $FolderName = 'dist'
           New-Item $FolderName -ItemType Directory
           Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\*.* $FolderName
           tar -xvzf WeatherGoat-linux-arm64.tar.gz $FolderName
