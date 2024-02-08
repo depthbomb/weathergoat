@@ -9,13 +9,13 @@ namespace WeatherGoat;
 
 public class WeatherGoat
 {
-    private readonly IReadOnlyList<string> _args;
-    private readonly DiscordSocketClient   _client;
-    private readonly InteractionService    _interaction;
+    private readonly string[]            _args;
+    private readonly DiscordSocketClient _client;
+    private readonly InteractionService  _interaction;
 
-    public WeatherGoat(IEnumerable<string> args)
+    public WeatherGoat(string[] args)
     {
-        _args = args.ToList().AsReadOnly();
+        _args = args;
         _client = new DiscordSocketClient(new DiscordSocketConfig
         {
             AlwaysDownloadUsers           = false,
@@ -39,12 +39,11 @@ public class WeatherGoat
 
     public async Task StartAsync()
     {
-        var args = _args.ToArray();
         using var host = Host.CreateDefaultBuilder()
                              .UseConsoleLifetime()
                              .ConfigureAppConfiguration(config =>
                              {
-                                 config.AddCommandLine(args);
+                                 config.AddCommandLine(_args);
                                  config.AddXmlFile(Constants.ConfigFilePath, optional: false, reloadOnChange: false);
                              })
                              .ConfigureServices(services =>
