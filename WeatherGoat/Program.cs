@@ -6,6 +6,12 @@ internal static class Program
 {
     private static async Task Main(string[] args)
     {
+        if (!File.Exists(Constants.ConfigFilePath))
+        {
+            Console.WriteLine("Missing config file at expected path {0}", Constants.ConfigFilePath);
+            Environment.Exit(1);
+        }
+        
         try
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
