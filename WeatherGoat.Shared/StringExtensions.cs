@@ -8,16 +8,6 @@ public static class StringExtensions
 
     public static bool IsNullOrWhiteSpace(this string? input) => string.IsNullOrWhiteSpace(input);
     
-    public static string ToCodeBlock(this string content, string language = "md")
-    {
-        return new StringBuilder()
-            .Append("```")
-            .Append(language)
-            .AppendLine(content)
-            .Append("```")
-            .ToString();
-    }
-    
     public static string ToScreamingSnakeCase(this string input)
     {
         if (string.IsNullOrEmpty(input))

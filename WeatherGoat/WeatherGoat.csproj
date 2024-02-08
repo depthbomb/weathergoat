@@ -4,7 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>annotations</Nullable>
+        <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <AssemblyVersion>1.4.*</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
@@ -16,6 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Discord.Addons.Extensions" Version="1.0.1" />
       <PackageReference Include="Discord.Net" Version="3.13.0" />
       <PackageReference Include="Humanizer.Core" Version="2.14.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
