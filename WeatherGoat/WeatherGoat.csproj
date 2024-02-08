@@ -4,7 +4,15 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>annotations</Nullable>
+        <LangVersion>latest</LangVersion>
+        <AssemblyVersion>1.4.*</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <Deterministic>false</Deterministic>
+        <Product>WeatherGoat</Product>
+        <NeutralLanguage>en</NeutralLanguage>
+        <Copyright>Copyright (c) 2022 Caprine Logic</Copyright>
+        <Company>Caprine Logic</Company>
     </PropertyGroup>
 
     <ItemGroup>
