@@ -43,36 +43,36 @@ jobs:
 
   linux-arm64:
     name: Linux Build
-      runs-on: windows-latest
+    runs-on: windows-latest
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Set up .NET
-          uses: actions/setup-dotnet@v3
-          with:
-            dotnet-version: 8.0.x
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
 
-        - name: Restore dependencies
-          run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-        - name: Publish
-          run: dotnet publish -c Release -r linux-arm64 -p:PublishSingleFile=true --self-contained
+      - name: Publish
+        run: dotnet publish -c Release -r linux-arm64 -p:PublishSingleFile=true --self-contained
 
-        - name: Create release folder
-          run: |
-            $FolderName = 'WeatherGoat'
-            New-Item $FolderName -ItemType Directory
-            Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\*.* $FolderName
-            tar -xvzf WeatherGoat-linux-arm64.tar.gz $FolderName
+      - name: Create release folder
+        run: |
+          $FolderName = 'WeatherGoat'
+          New-Item $FolderName -ItemType Directory
+          Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\*.* $FolderName
+          tar -xvzf WeatherGoat-linux-arm64.tar.gz $FolderName
 
-        - name: Upload build artifact
-          uses: actions/upload-artifact@v3
-          with:
-            if-no-files-found: error
-            name: WeatherGoat-linux-arm64
-            path: WeatherGoat-linux-arm64.tar.gz
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: WeatherGoat-linux-arm64
+          path: WeatherGoat-linux-arm64.tar.gz
 
 
   update_releases_page:
