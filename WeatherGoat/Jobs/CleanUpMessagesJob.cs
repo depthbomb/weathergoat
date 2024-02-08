@@ -4,13 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WeatherGoat.Jobs;
 
-public class CleanupJob : IJob
+public class CleanUpMessagesJob : IJob
 {
-    private readonly ILogger<CleanupJob>             _logger;
+    private readonly ILogger<CleanUpMessagesJob>     _logger;
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
     private readonly DiscordSocketClient             _client;
 
-    public CleanupJob(ILogger<CleanupJob> logger, IDbContextFactory<AppDbContext> contextFactory, DiscordSocketClient client)
+    public CleanUpMessagesJob(ILogger<CleanUpMessagesJob>     logger,
+                              IDbContextFactory<AppDbContext> contextFactory,
+                              DiscordSocketClient             client)
     {
         _logger         = logger;
         _contextFactory = contextFactory;
