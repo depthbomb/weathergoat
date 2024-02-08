@@ -75,7 +75,7 @@ public class WeatherGoat
                 await db.Database.MigrateAsync();
             }
 
-            await features.TryCreateAsync("CreateGuildEvents", "Whether to create guild events for reports");
+            await features.TryCreateAsync("CREATE_GUILD_EVENTS", "Whether to create guild events for reports");
         }
 
         await host.RunAsync();

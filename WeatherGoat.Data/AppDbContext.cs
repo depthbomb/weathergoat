@@ -18,15 +18,4 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     
     public async Task<bool> HasAlertBeenReportedAsync(string alertId) => await HasAlertBeenReported(this, alertId);
-
-    #region Overrides of DbContext
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Feature>()
-                    .Property(f => f.Name)
-                    .HasConversion(v => v.ToScreamingSnakeCase(), v => v);
-        
-        base.OnModelCreating(modelBuilder);
-    }
-    #endregion
 }
