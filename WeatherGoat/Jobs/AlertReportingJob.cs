@@ -15,15 +15,13 @@ public class AlertReportingJob : IJob
     private readonly FeatureService                  _features;
     private readonly LocationService                 _location;
     private readonly AlertsService                   _alerts;
-    private readonly WebhookService                  _webhooks;
 
     public AlertReportingJob(ILogger<AlertReportingJob>      logger,
                              IDbContextFactory<AppDbContext> contextFactory,
                              DiscordSocketClient             client,
                              FeatureService                  features,
                              LocationService                 location,
-                             AlertsService                   alerts,
-                             WebhookService                  webhooks)
+                             AlertsService                   alerts)
     {
         _logger         = logger;
         _contextFactory = contextFactory;
@@ -31,7 +29,6 @@ public class AlertReportingJob : IJob
         _features       = features;
         _location       = location;
         _alerts         = alerts;
-        _webhooks       = webhooks;
     }
 
     #region Implementation of IJob
@@ -96,7 +93,11 @@ public class AlertReportingJob : IJob
                     embed.ImageUrl = destination.RadarImageUrl;
                 }
 
-                var webhook   = await _webhooks.GetOrCreateAsync(channelId, Constants.AlertWebhookName, "Required for weather alert reporting");
+                var webhook   = await _client.GetOrCreateWebhookAsync(
+                    channelId,
+                    Constants.AlertWebhookName,
+                    "Required for weather alert reporting"
+                );
                 var messageId = await webhook.SendMessageAsync(
                     username: Constants.AlertWebhookName,
                     avatarUrl: _client.CurrentUser.GetAvatarUrl(),

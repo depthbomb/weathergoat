@@ -24,8 +24,7 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<CommandService>()
                 .AddSingleton<AlertsService>()
                 .AddSingleton<LocationService>()
-                .AddSingleton<ForecastService>()
-                .AddSingleton<WebhookService>();
+                .AddSingleton<ForecastService>();
 
     public static void AddHostedWeatherGoatServices(this IServiceCollection services) =>
         services.AddHostedService<DiscordHostedService>()
