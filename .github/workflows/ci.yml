@@ -25,7 +25,7 @@ jobs:
         run: dotnet restore
 
       - name: Publish
-        run: dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
+        run: dotnet publish WeatherGoat -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
 
       - name: Create release folder
         run: |
@@ -58,7 +58,7 @@ jobs:
         run: dotnet restore
 
       - name: Publish
-        run: dotnet publish -c Release -r linux-arm64 -p:PublishSingleFile=true --self-contained
+        run: dotnet publish WeatherGoat -c Release -r linux-arm64 -p:PublishSingleFile=true --self-contained
 
       - name: Create release folder
         run: |
