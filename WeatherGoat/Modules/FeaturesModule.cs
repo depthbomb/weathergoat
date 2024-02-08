@@ -51,14 +51,18 @@ public class FeaturesModule : InteractionModuleBase<SocketInteractionContext>
         [Summary("feature-name", "The name of the feature to enable")]
         string featureName)
     {
-        featureName = featureName.ToScreamingSnakeCase();
-        
         await DeferAsync();
 
         try
         {
+            InvalidFeatureNameException.ThrowIfInvalid(featureName);
+            
             await _features.EnableAsync(featureName);
             await ModifyOriginalResponseAsync(x => x.Content = $"Feature `{featureName}` has been enabled!");
+        }
+        catch (InvalidFeatureNameException)
+        {
+            await ModifyOriginalResponseAsync(x => x.Content = $"Feature name `{featureName}` is invalid.");
         }
         catch (FeatureDoesNotExistException)
         {
@@ -71,14 +75,18 @@ public class FeaturesModule : InteractionModuleBase<SocketInteractionContext>
         [Summary("feature-name", "The name of the feature to disable")]
         string featureName)
     {
-        featureName = featureName.ToScreamingSnakeCase();
-        
         await DeferAsync();
 
         try
         {
+            InvalidFeatureNameException.ThrowIfInvalid(featureName);
+
             await _features.DisableAsync(featureName);
             await ModifyOriginalResponseAsync(x => x.Content = $"Feature `{featureName}` has been disabled!");
+        }
+        catch (InvalidFeatureNameException)
+        {
+            await ModifyOriginalResponseAsync(x => x.Content = $"Feature name `{featureName}` is invalid.");
         }
         catch (FeatureDoesNotExistException)
         {
@@ -91,14 +99,18 @@ public class FeaturesModule : InteractionModuleBase<SocketInteractionContext>
         [Summary("feature-name", "The name of the feature to toggle")]
         string featureName)
     {
-        featureName = featureName.ToScreamingSnakeCase();
-
         await DeferAsync();
 
         try
         {
+            InvalidFeatureNameException.ThrowIfInvalid(featureName);
+            
             var isNowEnabled = await _features.ToggleAsync(featureName);
             await ModifyOriginalResponseAsync(x => x.Content = $"Feature `{featureName}` has been {(isNowEnabled ? "enabled" : "disabled")}!");
+        }
+        catch (InvalidFeatureNameException)
+        {
+            await ModifyOriginalResponseAsync(x => x.Content = $"Feature name `{featureName}` is invalid.");
         }
         catch (FeatureDoesNotExistException)
         {
