@@ -1,0 +1,115 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  win-x64:
+    name: Windows Build
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish
+        run: dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
+
+      - name: Create release folder
+        run: |
+          $FolderName = 'WeatherGoat'
+          New-Item $FolderName -ItemType Directory
+          Copy-Item WeatherGoat\bin\Release\net8.0\win-x64\publish\*.* $FolderName
+          Compress-Archive -Path $FolderName -DestinationPath WeatherGoat-win-x64.zip
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: WeatherGoat-win-x64
+          path: WeatherGoat-win-x64.zip
+
+  linux-arm64:
+    name: Linux Build
+      runs-on: windows-latest
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Set up .NET
+          uses: actions/setup-dotnet@v3
+          with:
+            dotnet-version: 8.0.x
+
+        - name: Restore dependencies
+          run: dotnet restore
+
+        - name: Publish
+          run: dotnet publish -c Release -r linux-arm64 -p:PublishSingleFile=true --self-contained
+
+        - name: Create release folder
+          run: |
+            $FolderName = 'WeatherGoat'
+            New-Item $FolderName -ItemType Directory
+            Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\*.* $FolderName
+            tar -xvzf WeatherGoat-linux-arm64.tar.gz $FolderName
+
+        - name: Upload build artifact
+          uses: actions/upload-artifact@v3
+          with:
+            if-no-files-found: error
+            name: WeatherGoat-linux-arm64
+            path: WeatherGoat-linux-arm64.tar.gz
+
+
+  update_releases_page:
+    name: Upload builds to Releases
+    if: github.event_name != 'pull_request'
+    needs:
+      - win-x64
+      - linux-arm64
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Set up variables
+        id: vars
+        run: |
+          echo "date_now=$(date --rfc-3339=seconds)" >> "${GITHUB_OUTPUT}"
+
+      - name: Download build artifacts from previous jobs
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Upload builds to Releases
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: artifacts/*/*
+          body: |
+            **This release is automatically created whenever any changes are made to the project. This release may contain bugs and other oddities.**
+
+            **Use at your own discretion!**
+
+            - Last build date: `${{steps.vars.outputs.date_now}}`
+            - Reference commit: ${{github.sha}}
+          name: Development build
+          prerelease: true
+          removeArtifacts: true
+          tag: dev-build
