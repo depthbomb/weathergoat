@@ -64,7 +64,7 @@ jobs:
         run: |
           $FolderName = 'dist'
           New-Item $FolderName -ItemType Directory
-          Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\*.* $FolderName
+          Copy-Item WeatherGoat\bin\Release\net8.0\linux-arm64\publish\* $FolderName
           tar -cvzf WeatherGoat-linux-arm64.tar.gz $FolderName
 
       - name: Upload build artifact
