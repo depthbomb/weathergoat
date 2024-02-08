@@ -6,6 +6,8 @@ internal static class Program
 {
     private static async Task Main(string[] args)
     {
+        Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
         if (!File.Exists(Constants.ConfigFilePath))
         {
             Console.WriteLine("Missing config file at expected path {0}", Constants.ConfigFilePath);
@@ -14,8 +16,6 @@ internal static class Program
         
         try
         {
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
             CreateRequiredDirectories();
 
             await new WeatherGoat(args).StartAsync();
