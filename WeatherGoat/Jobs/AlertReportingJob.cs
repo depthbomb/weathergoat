@@ -12,18 +12,24 @@ public class AlertReportingJob : IJob
     private readonly ILogger<AlertReportingJob>      _logger;
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
     private readonly DiscordSocketClient             _client;
+    private readonly FeatureService                  _features;
+    private readonly LocationService                 _location;
     private readonly AlertsService                   _alerts;
     private readonly WebhookService                  _webhooks;
 
     public AlertReportingJob(ILogger<AlertReportingJob>      logger,
                              IDbContextFactory<AppDbContext> contextFactory,
                              DiscordSocketClient             client,
+                             FeatureService                  features,
+                             LocationService                 location,
                              AlertsService                   alerts,
                              WebhookService                  webhooks)
     {
         _logger         = logger;
         _contextFactory = contextFactory;
         _client         = client;
+        _features       = features;
+        _location       = location;
         _alerts         = alerts;
         _webhooks       = webhooks;
     }
@@ -43,6 +49,8 @@ public class AlertReportingJob : IJob
 
         foreach (var destination in destinations)
         {
+            var latitude  = destination.Latitude;
+            var longitude = destination.Longitude;
             var zoneId    = destination.ZoneId;
             var countyId  = destination.CountyId;
             var channelId = destination.ChannelId;
@@ -56,11 +64,14 @@ public class AlertReportingJob : IJob
             var alerts = await _alerts.GetActiveForZoneAsync(zoneId, countyId, ct);
             foreach (var alert in alerts.Where(x => x.IsNotTest))
             {
+                _logger.LogDebug("Found active alerts for {Location}", destination.CountyId);
+
                 var alertId         = alert.Id;
                 var isAlertReported = await db.HasAlertBeenReportedAsync(alertId);
                 if (isAlertReported)
                 {
-                    _logger.LogDebug("Alert {Id} has already been reported to channel {ChannelName} ({ChannelId})", alertId, channel.Name, channelId); continue;
+                    _logger.LogDebug("Alert {Id} has already been reported to channel {ChannelName} ({ChannelId})", alertId, channel.Name, channelId);
+                    continue;
                 }
 
                 var embed = new EmbedBuilder()
@@ -105,6 +116,26 @@ public class AlertReportingJob : IJob
                 }
 
                 await db.SaveChangesAsync(ct);
+
+                if (alert.Type == AlertMessageType.Alert && await _features.IsEnabledAsync("CreateGuildEvents"))
+                {
+                    var location = await _location.GetInfoAsync(latitude, longitude, ct);
+                    var guild    = channel.Guild;
+                    await guild.CreateEventAsync(
+                        $"{alert.Severity} Weather Alert",
+                        DateTimeOffset.Now.AddSeconds(5),
+                        GuildScheduledEventType.External,
+                        description: alert.Description,
+                        endTime: alert.ExpiresAt,
+                        location: location.Location,
+                        options: new RequestOptions
+                        {
+                            AuditLogReason = "Created automatically due to an active weather alert in this server. This event will be deleted when the alert expires."
+                        }
+                    );
+                    
+                    _logger.LogInformation("Created guild event");
+                }
             }
         }
     }

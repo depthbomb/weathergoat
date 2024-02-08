@@ -7,7 +7,7 @@ namespace WeatherGoat.Services;
 
 public class FeatureService
 {
-    private readonly ILogger<FeatureService>            _logger;
+    private readonly ILogger<FeatureService>         _logger;
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
 
     public FeatureService(ILogger<FeatureService> logger, IDbContextFactory<AppDbContext> contextFactory)
@@ -17,7 +17,7 @@ public class FeatureService
     }
 
     /// <summary>
-    ///     Whether a feature is enabled
+    /// Whether a feature is enabled
     /// </summary>
     /// <param name="name">The name of the feature</param>
     /// <returns><c>true</c> if the feature should be enabled, <c>false</c> otherwise</returns>
@@ -31,7 +31,7 @@ public class FeatureService
     }
 
     /// <summary>
-    ///     Creates a new feature flag if it doesn't already exist.
+    /// Creates a new feature flag if it doesn't already exist.
     /// </summary>
     /// <param name="name">The name of the feature.</param>
     /// <param name="description">The description of the feature.</param>
@@ -49,7 +49,7 @@ public class FeatureService
     }
 
     /// <summary>
-    ///     Creates a new feature flag.
+    /// Creates a new feature flag.
     /// </summary>
     /// <param name="name">The name of the feature.</param>
     /// <param name="description">The description of the feature.</param>
@@ -78,6 +78,18 @@ public class FeatureService
         _logger.LogInformation("Created feature flag {Feature}", feature);
     }
 
+    /// <summary>
+    /// Lists all features.
+    /// </summary>
+    public async Task<IReadOnlyList<Feature>> ListAsync()
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync();
+
+        var features = await db.Features.ToListAsync();
+
+        return features.AsReadOnly();
+    }
+    
     public async Task<bool> ExistsAsync(string name)
     {
         await using var db = await _contextFactory.CreateDbContextAsync();
@@ -85,7 +97,7 @@ public class FeatureService
         return await db.Features.AnyAsync(f => f.Name == name);
     }
 
-    public async Task ToggleAsync(string name)
+    public async Task<bool> ToggleAsync(string name)
     {
         await using var db = await _contextFactory.CreateDbContextAsync();
 
@@ -96,18 +108,23 @@ public class FeatureService
         if (feature.Enabled)
         {
             await DisableAsync(name);
+
+            return false;
         }
-        else
-        {
-            await EnableAsync(name);
-        }
+        
+        await EnableAsync(name);
+
+        return true;
     }
 
     public async Task EnableAsync(string name)
     {
         await using var db = await _contextFactory.CreateDbContextAsync();
 
-        var feature = await db.Features.FirstAsync(f => f.Name == name);
+        var feature = await db.Features.FirstOrDefaultAsync(f => f.Name == name);
+
+        FeatureDoesNotExistException.ThrowIfNull(feature);
+
         if (!feature.Enabled)
         {
             feature.Enabled = true;
@@ -120,7 +137,10 @@ public class FeatureService
     {
         await using var db = await _contextFactory.CreateDbContextAsync();
 
-        var feature = await db.Features.FirstAsync(f => f.Name == name);
+        var feature = await db.Features.FirstOrDefaultAsync(f => f.Name == name);
+        
+        FeatureDoesNotExistException.ThrowIfNull(feature);
+
         if (feature.Enabled)
         {
             feature.Enabled = false;

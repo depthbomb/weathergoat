@@ -19,7 +19,8 @@ public static class ServiceCollectionExtensions
         });
 
     public static void AddWeatherGoatServices(this IServiceCollection services) =>
-        services.AddSingleton<GitHubService>()
+        services.AddSingleton<FeatureService>()
+                .AddSingleton<GitHubService>()
                 .AddSingleton<CommandService>()
                 .AddSingleton<AlertsService>()
                 .AddSingleton<LocationService>()
@@ -67,10 +68,22 @@ public static class ServiceCollectionExtensions
                         j.WithCronSchedule("0 0 0-23 * * ?");
                     });
                     
-                    q.ScheduleJob<CleanupJob>(j =>
+                    q.ScheduleJob<CleanUpMessagesJob>(j =>
                     {
                         j.WithIdentity("VolatileMessageCleanup");
                         j.WithDescription("Deletes messages that are marked as \"volatile\"");
+                        j.StartAt(DateTime.Now.AddSeconds(10));
+                        j.WithSimpleSchedule(s =>
+                        {
+                            s.WithIntervalInMinutes(1);
+                            s.RepeatForever();
+                        });
+                    });
+                    
+                    q.ScheduleJob<CleanUpGuildEventsJob>(j =>
+                    {
+                        j.WithIdentity("GuildEventsCleanup");
+                        j.WithDescription("Deletes guild events that we have created that have ended");
                         j.StartAt(DateTime.Now.AddSeconds(10));
                         j.WithSimpleSchedule(s =>
                         {

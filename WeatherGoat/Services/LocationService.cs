@@ -43,7 +43,6 @@ public class LocationService
         }
 
         var data = await res.Content.ReadFromJsonAsync<Point>(ct);
-
         var coordinateInfo = new CoordinateInfo
         {
             Latitude      = latitude,

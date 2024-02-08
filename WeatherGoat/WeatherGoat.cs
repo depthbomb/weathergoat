@@ -1,4 +1,5 @@
 ﻿using WeatherGoat.Data;
+using WeatherGoat.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -64,6 +65,7 @@ public class WeatherGoat
         {
             var db                = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var logger            = scope.ServiceProvider.GetRequiredService<ILogger<WeatherGoat>>();
+            var features          = scope.ServiceProvider.GetRequiredService<FeatureService>();
             var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
             var migrationCount    = pendingMigrations.Count();
             if (migrationCount > 0)
@@ -72,6 +74,8 @@ public class WeatherGoat
 
                 await db.Database.MigrateAsync();
             }
+
+            await features.TryCreateAsync("CreateGuildEvents", "Whether to create guild events for reports");
         }
 
         await host.RunAsync();
