@@ -5,10 +5,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Sqlite.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Json;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WeatherGoat.Data.Entities;
-using WeatherGoat.Shared;
 
 #pragma warning disable 219, 612, 618
 #nullable disable
@@ -68,27 +65,7 @@ namespace WeatherGoat.Data.CompiledModels
                 typeof(string),
                 propertyInfo: typeof(Feature).GetProperty("Name", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 fieldInfo: typeof(Feature).GetField("<Name>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
-            name.TypeMapping = SqliteStringTypeMapping.Default.Clone(
-                comparer: new ValueComparer<string>(
-                    (string v1, string v2) => v1 == v2,
-                    (string v) => v.GetHashCode(),
-                    (string v) => v),
-                keyComparer: new ValueComparer<string>(
-                    (string v1, string v2) => v1 == v2,
-                    (string v) => v.GetHashCode(),
-                    (string v) => v),
-                providerValueComparer: new ValueComparer<string>(
-                    (string v1, string v2) => v1 == v2,
-                    (string v) => v.GetHashCode(),
-                    (string v) => v),
-                converter: new ValueConverter<string, string>(
-                    (string v) => v.ToScreamingSnakeCase(),
-                    (string v) => v),
-                jsonValueReaderWriter: new JsonConvertedValueReaderWriter<string, string>(
-                    JsonStringReaderWriter.Instance,
-                    new ValueConverter<string, string>(
-                        (string v) => v.ToScreamingSnakeCase(),
-                        (string v) => v)));
+            name.TypeMapping = SqliteStringTypeMapping.Default;
 
             var key = runtimeEntityType.AddKey(
                 new[] { id });
