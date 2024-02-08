@@ -1,62 +1,103 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace WeatherGoat.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertStatus
 {
+    [EnumMember(Value = "Actual")]
     Actual,
+    [EnumMember(Value = "Exercise")]
     Exercise,
+    [EnumMember(Value = "System")]
     System,
+    [EnumMember(Value = "Test")]
     Test,
+    [EnumMember(Value = "Draft")]
     Draft
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertMessageType
 {
+    [EnumMember(Value = "Alert")]
     Alert,
+    [EnumMember(Value = "Update")]
     Update,
+    [EnumMember(Value = "Cancel")]
     Cancel,
+    [EnumMember(Value = "Ack")]
     Ack,
+    [EnumMember(Value = "Error")]
     Error
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertSeverity
 {
+    [EnumMember(Value = "Extreme")]
     Extreme,
+    [EnumMember(Value = "Severe")]
     Severe,
+    [EnumMember(Value = "Moderate")]
     Moderate,
+    [EnumMember(Value = "Minor")]
     Minor,
+    [EnumMember(Value = "Unknown")]
     Unknown
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertCertainty
 {
+    [EnumMember(Value = "Unknown")]
     Unknown,
+    [EnumMember(Value = "Observed")]
     Observed,
+    [EnumMember(Value = "Likely")]
     Likely,
+    [EnumMember(Value = "Possible")]
     Possible,
+    [EnumMember(Value = "Unlikely")]
     Unlikely
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertUrgency
 {
+    [EnumMember(Value = "Unknown")]
     Unknown,
+    [EnumMember(Value = "Immediate")]
     Immediate,
+    [EnumMember(Value = "Expected")]
     Expected,
+    [EnumMember(Value = "Future")]
     Future,
+    [EnumMember(Value = "Past")]
     Past
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AlertResponse
 {
+    [EnumMember(Value = "Shelter")]
     Shelter,
+    [EnumMember(Value = "Evacuate")]
     Evacuate,
+    [EnumMember(Value = "Prepare")]
     Prepare,
+    [EnumMember(Value = "Execute")]
     Execute,
+    [EnumMember(Value = "Avoid")]
     Avoid,
+    [EnumMember(Value = "Monitor")]
     Monitor,
+    [EnumMember(Value = "Assess")]
     Assess,
+    [EnumMember(Value = "AllClear")]
     AllClear,
+    [EnumMember(Value = "None")]
     None
 }
 
@@ -84,7 +125,7 @@ public record Alert
     public DateTime ExpiresAt { get; set; }
 
     [JsonPropertyName("ends")]
-    public DateTime EndsAt { get; set; }
+    public DateTime? EndsAt { get; set; }
 
     [JsonPropertyName("status")]
     public AlertStatus Status { get; set; }
