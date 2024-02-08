@@ -94,11 +94,11 @@ public class DiscordHostedService : IHostedService, IDisposable
     }
     #endregion
 
+    #region Client Events
     private Task ClientOnLog(LogMessage log)
     {
-        var    level   = log.Severity;
-        string message = log.Message;
-
+        var level   = log.Severity;
+        var message = log.Message;
         if (!string.IsNullOrEmpty(message))
         {
             // ReSharper disable TemplateIsNotCompileTimeConstantProblem
@@ -140,10 +140,8 @@ public class DiscordHostedService : IHostedService, IDisposable
         try
         {
             var modules = await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
-            foreach (var module in modules)
-            {
-                _logger.LogDebug("Loaded module {Name}", module.Name);
-            }
+            
+            _logger.LogDebug("Loaded {Num} modules", modules.Count());
 
             _modulesLoaded = true;
 
@@ -160,7 +158,7 @@ public class DiscordHostedService : IHostedService, IDisposable
             }
 
             var registerCommandsOption = _config.GetValue<string>("RegisterCommands");
-            if (!string.IsNullOrEmpty(registerCommandsOption))
+            if (!registerCommandsOption.IsNullOrEmpty())
             {
                 await _commands.RegisterCommandsAsync(registerCommandsOption == "global");
             }
@@ -196,4 +194,5 @@ public class DiscordHostedService : IHostedService, IDisposable
             _logger.LogInformation("Finished interaction");
         }
     }
+    #endregion
 }

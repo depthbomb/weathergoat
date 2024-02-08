@@ -26,7 +26,7 @@ internal static class Program
     
     private static void CreateRequiredDirectories()
     {
-        foreach (var dir in new[] { Globals.LogsDirectory, Globals.DatabaseDirectory })
+        foreach (var dir in new[] { Constants.LogsDirectory, Constants.DatabaseDirectory })
         {
             if (!Directory.Exists(dir))
             {

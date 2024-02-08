@@ -44,7 +44,7 @@ public class WeatherGoat
                              .ConfigureAppConfiguration(config =>
                              {
                                  config.AddCommandLine(args);
-                                 config.AddXmlFile(Globals.ConfigFilePath, optional: false, reloadOnChange: false);
+                                 config.AddXmlFile(Constants.ConfigFilePath, optional: false, reloadOnChange: false);
                              })
                              .ConfigureServices(services =>
                              {

@@ -18,7 +18,7 @@ public static class HostBuilderExtensions
             config.Enrich.FromLogContext();
             config.WriteTo.Console(LogEventLevel.Information, theme: AnsiConsoleTheme.Sixteen, outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}");
             config.WriteTo.Async(wt => wt.File(
-                Globals.LogFilePath,
+                Constants.LogFilePath,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 5,

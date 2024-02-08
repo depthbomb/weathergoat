@@ -4,6 +4,10 @@ namespace WeatherGoat.Shared;
 
 public static class StringExtensions
 {
+    public static bool IsNullOrEmpty(this string? input) => string.IsNullOrEmpty(input);
+
+    public static bool IsNullOrWhiteSpace(this string? input) => string.IsNullOrWhiteSpace(input);
+    
     public static string ToCodeBlock(this string content, string language = "md")
     {
         return new StringBuilder()

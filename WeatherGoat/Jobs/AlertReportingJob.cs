@@ -85,9 +85,9 @@ public class AlertReportingJob : IJob
                     embed.ImageUrl = destination.RadarImageUrl;
                 }
 
-                var webhook   = await _webhooks.GetOrCreateAsync(channelId, Globals.AlertWebhookName, "Required for weather alert reporting");
+                var webhook   = await _webhooks.GetOrCreateAsync(channelId, Constants.AlertWebhookName, "Required for weather alert reporting");
                 var messageId = await webhook.SendMessageAsync(
-                    username: Globals.AlertWebhookName,
+                    username: Constants.AlertWebhookName,
                     avatarUrl: _client.CurrentUser.GetAvatarUrl(),
                     embeds: [embed.Build()]
                 );

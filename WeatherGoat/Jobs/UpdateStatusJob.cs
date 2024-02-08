@@ -28,9 +28,9 @@ public class UpdateStatusJob : IJob
 
         var sb = new StringBuilder();
         sb.Append("Forecasting for ")
-          .Append(DateTime.Now.Subtract(Globals.StartDate).Humanize(3))
+          .Append(DateTime.Now.Subtract(Constants.StartDate).Humanize(3))
           .Append(" | v")
-          .Append(Globals.Version);
+          .Append(Constants.Version);
 
         var hash = await _github.GetLatestCommitHashAsync(ct);
         if (hash != null)

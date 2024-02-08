@@ -2,7 +2,7 @@
 
 namespace WeatherGoat.Shared;
 
-public static class Globals
+public static class Constants
 {
     public static readonly DateTime StartDate = DateTime.Now;
     
