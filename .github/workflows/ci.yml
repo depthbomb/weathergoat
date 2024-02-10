@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
@@ -35,7 +35,7 @@ jobs:
           Compress-Archive -Path $FolderName -DestinationPath WeatherGoat-win-x64.zip
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: WeatherGoat-win-x64
@@ -47,10 +47,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
@@ -68,7 +68,7 @@ jobs:
           tar -cvzf WeatherGoat-linux-arm64.tar.gz $FolderName
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: WeatherGoat-linux-arm64
@@ -92,7 +92,7 @@ jobs:
           echo "date_now=$(date --rfc-3339=seconds)" >> "${GITHUB_OUTPUT}"
 
       - name: Download build artifacts from previous jobs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
