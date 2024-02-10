@@ -31,7 +31,7 @@
       <PackageReference Include="Octokit" Version="9.1.2" />
       <PackageReference Include="Quartz" Version="3.8.0" />
       <PackageReference Include="Quartz.Extensions.Hosting" Version="3.8.0" />
-      <PackageReference Include="Sentry.Serilog" Version="4.0.3" />
+      <PackageReference Include="Sentry.Serilog" Version="4.1.0" />
       <PackageReference Include="Serilog" Version="3.1.2-dev-02097" />
       <PackageReference Include="Serilog.Expressions" Version="4.0.1-dev-00151" />
       <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
