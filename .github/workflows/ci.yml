@@ -109,6 +109,7 @@ jobs:
 
             - Last build date: `${{steps.vars.outputs.date_now}}`
             - Reference commit: ${{github.sha}}
+            - Commit message: ${{github.event.head_commit.message}}
           name: Development build
           prerelease: true
           removeArtifacts: true
