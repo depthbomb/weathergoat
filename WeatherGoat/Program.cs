@@ -8,12 +8,6 @@ internal static class Program
     {
         Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
-        if (!File.Exists(Constants.ConfigFilePath))
-        {
-            Console.WriteLine("Missing config file at expected path {0}", Constants.ConfigFilePath);
-            Environment.Exit(1);
-        }
-        
         try
         {
             CreateRequiredDirectories();
