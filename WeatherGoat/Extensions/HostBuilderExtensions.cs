@@ -12,18 +12,19 @@ public static class HostBuilderExtensions
         hostBuilder.UseSerilog((ctx, config) =>
         {
             #if DEBUG
-            var debug = true;
+            var verbose = true;
             #elif RELEASE
-            var debug = false;
+            var verbose = false;
             #endif
-            
-            config.MinimumLevel.Override("Default", debug ? LogEventLevel.Debug : LogEventLevel.Information);
-            config.MinimumLevel.Override("Quartz", debug ? LogEventLevel.Information : LogEventLevel.Warning);
-            config.MinimumLevel.Override("System.Net", debug ? LogEventLevel.Information : LogEventLevel.Warning);
-            config.Filter.ByExcluding("SourceContext like 'Microsoft.EntityFrameworkCore.Database.Command'");
+
+            if (verbose)
+                config.MinimumLevel.Verbose();
+            else
+                config.MinimumLevel.Debug();
             config.Enrich.FromLogContext();
+            config.Filter.ByExcluding("SourceContext like 'Microsoft.EntityFrameworkCore.Database.Command'");
             config.WriteTo.Console(
-                debug ? LogEventLevel.Debug : LogEventLevel.Information,
+                verbose ? LogEventLevel.Debug : LogEventLevel.Information,
                 theme: AnsiConsoleTheme.Sixteen,
                 outputTemplate: "{Timestamp:HH:mm:ss} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
             );
@@ -31,13 +32,12 @@ public static class HostBuilderExtensions
                 Constants.LogFilePath,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 5,
-                rollOnFileSizeLimit: true,
-                flushToDiskInterval: TimeSpan.FromSeconds(5)
+                retainedFileCountLimit: 7,
+                rollOnFileSizeLimit: true
             ));
 
             var sentryDsn = ctx.Configuration.GetValue<string>("SentryDsn");
-            if (sentryDsn != null)
+            if (sentryDsn != null && !verbose)
             {
                 config.WriteTo.Sentry(o =>
                 {
