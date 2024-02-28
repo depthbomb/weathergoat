@@ -20,7 +20,7 @@ public static class HostBuilderExtensions
             if (verbose)
                 config.MinimumLevel.Verbose();
             else
-                config.MinimumLevel.Debug();
+                config.MinimumLevel.Information();
             config.Enrich.FromLogContext();
             config.Filter.ByExcluding("SourceContext like 'Microsoft.EntityFrameworkCore.Database.Command'");
             config.WriteTo.Console(
