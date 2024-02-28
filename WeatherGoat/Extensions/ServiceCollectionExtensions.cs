@@ -54,7 +54,7 @@ public static class ServiceCollectionExtensions
                         j.StartAt(DateTime.Now.AddSeconds(10));
                         j.WithSimpleSchedule(s =>
                         {
-                            s.WithIntervalInSeconds(45);
+                            s.WithIntervalInSeconds(15);
                             s.RepeatForever();
                         });
                     });
