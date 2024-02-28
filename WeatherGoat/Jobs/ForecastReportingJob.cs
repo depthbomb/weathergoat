@@ -65,7 +65,7 @@ public class ForecastReportingJob : IJob
 
             if (radarImageUrl != null)
             {
-                embed.WithImageUrl($"{radarImageUrl}?{Guid.NewGuid()}");
+                embed.WithImageUrl($"{radarImageUrl}?{DateTime.Now.ToFileTime()}");
             }
 
             var sentMessage = await channel.SendMessageAsync(embed: embed.Build(), flags: MessageFlags.SuppressNotification);
