@@ -27,7 +27,7 @@ namespace WeatherGoat.Data.CompiledModels
             SentAlertEntityType.CreateAnnotations(sentAlert);
             VolatileMessageEntityType.CreateAnnotations(volatileMessage);
 
-            AddAnnotation("ProductVersion", "8.0.1");
+            AddAnnotation("ProductVersion", "8.0.2");
             AddRuntimeAnnotation("Relational:RelationalModel", CreateRelationalModel());
         }
 
@@ -52,6 +52,8 @@ namespace WeatherGoat.Data.CompiledModels
             weatherGoatDataEntitiesAlertDestinationTableBase.Columns.Add("Latitude", latitudeColumnBase);
             var longitudeColumnBase = new ColumnBase<ColumnMappingBase>("Longitude", "TEXT", weatherGoatDataEntitiesAlertDestinationTableBase);
             weatherGoatDataEntitiesAlertDestinationTableBase.Columns.Add("Longitude", longitudeColumnBase);
+            var pingOnSevereOrExtremeColumnBase = new ColumnBase<ColumnMappingBase>("PingOnSevereOrExtreme", "INTEGER", weatherGoatDataEntitiesAlertDestinationTableBase);
+            weatherGoatDataEntitiesAlertDestinationTableBase.Columns.Add("PingOnSevereOrExtreme", pingOnSevereOrExtremeColumnBase);
             var radarImageUrlColumnBase = new ColumnBase<ColumnMappingBase>("RadarImageUrl", "TEXT", weatherGoatDataEntitiesAlertDestinationTableBase);
             weatherGoatDataEntitiesAlertDestinationTableBase.Columns.Add("RadarImageUrl", radarImageUrlColumnBase);
             var zoneIdColumnBase = new ColumnBase<ColumnMappingBase>("ZoneId", "TEXT", weatherGoatDataEntitiesAlertDestinationTableBase);
@@ -66,6 +68,7 @@ namespace WeatherGoat.Data.CompiledModels
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)countyIdColumnBase, alertDestination.FindProperty("CountyId")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)latitudeColumnBase, alertDestination.FindProperty("Latitude")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)longitudeColumnBase, alertDestination.FindProperty("Longitude")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
+            RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)pingOnSevereOrExtremeColumnBase, alertDestination.FindProperty("PingOnSevereOrExtreme")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)radarImageUrlColumnBase, alertDestination.FindProperty("RadarImageUrl")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
             RelationalModel.CreateColumnMapping((ColumnBase<ColumnMappingBase>)zoneIdColumnBase, alertDestination.FindProperty("ZoneId")!, weatherGoatDataEntitiesAlertDestinationMappingBase);
 
@@ -84,6 +87,8 @@ namespace WeatherGoat.Data.CompiledModels
             alertDestinationsTable.Columns.Add("Latitude", latitudeColumn);
             var longitudeColumn = new Column("Longitude", "TEXT", alertDestinationsTable);
             alertDestinationsTable.Columns.Add("Longitude", longitudeColumn);
+            var pingOnSevereOrExtremeColumn = new Column("PingOnSevereOrExtreme", "INTEGER", alertDestinationsTable);
+            alertDestinationsTable.Columns.Add("PingOnSevereOrExtreme", pingOnSevereOrExtremeColumn);
             var radarImageUrlColumn = new Column("RadarImageUrl", "TEXT", alertDestinationsTable);
             alertDestinationsTable.Columns.Add("RadarImageUrl", radarImageUrlColumn);
             var zoneIdColumn = new Column("ZoneId", "TEXT", alertDestinationsTable);
@@ -106,6 +111,7 @@ namespace WeatherGoat.Data.CompiledModels
             RelationalModel.CreateColumnMapping(countyIdColumn, alertDestination.FindProperty("CountyId")!, alertDestinationsTableMapping);
             RelationalModel.CreateColumnMapping(latitudeColumn, alertDestination.FindProperty("Latitude")!, alertDestinationsTableMapping);
             RelationalModel.CreateColumnMapping(longitudeColumn, alertDestination.FindProperty("Longitude")!, alertDestinationsTableMapping);
+            RelationalModel.CreateColumnMapping(pingOnSevereOrExtremeColumn, alertDestination.FindProperty("PingOnSevereOrExtreme")!, alertDestinationsTableMapping);
             RelationalModel.CreateColumnMapping(radarImageUrlColumn, alertDestination.FindProperty("RadarImageUrl")!, alertDestinationsTableMapping);
             RelationalModel.CreateColumnMapping(zoneIdColumn, alertDestination.FindProperty("ZoneId")!, alertDestinationsTableMapping);
 

@@ -25,4 +25,6 @@ public class AlertDestination
 
     [Required]
     public string? RadarImageUrl { get; set; }
+
+    public bool PingOnSevereOrExtreme { get; set; } = false;
 }

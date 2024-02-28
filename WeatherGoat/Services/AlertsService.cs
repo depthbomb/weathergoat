@@ -70,7 +70,7 @@ public class AlertsService
         return data.Alerts;
     }
 
-    public async Task<AlertDestination> AddReportDestinationAsync(ulong channelId, string latitude, string longitude, bool cleanup)
+    public async Task<AlertDestination> AddReportDestinationAsync(ulong channelId, string latitude, string longitude, bool cleanup, bool pingOnSevere)
     {
         await using var db = await _contextFactory.CreateDbContextAsync();
 
@@ -86,13 +86,14 @@ public class AlertsService
         var coordinateInfo = await _location.GetInfoAsync(latitude, longitude);
         var destination = new AlertDestination
         {
-            Latitude      = latitude,
-            Longitude     = longitude,
-            ZoneId        = coordinateInfo.ZoneId,
-            CountyId      = coordinateInfo.CountyId,
-            ChannelId     = channelId,
-            AutoCleanup   = cleanup,
-            RadarImageUrl = coordinateInfo.RadarImageUrl
+            Latitude              = latitude,
+            Longitude             = longitude,
+            ZoneId                = coordinateInfo.ZoneId,
+            CountyId              = coordinateInfo.CountyId,
+            ChannelId             = channelId,
+            AutoCleanup           = cleanup,
+            PingOnSevereOrExtreme = pingOnSevere,
+            RadarImageUrl         = coordinateInfo.RadarImageUrl
         };
         
         await db.AlertDestinations.AddAsync(destination);

@@ -82,6 +82,28 @@ namespace WeatherGoat.Data.CompiledModels
                 fieldInfo: typeof(AlertDestination).GetField("<Longitude>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
             longitude.TypeMapping = SqliteStringTypeMapping.Default;
 
+            var pingOnSevereOrExtreme = runtimeEntityType.AddProperty(
+                "PingOnSevereOrExtreme",
+                typeof(bool),
+                propertyInfo: typeof(AlertDestination).GetProperty("PingOnSevereOrExtreme", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(AlertDestination).GetField("<PingOnSevereOrExtreme>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: false);
+            pingOnSevereOrExtreme.TypeMapping = BoolTypeMapping.Default.Clone(
+                comparer: new ValueComparer<bool>(
+                    (bool v1, bool v2) => v1 == v2,
+                    (bool v) => v.GetHashCode(),
+                    (bool v) => v),
+                keyComparer: new ValueComparer<bool>(
+                    (bool v1, bool v2) => v1 == v2,
+                    (bool v) => v.GetHashCode(),
+                    (bool v) => v),
+                providerValueComparer: new ValueComparer<bool>(
+                    (bool v1, bool v2) => v1 == v2,
+                    (bool v) => v.GetHashCode(),
+                    (bool v) => v),
+                mappingInfo: new RelationalTypeMappingInfo(
+                    storeTypeName: "INTEGER"));
+
             var radarImageUrl = runtimeEntityType.AddProperty(
                 "RadarImageUrl",
                 typeof(string),

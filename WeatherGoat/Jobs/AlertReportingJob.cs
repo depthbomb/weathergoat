@@ -74,7 +74,6 @@ public class AlertReportingJob : IJob
                 var embed = new EmbedBuilder()
                             .WithTitle($"🚨 {(alert.Type == AlertMessageType.Update ? "[UPDATE] " : "")}{alert.Headline}")
                             .WithDescription(alert.Description.ToCodeBlock())
-                            .WithImageUrl($"{destination.RadarImageUrl}?{Guid.NewGuid()}")
                             .WithColor(alert.SeverityColor)
                             .WithFooter(alert.Event)
                             .AddField("Certainty", alert.Certainty.ToString(), true)
@@ -90,18 +89,21 @@ public class AlertReportingJob : IJob
 
                 if (destination.RadarImageUrl != null)
                 {
-                    embed.ImageUrl = destination.RadarImageUrl;
+                    embed.WithImageUrl($"{destination.RadarImageUrl}?{DateTime.Now.ToFileTime()}");
                 }
 
+                var shouldPingEveryone = (alert.Severity is AlertSeverity.Severe or AlertSeverity.Extreme) && destination.PingOnSevereOrExtreme;
                 var webhook   = await _client.GetOrCreateWebhookAsync(
                     channelId,
                     Constants.AlertWebhookName,
                     "Required for weather alert reporting"
                 );
                 var messageId = await webhook.SendMessageAsync(
+                    text: shouldPingEveryone ? "@everyone" : string.Empty,
                     username: Constants.AlertWebhookName,
                     avatarUrl: _client.CurrentUser.GetAvatarUrl(),
-                    embeds: [embed.Build()]
+                    embeds: [embed.Build()],
+                    allowedMentions: AllowedMentions.All
                 );
 
                 await db.SentAlerts.AddAsync(new SentAlert { AlertId = alert.Id }, ct);

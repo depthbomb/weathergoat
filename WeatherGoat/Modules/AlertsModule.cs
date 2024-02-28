@@ -27,7 +27,9 @@ public class AlertsModule : InteractionModuleBase<SocketInteractionContext>
         [Summary("channel", "The channel in which to send alerts to")]
         SocketChannel channel,
         [Summary("auto-cleanup", "Whether my messages should be deleted periodically (true by default)")]
-        bool cleanup = true)
+        bool cleanup = true,
+        [Summary("ping-on-severe", "Whether to ping everyone when a severe or extreme alert is posted (false by default)")]
+        bool pingOnSevere = true)
     {
         if (!_location.IsValidCoordinates(latitude, longitude))
         {
@@ -45,12 +47,17 @@ public class AlertsModule : InteractionModuleBase<SocketInteractionContext>
 
         try
         {
-            var destination = await _alerts.AddReportDestinationAsync(chan.Id, latitude, longitude, cleanup);
+            var destination = await _alerts.AddReportDestinationAsync(chan.Id, latitude, longitude, cleanup, pingOnSevere);
             var message     = "Alert reporting created!";
 
             if (cleanup)
             {
                 message = $"{message} My messages will be deleted automatically after some time.";
+            }
+
+            if (pingOnSevere)
+            {
+                message = $"{message}\nI will ping everyone in the server if there is a severe or extreme alert.";
             }
             
             message = $"{message}\nYou can remove this reporting by using the `/alert remove` command with the GUID `{destination.Id}`.";
