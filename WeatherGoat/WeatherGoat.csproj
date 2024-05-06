@@ -16,10 +16,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Discord.Addons.Extensions" Version="1.0.1" />
-      <PackageReference Include="Discord.Net" Version="3.13.1" />
+      <PackageReference Include="Discord.Addons.Extensions" Version="1.0.2" />
+      <PackageReference Include="Discord.Net" Version="3.14.1" />
       <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
@@ -27,11 +27,11 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.2" />
-      <PackageReference Include="Octokit" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.4" />
+      <PackageReference Include="Octokit" Version="11.0.1" />
       <PackageReference Include="Quartz" Version="3.8.1" />
       <PackageReference Include="Quartz.Extensions.Hosting" Version="3.8.1" />
-      <PackageReference Include="Sentry.Serilog" Version="4.1.2" />
+      <PackageReference Include="Sentry.Serilog" Version="4.5.0" />
       <PackageReference Include="Serilog" Version="4.0.0-dev-02108" />
       <PackageReference Include="Serilog.Expressions" Version="4.0.1-dev-00151" />
       <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
