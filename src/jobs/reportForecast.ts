@@ -32,7 +32,7 @@ export default class ReportForecastsJob extends Job {
 			const location = await getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
 				.setTitle(`⛅ ${forecast.name}'s Forecast for ${location.location}`)
-				.setColor('#06b6d4')
+				.setColor(client.brandColor)
 				.setThumbnail(forecast.icon.replace('medium', 'large'))
 				.setDescription(forecast.detailedForecast)
 				.addFields({ name: 'At a glance', value: forecast.shortForecast })

@@ -19,6 +19,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	public readonly jobs: Set<Job>;
 	public readonly events: Collection<string, DiscordEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, Command>;
+	public readonly brandColor = '#5876aa';
 
 	private readonly _idGenerators: Collection<number, () => string>;
 	private readonly _moduleFilePattern: RegExp;
