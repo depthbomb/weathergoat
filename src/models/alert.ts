@@ -24,7 +24,7 @@ export class Alert {
 	public senderName!: string;
 	public headline!: string;
 	public description!: string;
-	public instructions?: string;
+	public instruction?: string;
 	public response!: 'Shelter' | 'Evacuate' | 'Prepare' | 'Execute' | 'Avoid' | 'Monitor' | 'Assess' | 'AllClear' | 'None';
 	public parameters!: { [key: string]: string[] };
 
