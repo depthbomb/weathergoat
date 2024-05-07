@@ -26,7 +26,7 @@ SENTRY_DSN=<sentry-project-dsn> # Optional Sentry error reporting
 
 WeatherGoat works by checking "destinations" that you create via slash commands. There are two types of destinations:
 
-- **Alert reporting destinations** are channels in which weather alerts will be posted to for the area that the destination covers. Alert messages will be deleted when the alert expires or is cancelled before the expiration time.
+- **Alert reporting destinations** are channels in which weather alerts will be posted to for the area that the destination covers. Alert messages will be deleted when the alert expires.
 - **Hourly forecast destinations** are channels in which an hourly forecast message will be sent for the area that the destination covers. Forecast messages will be deleted after 4 hours of being sent which will result in at least 4 messages being up at a time in the channel.
 
 Both commands for managing destinations are similar in that they both have a top-level command (`/alerts` and `/forecasts`) with subcommands: `add`, `remove`, and `list`.
