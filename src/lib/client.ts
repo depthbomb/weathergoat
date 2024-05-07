@@ -78,9 +78,10 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 			if (this.jobs.has(job)) continue;
 
-			const task = Cron(job.pattern, async () => job.execute(this), {
+			const j = Cron(job.pattern, async () => job.execute(this), {
 				name: job.name,
 				paused: true,
+				protect: (job) => logger.warn('Job overrun', { name: job.name, calledAt: job.currentRun()?.getDate() }),
 				catch: (err: any) => logger.error('Job error', { name: job.name, error: err.message })
 			});
 
@@ -90,14 +91,14 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 				if (job.waitUntilReady) {
 					this.once('ready', async () => {
 						await job.execute(this);
-						task.resume();
+						j.resume();
 					});
 				} else {
 					await job.execute(this);
-					task.resume();
+					j.resume();
 				}
 			} else {
-				this.once('ready', () => void task.resume());
+				this.once('ready', () => void j.resume());
 			}
 
 			logger.info('Registered job', {
