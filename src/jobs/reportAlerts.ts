@@ -53,7 +53,7 @@ export default class ReportAlertsJob extends Job {
 					.setTimestamp();
 
 				if (alert.instructions) {
-					embed.addFields({ name: 'Instructions', value: alert.instructions });
+					embed.addFields({ name: 'Instructions', value: codeBlock(alert.instructions) });
 				}
 
 				if (radarImageUrl) {
