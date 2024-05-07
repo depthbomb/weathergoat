@@ -46,7 +46,7 @@ export default class ReportAlertsJob extends Job {
 					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock(alert.description))
 					.setColor(alert.severityColor)
-					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png', url: `mailto:${alert.sender}` })
+					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
 					.setFooter({ text: alert.event })
 					.addFields(
