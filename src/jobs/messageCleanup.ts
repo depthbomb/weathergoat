@@ -13,7 +13,6 @@ export default class MessageCleanupJob extends Job {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
-		console.log('message cleanup');
 		const messages = await db.query.volatileMessages.findMany({ where: (m, { lte }) => lte(m.expiresAt, new Date()) });
 		for (const { channelId, messageId } of messages) {
 			try {
