@@ -26,6 +26,7 @@ export class Alert {
 	public description!: string;
 	public instructions?: string;
 	public response!: 'Shelter' | 'Evacuate' | 'Prepare' | 'Execute' | 'Avoid' | 'Monitor' | 'Assess' | 'AllClear' | 'None';
+	public parameters!: { [key: string]: string[] };
 
 	public get severityColor(): ColorResolvable {
 		switch (this.severity) {
