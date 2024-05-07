@@ -34,9 +34,7 @@ export default class ReportForecastsJob extends Job {
 				.setColor('#06b6d4')
 				.setThumbnail(forecast.icon.replace('medium', 'large'))
 				.setDescription(forecast.detailedForecast)
-				.addFields(
-					{ name: 'At a glance', value: forecast.shortForecast }
-				)
+				.addFields({ name: 'At a glance', value: forecast.shortForecast })
 				.setTimestamp();
 
 			if (radarImageUrl) {

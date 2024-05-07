@@ -1,11 +1,10 @@
 import { db } from '@db';
 import { Job } from '@jobs';
-import { logger } from '@lib/logger';
 import { eq, and } from 'drizzle-orm';
 import { ChannelType } from 'discord.js';
+import { captureError } from '@lib/errors';
 import { volatileMessages } from '@db/schemas';
 import type { WeatherGoat } from '@lib/client';
-import { captureError } from '@lib/errors';
 
 export default class MessageCleanupJob extends Job {
 	public constructor() {
