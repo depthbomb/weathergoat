@@ -1,5 +1,6 @@
 import { db } from '@db';
 import { Job } from '@jobs';
+import { withQuery } from 'ufo';
 import { getActiveAlertsForZone } from '@lib/alerts';
 import { sentAlerts, volatileMessages } from '@db/schemas';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -45,6 +46,8 @@ export default class ReportAlertsJob extends Job {
 					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock(alert.description))
 					.setColor(alert.severityColor)
+					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png', url: `mailto:${alert.sender}` })
+					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
 					.setFooter({ text: alert.event })
 					.addFields(
 						{ name: 'Certainty', value: alert.certainty, inline: true },

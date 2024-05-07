@@ -24,6 +24,7 @@ export class Alert {
 	public certainty!: 'Unknown' | 'Observed' | 'Likely' | 'Possible' | 'Unlikely';
 	public urgency!: 'Unknown' | 'Immediate' | 'Expected' | 'Future' | 'Past';
 	public event!: string;
+	public sender!: string;
 	public senderName!: string;
 	public headline!: string;
 	public description!: string;
