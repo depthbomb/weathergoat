@@ -1,6 +1,7 @@
 import Cron from 'croner';
 import { sqlite } from '@db';
 import { logger } from '@lib/logger';
+import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
@@ -83,7 +84,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 				name: job.name,
 				paused: true,
 				protect: (job) => logger.warn('Job overrun', { name: job.name, calledAt: job.currentRun()?.getDate() }),
-				catch: (err: any) => logger.error('Job error', { name: job.name, error: err.message })
+				catch: (err: any) => captureError('Job error', err, { name: job.name })
 			});
 
 			this.jobs.add(job);
