@@ -27,6 +27,7 @@ export default class ReportForecastsJob extends Job {
 				continue;
 			}
 
+			const guildId  = channel.guildId;
 			const forecast = await getForecastForCoordinates(latitude, longitude);
 			const location = await getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
@@ -52,6 +53,7 @@ export default class ReportForecastsJob extends Job {
 
 			if (autoCleanup) {
 				await db.insert(volatileMessages).values({
+					guildId,
 					channelId,
 					messageId,
 					expiresAt: new Duration('4h').fromNow
