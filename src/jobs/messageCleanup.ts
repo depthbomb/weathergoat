@@ -5,10 +5,11 @@ import { eq, and } from 'drizzle-orm';
 import { ChannelType } from 'discord.js';
 import { volatileMessages } from '@db/schemas';
 import type { WeatherGoat } from '@lib/client';
+import { captureError } from '@lib/errors';
 
 export default class MessageCleanupJob extends Job {
 	public constructor() {
-		super({ name: 'message.cleanup', pattern: '* * * * *', runImmediately: true });
+		super({ name: 'job.message-cleanup', pattern: '* * * * *', runImmediately: true });
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -24,7 +25,7 @@ export default class MessageCleanupJob extends Job {
 					}
 				}
 			} catch (err) {
-				logger.error('Error while deleting volatile message', { channelId, messageId, err });
+				captureError('Error while deleting volatile message', err, { channelId, messageId });
 			} finally {
 				await db.delete(volatileMessages).where(
 					and(

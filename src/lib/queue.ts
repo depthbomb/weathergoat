@@ -1,22 +1,24 @@
-import { logger } from '@lib/logger';
+import { captureError } from '@lib/errors';
 import { sleep } from '@sapphire/utilities';
 import { AsyncQueue } from '@sapphire/async-queue';
 import type { Awaitable } from 'discord.js';
 
 type QueueableFunc = (...args: unknown[]) => Awaitable<unknown>;
 
-export class Queue<T extends QueueableFunc> {
-	private readonly _lock;
-	private readonly _queue: Array<T>;
+export class Queue {
+	private readonly _name: string;
+	private readonly _lock: AsyncQueue;
+	private readonly _queue: Array<QueueableFunc>;
 	private readonly _delay: number;
 
-	public constructor(delay: number) {
-		this._lock = new AsyncQueue();
+	public constructor(name: string, delay: number) {
+		this._name  = name;
+		this._lock  = new AsyncQueue();
 		this._queue = [];
 		this._delay = delay;
 	}
 
-	public enqueue(func: T) {
+	public enqueue(func: QueueableFunc) {
 		this._queue.push(func);
 		this._runNext()
 	}
@@ -32,7 +34,7 @@ export class Queue<T extends QueueableFunc> {
 		try {
 			await func();
 		} catch (err: unknown) {
-			logger.error(err);
+			captureError('Error running queued function', err, { name: this._name });
 		} finally {
 			if (this._queue.length > 0) {
 				await sleep(this._delay);

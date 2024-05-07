@@ -1,8 +1,8 @@
 import { db } from '@db';
 import { Job } from '@jobs';
 import { getActiveAlertsForZone } from '@lib/alerts';
-import { sentAlerts, volatileMessages } from '@db/schemas';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
+import { sentAlerts, volatileMessages } from '@db/schemas';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { WeatherGoat } from '@lib/client';
 
@@ -11,9 +11,9 @@ export default class ReportAlertsJob extends Job {
 	private readonly _webhookReason: string;
 
 	public constructor() {
-		super({ name: 'alerts.report', pattern: '*/15 * * * * *', runImmediately: true, waitUntilReady: true });
+		super({ name: 'job.report-alerts', pattern: '*/15 * * * * *', runImmediately: true });
 
-		this._webhookName = 'WeatherGoat#Alerts';
+		this._webhookName   = 'WeatherGoat#Alerts';
 		this._webhookReason = 'Required for weather alert reporting';
 	}
 
@@ -40,7 +40,7 @@ export default class ReportAlertsJob extends Job {
 
 				const isUpdate = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
-					.setTitle(`🚨 ${isUpdate ? '[UPDATE] ' : ''}${alert.headline}`)
+					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock(alert.description))
 					.setColor(alert.severityColor)
 					.setFooter({ text: alert.event })
@@ -60,12 +60,12 @@ export default class ReportAlertsJob extends Job {
 					embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
 				}
 
-				const shouldPingEveryone = (alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere;
+				const shouldPingEveryone = !!((alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere);
 				const webhook            = await client.getOrCreateWebhook(channel, this._webhookName, this._webhookReason);
 				const { id: messageId }  = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
 					username: this._webhookName,
-					avatarURL: client.user!.avatarURL({ forceStatic: false })!,
+					avatarURL: client.user.avatarURL({ forceStatic: false })!,
 					embeds: [embed]
 				});
 
@@ -81,7 +81,8 @@ export default class ReportAlertsJob extends Job {
 				await db.insert(sentAlerts).values({
 					alertId: alert.id,
 					guildId: channel.guildId,
-					channelId: channelId
+					channelId: channelId,
+					json: JSON.stringify(alert)
 				});
 			}
 		}

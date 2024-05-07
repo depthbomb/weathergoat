@@ -7,7 +7,7 @@ export default class UpdateStatusJob extends Job {
 	private readonly _formatter: DurationFormatter;
 
 	public constructor() {
-		super({ name: 'status.update', pattern: '*/15 * * * * *', runImmediately: true, waitUntilReady: true });
+		super({ name: 'job.update-status', pattern: '*/15 * * * * *', runImmediately: true });
 
 		this._formatter = new DurationFormatter();
 	}

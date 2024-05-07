@@ -13,7 +13,7 @@ export default class ReportForecastsJob extends Job {
 	private readonly _webhookReason: string;
 
 	public constructor() {
-		super({ name: 'forecast.report', pattern: '0 * * * *' });
+		super({ name: 'job.report-forecasts', pattern: '0 * * * *' });
 
 		this._webhookName = 'WeatherGoat#Forecast';
 		this._webhookReason = 'Required for weather forecast reporting';
