@@ -10,7 +10,7 @@ if (process.argv.length > 2) {
 	await runCli();
 } else {
 	if (process.env.SENTRY_DSN) {
-		const { init } = await import('@sentry/node');
+		const { init } = await import('@sentry/bun');
 
 		init({ dsn: process.env.SENTRY_DSN });
 	}

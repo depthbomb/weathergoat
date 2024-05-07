@@ -15,7 +15,7 @@
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/stopwatch": "^1.5.2",
 		"@sapphire/time-utilities": "^1.7.12",
-		"@sentry/node": "^7.113.0",
+		"@sentry/bun": "^7.113.0",
 		"@swc-node/sourcemap-support": "^0.5.0",
 		"bufferutil": "^4.0.8",
 		"class-transformer": "^0.5.1",

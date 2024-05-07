@@ -1,6 +1,6 @@
 import { logger } from '@lib/logger';
 import { MakeErrorClass } from 'fejl';
-import { captureException } from '@sentry/node';
+import { captureException } from '@sentry/bun';
 
 export type WeatherGoatError = InvalidPermissionsError;
 
