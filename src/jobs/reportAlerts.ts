@@ -1,9 +1,9 @@
 import { db } from '@db';
 import { Job } from '@jobs';
 import { getActiveAlertsForZone } from '@lib/alerts';
-import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { sentAlerts, volatileMessages } from '@db/schemas';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 export default class ReportAlertsJob extends Job {
@@ -25,7 +25,8 @@ export default class ReportAlertsJob extends Job {
 				continue;
 			}
 
-			const alerts = await getActiveAlertsForZone(zoneId, countyId);
+			const guildId = channel.guildId;
+			const alerts  = await getActiveAlertsForZone(zoneId, countyId);
 			for (const alert of alerts) {
 				const alertAlreadyReported = await db.query.sentAlerts.findFirst({
 					where: (a, { eq, and }) => and(
@@ -39,7 +40,7 @@ export default class ReportAlertsJob extends Job {
 					continue;
 				}
 
-				const isUpdate = alert.messageType === 'Update';
+				const isUpdate     = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
 					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock(alert.description))
@@ -61,6 +62,24 @@ export default class ReportAlertsJob extends Job {
 					embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
 				}
 
+				if (alert.references.length) {
+					const messageLinks = [] as string[];
+					for (const { identifier } of alert.references) {
+						const referencedSentAlert = await db.query.sentAlerts.findFirst({ where: (a, { eq }) => eq(a.alertId, identifier) });
+						if (!referencedSentAlert) {
+							continue;
+						}
+
+						messageLinks.push(
+							messageLink(channelId, referencedSentAlert.messageId, guildId)
+						);
+					}
+
+					if (messageLinks.length) {
+						embed.addFields({ name: 'References', value: messageLinks.join('\n') });
+					}
+				}
+
 				const shouldPingEveryone = !!((alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere);
 				const webhook            = await client.getOrCreateWebhook(channel, this._webhookName, this._webhookReason);
 				const { id: messageId }  = await webhook.send({
@@ -73,6 +92,7 @@ export default class ReportAlertsJob extends Job {
 				if (autoCleanup) {
 					const expiresAt = alert.expires;
 					await db.insert(volatileMessages).values({
+						guildId,
 						channelId,
 						messageId,
 						expiresAt
@@ -81,8 +101,9 @@ export default class ReportAlertsJob extends Job {
 
 				await db.insert(sentAlerts).values({
 					alertId: alert.id,
-					guildId: channel.guildId,
+					guildId,
 					channelId: channelId,
+					messageId,
 					json: JSON.stringify(alert)
 				});
 			}

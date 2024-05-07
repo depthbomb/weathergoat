@@ -1,11 +1,14 @@
 import { Type } from 'class-transformer';
 import { Geocode } from '@models/geocode';
+import { AlertReference } from '@models/alert-reference';
 import type { ColorResolvable } from 'discord.js';
 
 export class Alert {
 	public id!: string;
 	public areaDesc!: string;
 	public affectedZones!: string[];
+	@Type(() => AlertReference)
+	public references!: AlertReference[];
 	public geocode!: Geocode;
 	@Type(() => Date)
 	public sent!: Date;

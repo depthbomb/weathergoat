@@ -55,11 +55,11 @@ export default class AlertsCommand extends Command {
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
 		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply({ content: 'The provided latitude or longitude is not valid.' });
+			return interaction.reply('The provided latitude or longitude is not valid.');
 		}
 
 		if (channel.type !== ChannelType.GuildText) {
-			return interaction.reply({ content: 'Target channel must be a text channel.' });
+			return interaction.reply('Target channel must be a text channel.');
 		}
 
 		await interaction.deferReply();

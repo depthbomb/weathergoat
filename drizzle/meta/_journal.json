@@ -29,6 +29,13 @@
       "when": 1715034367817,
       "tag": "0003_high_morph",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1715061521866,
+      "tag": "0004_slippery_cobalt_man",
+      "breakpoints": true
     }
   ]
 }
