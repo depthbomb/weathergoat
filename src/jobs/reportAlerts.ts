@@ -34,7 +34,8 @@ export default class ReportAlertsJob extends Job {
 						eq(a.channelId, channelId)
 					)
 				});
-				if (alertAlreadyReported) {
+
+				if (alertAlreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
 					continue;
 				}
 
