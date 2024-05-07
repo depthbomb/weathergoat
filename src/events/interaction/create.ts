@@ -1,4 +1,5 @@
 import { DiscordEvent } from '@events';
+import { captureError } from '@lib/errors';
 import { logger } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
@@ -23,6 +24,7 @@ export default class InteractionCreateEvent extends DiscordEvent<'interactionCre
 			await interaction.channel?.sendTyping();
 			await command.handle(interaction);
 		} catch (err: any) {
+			captureError('Error in interacation', err, { command })
 			return tryToRespond(interaction, err.message);
 		} finally {
 			logger.info(`Interaction completed in ${sw.toString()}`);

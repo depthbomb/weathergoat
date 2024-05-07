@@ -2,12 +2,10 @@ import { InvalidPermissionsError } from '@lib/errors';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type {
 	Awaitable,
-	GuildMember,
-	PermissionsBitField,
 	SlashCommandBuilder,
-	ChatInputCommandInteraction,
-	SlashCommandSubcommandsOnlyBuilder,
 	PermissionResolvable,
+	ChatInputCommandInteraction,
+	SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
 
 export abstract class Command {
