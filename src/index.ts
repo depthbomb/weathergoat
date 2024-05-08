@@ -23,10 +23,7 @@ if (process.argv.length > 2) {
 			GatewayIntentBits.GuildMessages,
 			GatewayIntentBits.GuildWebhooks,
 		],
-		partials: [
-			Partials.Message,
-			Partials.Channel
-		]
+		partials: [Partials.Message, Partials.Channel]
 	});
 	await wg.login(process.env.BOT_TOKEN);
 

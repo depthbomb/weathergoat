@@ -1,6 +1,6 @@
+import { logger } from '@lib/logger';
 import { DiscordEvent } from '@events';
 import { captureError } from '@lib/errors';
-import { logger } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import type { CacheType, Interaction } from 'discord.js';

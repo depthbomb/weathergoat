@@ -4,8 +4,8 @@ import { Command } from '@commands';
 import { forecastDestinations } from '@db/schemas';
 import { isSnowflakeValid, generateSnowflake } from '@lib/snowflake';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
-import { ChannelType, EmbedBuilder, SlashCommandBuilder, codeBlock } from 'discord.js';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import { codeBlock, ChannelType, EmbedBuilder, SlashCommandBuilder, PermissionsBitField } from 'discord.js';
+import type { CacheType, TextChannel, ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastsCommand extends Command {
 	public constructor() {
@@ -36,41 +36,25 @@ export default class ForecastsCommand extends Command {
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
-				return this._addDestination(interaction);
+				return this._addDestinationSubcommand(interaction);
 			case 'remove':
-				return this._removeDestination(interaction);
+				return this._removeDestinationSubcommand(interaction);
 			case 'list':
-				return this._listDestinations(interaction);
+				return this._listDestinationsSubcommand(interaction);
 		}
 	}
 
-	private async _addDestination(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
+
 		const latitude    = interaction.options.getString('latitude', true);
 		const longitude   = interaction.options.getString('longitude', true);
-		const channel     = interaction.options.getChannel('channel', true);
+		const channel     = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
-
-		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply('The provided latitude or longitude is not valid.');
-		}
-
-		if (channel.type !== ChannelType.GuildText) {
-			return interaction.reply('Target channel must be a text channel.');
-		}
 
 		await interaction.deferReply();
 
-		const info      = await getInfoFromCoordinates(latitude, longitude);
-		const snowflake = generateSnowflake();
-
-		await db.insert(forecastDestinations).values({
-			snowflake,
-			latitude,
-			longitude,
-			channelId: channel.id,
-			autoCleanup,
-			radarImageUrl: info.radarImageUrl
-		});
+		const { snowflake } = await this._createDestination(channel, latitude, longitude, autoCleanup);
 
 		let message = 'Hourly forecast reporting created!';
 		if (autoCleanup) {
@@ -82,7 +66,7 @@ export default class ForecastsCommand extends Command {
 		await interaction.editReply(message);
 	}
 
-	private async _removeDestination(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _removeDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const snowflake = interaction.options.getString('snowflake', true);
 		if (!isSnowflakeValid(snowflake)) {
 			return interaction.reply('The provided snowflake is not valid.');
@@ -100,7 +84,7 @@ export default class ForecastsCommand extends Command {
 		await interaction.editReply('Forecast reporting destination has been successfully removed.');
 	}
 
-	private async _listDestinations(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _listDestinationsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const channel = interaction.options.getChannel('channel', true);
 
 		await interaction.deferReply();
@@ -127,5 +111,25 @@ export default class ForecastsCommand extends Command {
 		}
 
 		await interaction.editReply({ embeds: [embed] });
+	}
+
+	private async _createDestination(channel: TextChannel, latitude: string, longitude: string, autoCleanup: boolean) {
+		if (!isValidCoordinates(latitude, longitude)) {
+			throw new Error('The provided latitude or longitude is not valid.');
+		}
+
+		const info      = await getInfoFromCoordinates(latitude, longitude);
+		const snowflake = generateSnowflake();
+
+		await db.insert(forecastDestinations).values({
+			snowflake,
+			latitude,
+			longitude,
+			channelId: channel.id,
+			autoCleanup,
+			radarImageUrl: info.radarImageUrl
+		});
+
+		return { snowflake };
 	}
 }

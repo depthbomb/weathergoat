@@ -5,7 +5,7 @@ import { alertDestinations } from '@db/schemas';
 import { isSnowflakeValid, generateSnowflake } from '@lib/snowflake';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
 import { codeBlock, ChannelType, EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { CacheType, TextChannel, ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends Command {
 	public constructor() {
@@ -37,58 +37,26 @@ export default class AlertsCommand extends Command {
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
-				return this._addDestination(interaction);
+				return this._addDestinationSubcommand(interaction);
 			case 'remove':
-				return this._removeDestination(interaction);
+				return this._removeDestinationSubcommand(interaction);
 			case 'list':
-				return this._listDestinations(interaction);
+				return this._listDestinationsSubcommand(interaction);
 		}
 	}
 
-	private async _addDestination(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 
 		const latitude     = interaction.options.getString('latitude', true);
 		const longitude    = interaction.options.getString('longitude', true);
-		const channel      = interaction.options.getChannel('channel', true);
+		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
-		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply('The provided latitude or longitude is not valid.');
-		}
-
-		if (channel.type !== ChannelType.GuildText) {
-			return interaction.reply('Target channel must be a text channel.');
-		}
-
 		await interaction.deferReply();
 
-		const exists = await db.query.alertDestinations.findFirst({
-			where: (a, { eq, and }) => and(
-				eq(a.latitude, latitude),
-				eq(a.longitude, longitude),
-				eq(a.channelId, channel.id)
-			)
-		});
-		if (exists) {
-			return interaction.editReply('This channel is already designated as an alert destination.');
-		}
-
-		const coordinateInfo = await getInfoFromCoordinates(latitude, longitude);
-		const snowflake      = generateSnowflake();
-
-		await db.insert(alertDestinations).values({
-			snowflake,
-			latitude,
-			longitude,
-			zoneId: coordinateInfo.zoneId,
-			countyId: coordinateInfo.countyId,
-			channelId: channel.id,
-			autoCleanup,
-			pingOnSevere,
-			radarImageUrl: coordinateInfo.radarImageUrl
-		});
+		const { snowflake } = await this._createDestination(channel, latitude, longitude, autoCleanup, pingOnSevere);
 
 		let message = 'Alert reporting created!';
 		if (autoCleanup) {
@@ -101,10 +69,10 @@ export default class AlertsCommand extends Command {
 
 		message = `${message}\nYou can remove this reporting destination by using the \`/alerts remove\` command with the snowflake \`${snowflake}\`.`;
 
-		await interaction.editReply(message);
+		return interaction.editReply(message);
 	}
 
-	private async _removeDestination(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _removeDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 
 		const snowflake = interaction.options.getString('snowflake', true);
@@ -124,7 +92,7 @@ export default class AlertsCommand extends Command {
 		await interaction.editReply('Alert reporting destination has been successfully removed.');
 	}
 
-	private async _listDestinations(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _listDestinationsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const channel = interaction.options.getChannel('channel', true);
 
 		await interaction.deferReply();
@@ -151,5 +119,45 @@ export default class AlertsCommand extends Command {
 		}
 
 		await interaction.editReply({ embeds: [embed] });
+	}
+
+	private async _createDestination(
+		channel: TextChannel,
+		latitude: string,
+		longitude: string,
+		autoCleanup: boolean,
+		pingOnSevere: boolean
+	) {
+		if (!isValidCoordinates(latitude, longitude)) {
+			throw new Error('The provided latitude or longitude is not valid.');
+		}
+
+		const exists = await db.query.alertDestinations.findFirst({
+			where: (a, { eq, and }) => and(
+				eq(a.latitude, latitude),
+				eq(a.longitude, longitude),
+				eq(a.channelId, channel.id)
+			)
+		});
+		if (exists) {
+			throw new Error('This channel is already designated as an alert destination.');
+		}
+
+		const coordinateInfo = await getInfoFromCoordinates(latitude, longitude);
+		const snowflake      = generateSnowflake();
+
+		await db.insert(alertDestinations).values({
+			snowflake,
+			latitude,
+			longitude,
+			zoneId: coordinateInfo.zoneId,
+			countyId: coordinateInfo.countyId,
+			channelId: channel.id,
+			autoCleanup,
+			pingOnSevere,
+			radarImageUrl: coordinateInfo.radarImageUrl
+		});
+
+		return { snowflake };
 	}
 }
