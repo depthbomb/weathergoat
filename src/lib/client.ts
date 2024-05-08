@@ -119,9 +119,9 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 			if (this.events.has(event.name)) continue;
 			if (event.once) {
-				this.once(event.name, event.handle);
+				this.once(event.name, async (...args) => await event.handle(...args));
 			} else {
-				this.on(event.name, event.handle);
+				this.on(event.name, async (...args) => await event.handle(...args));
 			}
 
 			this.events.set(event.name, event);
