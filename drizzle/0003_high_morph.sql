@@ -1,1 +1,0 @@
-ALTER TABLE sent_alerts ADD `json` text;

@@ -1,5 +1,4 @@
 import Cron from 'croner';
-import { sqlite } from '@db';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
@@ -10,6 +9,7 @@ import type { Job } from '@jobs';
 import type { Command } from '@commands';
 import type { DiscordEvent } from '@events';
 import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
+import { db } from '@db';
 
 type ClassModule<T> = { default: new() => T };
 type CommandModule  = ClassModule<Command>;
@@ -45,7 +45,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	}
 
 	public async destroy() {
-		sqlite.close();
+		await db.$disconnect();
 		return super.destroy();
 	}
 

@@ -1,13 +1,17 @@
-import * as schema from '@db/schemas';
-import { Database } from 'bun:sqlite';
-import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { DRIZZLE_DIR, DATABASE_PATH } from '@constants';
-import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
+import { Prisma, PrismaClient } from '@prisma/client';
 
-export const sqlite = new Database(DATABASE_PATH);
-export const db     = drizzle(sqlite, { schema });
+export const db = new PrismaClient()
+	.$extends({
+		model: {
+			$allModels: {
+				async exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
+					const ctx = Prisma.getExtensionContext(this);
+					const res = await (ctx as any).findFirst({ where });
 
-export function runMigrations() {
-	migrate(db, { migrationsFolder: DRIZZLE_DIR });
-	sqlite.close();
-}
+					return res !== null;
+				}
+			}
+		}
+	});
+
+export * from '@prisma/client';

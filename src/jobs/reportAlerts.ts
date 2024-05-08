@@ -2,7 +2,6 @@ import { db } from '@db';
 import { Job } from '@jobs';
 import { withQuery } from 'ufo';
 import { getActiveAlertsForZone } from '@lib/alerts';
-import { sentAlerts, volatileMessages } from '@db/schemas';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -19,7 +18,16 @@ export default class ReportAlertsJob extends Job {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
-		const destinations = await db.query.alertDestinations.findMany();
+		const destinations = await db.alertDestination.findMany({
+			select: {
+				zoneId: true,
+				countyId: true,
+				channelId: true,
+				autoCleanup: true,
+				radarImageUrl: true,
+				pingOnSevere: true,
+			}
+		});
 		for (const { zoneId, countyId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 			if (!isTextChannel(channel)) {
@@ -29,19 +37,18 @@ export default class ReportAlertsJob extends Job {
 			const guildId = channel.guildId;
 			const alerts  = await getActiveAlertsForZone(zoneId, countyId);
 			for (const alert of alerts) {
-				const alertAlreadyReported = await db.query.sentAlerts.findFirst({
-					where: (a, { eq, and }) => and(
-						eq(a.alertId, alert.id),
-						eq(a.guildId, channel.guildId),
-						eq(a.channelId, channelId)
-					)
+				const alreadyReported = await db.sentAlert.findFirst({
+					where: {
+						alertId: alert.id,
+						guildId: channel.guildId,
+						channelId
+					}
 				});
-
-				if (alertAlreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
+				if (alreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
 					continue;
 				}
 
-				const isUpdate     = alert.messageType === 'Update';
+				const isUpdate = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
 					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock(alert.description))
@@ -68,7 +75,7 @@ export default class ReportAlertsJob extends Job {
 				if (alert.references.length) {
 					const messageLinks = [] as string[];
 					for (const { identifier } of alert.references) {
-						const referencedSentAlert = await db.query.sentAlerts.findFirst({ where: (a, { eq }) => eq(a.alertId, identifier) });
+						const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: identifier } });
 						if (!referencedSentAlert) {
 							continue;
 						}
@@ -94,20 +101,24 @@ export default class ReportAlertsJob extends Job {
 
 				if (autoCleanup) {
 					const expiresAt = alert.expires;
-					await db.insert(volatileMessages).values({
-						guildId,
-						channelId,
-						messageId,
-						expiresAt
+					await db.volatileMessage.create({
+						data: {
+							guildId,
+							channelId,
+							messageId,
+							expiresAt
+						}
 					});
 				}
 
-				await db.insert(sentAlerts).values({
-					alertId: alert.id,
-					guildId,
-					channelId: channelId,
-					messageId,
-					json: JSON.stringify(alert)
+				await db.sentAlert.create({
+					data: {
+						alertId: alert.id,
+						guildId,
+						channelId: channelId,
+						messageId,
+						json: JSON.stringify(alert)
+					}
 				});
 			}
 		}

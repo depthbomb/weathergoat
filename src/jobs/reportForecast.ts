@@ -1,6 +1,5 @@
 import { db } from '@db';
 import { Job } from '@jobs';
-import { volatileMessages } from '@db/schemas';
 import { Duration } from '@sapphire/time-utilities';
 import { getInfoFromCoordinates } from '@lib/location';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
@@ -20,7 +19,15 @@ export default class ReportForecastsJob extends Job {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
-		const destinations = await db.query.forecastDestinations.findMany();
+		const destinations = await db.forecastDestination.findMany({
+			select: {
+				latitude: true,
+				longitude: true,
+				channelId: true,
+				autoCleanup: true,
+				radarImageUrl: true,
+			}
+		});
 		for (const { latitude, longitude, channelId, autoCleanup, radarImageUrl } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 			if (!isTextChannel(channel)) {
@@ -52,11 +59,13 @@ export default class ReportForecastsJob extends Job {
 			});
 
 			if (autoCleanup) {
-				await db.insert(volatileMessages).values({
-					guildId,
-					channelId,
-					messageId,
-					expiresAt: new Duration('4h').fromNow
+				await db.volatileMessage.create({
+					data: {
+						guildId,
+						channelId,
+						messageId,
+						expiresAt: new Duration('4h').fromNow
+					}
 				});
 			}
 		}
