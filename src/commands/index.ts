@@ -2,20 +2,23 @@ import { InvalidPermissionsError } from '@lib/errors';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type {
 	Awaitable,
-	SlashCommandBuilder,
 	PermissionResolvable,
+	AutocompleteInteraction,
 	ChatInputCommandInteraction,
+	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
 
 export abstract class Command {
 	public constructor(
-		public readonly data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder
+		public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder
 	) {}
 
 	public handle(interaction: ChatInputCommandInteraction): Awaitable<any> {
 		throw new Error(`Interaction command handler not implemented for ${interaction.commandName}`);
 	}
+
+	public handleAutocomplete?(interaction: AutocompleteInteraction): Awaitable<any> {}
 
 	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
 		const { channel, member } = interaction;

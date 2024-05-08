@@ -3,7 +3,7 @@ import { DiscordEvent } from '@events';
 import { captureError } from '@lib/errors';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
-import type { CacheType, Interaction } from 'discord.js';
+import type { CacheType, Interaction, CommandInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends DiscordEvent<'interactionCreate'> {
 	public constructor() {
@@ -11,23 +11,39 @@ export default class InteractionCreateEvent extends DiscordEvent<'interactionCre
 	}
 
 	public async handle(interaction: Interaction<CacheType>) {
-		if (!interaction.isChatInputCommand()) return;
+		const command = this._getCommandName(interaction);
 
-		const command = interaction.client.commands.get(interaction.commandName);
 		if (!command) return;
 
-		const sw = new Stopwatch();
+		if (interaction.isChatInputCommand()) {
+			const sw = new Stopwatch();
 
-		logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.data.name}`);
+			try {
+				logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.data.name}`);
 
-		try {
-			await interaction.channel?.sendTyping();
-			await command.handle(interaction);
-		} catch (err: any) {
-			captureError('Error in interacation', err, { command })
-			return tryToRespond(interaction, err.message);
-		} finally {
-			logger.info(`Interaction completed in ${sw.toString()}`);
+				await interaction.channel?.sendTyping();
+				await command.handle(interaction);
+			} catch (err: unknown) {
+				captureError('Error in interaction handler', err, { interaction });
+
+				return tryToRespond(interaction as CommandInteraction, 'Test');
+			} finally {
+				logger.info(`Interaction completed in ${sw.toString()}`);
+			}
+		} else if (interaction.isAutocomplete()) {
+			try {
+				await command.handleAutocomplete?.(interaction);
+			} catch (err: unknown) {
+				captureError('Error in autocomplete interaction handler', err, { interaction });
+			}
 		}
+	}
+
+	private _getCommandName(interaction: Interaction<CacheType>) {
+		if (!('commandName' in interaction)) {
+			return null;
+		}
+
+		return interaction.client.commands.get(interaction.commandName);
 	}
 }
