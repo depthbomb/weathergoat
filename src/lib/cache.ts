@@ -19,9 +19,9 @@ export class Cache {
 		return this._cache.has(key);
 	}
 
-	public get<T>(key: string): T | undefined {
+	public get<T>(key: string): T | null {
 		if (!this.has(key)) {
-			return;
+			return null;
 		}
 
 		return this._cache.get(key)!.value as T;

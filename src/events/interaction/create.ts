@@ -2,8 +2,7 @@ import { logger } from '@lib/logger';
 import { DiscordEvent } from '@events';
 import { captureError } from '@lib/errors';
 import { Stopwatch } from '@sapphire/stopwatch';
-import { tryToRespond } from '@utils/interactions';
-import type { CacheType, Interaction, CommandInteraction } from 'discord.js';
+import type { CacheType, Interaction } from 'discord.js';
 
 export default class InteractionCreateEvent extends DiscordEvent<'interactionCreate'> {
 	public constructor() {
@@ -24,9 +23,7 @@ export default class InteractionCreateEvent extends DiscordEvent<'interactionCre
 				await interaction.channel?.sendTyping();
 				await command.handle(interaction);
 			} catch (err: unknown) {
-				captureError('Error in interaction handler', err, { interaction });
-
-				return tryToRespond(interaction as CommandInteraction, 'Test');
+				captureError('Error in interaction handler', err, { interaction: interaction.commandName });
 			} finally {
 				logger.info(`Interaction completed in ${sw.toString()}`);
 			}
@@ -34,7 +31,7 @@ export default class InteractionCreateEvent extends DiscordEvent<'interactionCre
 			try {
 				await command.handleAutocomplete?.(interaction);
 			} catch (err: unknown) {
-				captureError('Error in autocomplete interaction handler', err, { interaction });
+				captureError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
 			}
 		}
 	}
