@@ -12,7 +12,7 @@ import {
 	PermissionsBitField,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { CacheType, TextChannel, ChatInputCommandInteraction } from 'discord.js';
+import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastsCommand extends Command {
 	public constructor() {

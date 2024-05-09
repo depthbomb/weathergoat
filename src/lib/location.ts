@@ -10,6 +10,7 @@ type CoordinateInfo = {
 	zoneId: string;
 	countyId: string;
 	forecastUrl: string;
+	radarStation: string;
 	radarImageUrl: string;
 };
 
@@ -52,6 +53,7 @@ export async function getInfoFromCoordinates(latitude: string, longitude: string
 		zoneId: data.zoneId,
 		countyId: data.countyId,
 		forecastUrl: data.forecast,
+		radarStation: data.radarStation,
 		radarImageUrl: data.radarImageUrl
 	};
 

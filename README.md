@@ -41,3 +41,7 @@ When you successfully create a destination, you will be given an ID that you can
 The `list` subcommand simply lists all destinations for a channel as well as the options for each. You can use this command to get a destination's ID if you lost it.
 
 The `/add` and `/remove` subcommands require the user to have the **MANAGE_GUILD** permission.
+
+## Other features
+
+Using the `/radar-image` command allows you to specify a channel in which the bot will send a message containing a weather radar loop for a region. The message will be periodically edited to update the image to achieve a form of "live" radar.

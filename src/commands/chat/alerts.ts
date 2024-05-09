@@ -9,7 +9,7 @@ import {
 	EmbedBuilder,
 	ButtonBuilder,
 	ActionRowBuilder,
-	PermissionsBitField,
+	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
@@ -44,8 +44,10 @@ export default class AlertsCommand extends Command {
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
+				this.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
 				return this._addDestinationSubcommand(interaction);
 			case 'remove':
+				this.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
 				return this._removeDestinationSubcommand(interaction);
 			case 'list':
 				return this._listDestinationsSubcommand(interaction);
@@ -53,8 +55,6 @@ export default class AlertsCommand extends Command {
 	}
 
 	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
-		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
-
 		const channelId    = interaction.channelId;
 		const latitude     = interaction.options.getString('latitude', true);
 		const longitude    = interaction.options.getString('longitude', true);
@@ -130,8 +130,6 @@ export default class AlertsCommand extends Command {
 	}
 
 	private async _removeDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
-		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
-
 		const id = interaction.options.getString('id', true);
 
 		await interaction.deferReply();
