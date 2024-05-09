@@ -51,7 +51,7 @@ export default class ReportAlertsJob extends Job {
 				const isUpdate = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
 					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
-					.setDescription(codeBlock(alert.description))
+					.setDescription(codeBlock('md', alert.description))
 					.setColor(alert.severityColor)
 					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
@@ -65,7 +65,7 @@ export default class ReportAlertsJob extends Job {
 					.setTimestamp();
 
 				if (alert.instruction) {
-					embed.addFields({ name: 'Instructions', value: codeBlock(alert.instruction) });
+					embed.addFields({ name: 'Instructions', value: codeBlock('md', alert.instruction) });
 				}
 
 				if (radarImageUrl) {
