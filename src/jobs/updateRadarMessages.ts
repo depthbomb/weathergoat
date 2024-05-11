@@ -27,7 +27,7 @@ export default class UpdateRadarMessagesJob extends Job {
 						.setColor(client.brandColor)
 						.setTitle(`Radar for ${location}`)
 						.setFooter({ text: `The closest station that covers the desired area is ${radarStation}.` })
-						.setImage(`${radarImageUrl}?${client.generateId(16)}`)
+						.setImage(`${radarImageUrl}?${client.generateId(32)}`)
 						.addFields(
 							{ name: 'Last Updated', value: time(new Date(), 'R'), inline: true },
 							{ name: 'Next Update', value: time(self.nextRun()!, 'R'), inline: true },
