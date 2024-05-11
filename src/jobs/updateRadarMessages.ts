@@ -25,8 +25,8 @@ export default class UpdateRadarMessagesJob extends Job {
 				const message = await channel.messages.fetch(messageId);
 				const embed = new EmbedBuilder()
 						.setColor(client.brandColor)
-						.setTitle(`Radar for ${location} (${radarStation})`)
-						.setFooter({ text: 'This is the closest station for this location' })
+						.setTitle(`Radar for ${location}`)
+						.setFooter({ text: `Location may not be precise. Closest station is ${radarStation}.` })
 						.setImage(`${radarImageUrl}?${client.generateId(16)}`)
 						.addFields(
 							{ name: 'Last Updated', value: time(new Date(), 'R'), inline: true },
