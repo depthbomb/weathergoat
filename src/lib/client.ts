@@ -1,8 +1,8 @@
 import { db } from '@db';
-import Cron from 'croner';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
+import { Cron, scheduledJobs } from 'croner';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
@@ -45,6 +45,12 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	}
 
 	public async destroy() {
+		for (const job of scheduledJobs) {
+			if (!job.isStopped()) {
+				job.stop();
+			}
+		}
+
 		await db.$disconnect();
 		if (!logger.closed) {
 			logger.close();
