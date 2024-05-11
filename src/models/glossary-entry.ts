@@ -9,8 +9,6 @@ export class GlossaryEntry {
 	@Expose({ name: 'definition' })
 	public originalDefinition?: string;
 
-	private _anchorTagPattern = /<a\s+href=["'](.+?)["']\s*>(.*?)<\/a>/g;
-
 	/**
 	 * Returns a "cleaned" version of the definition that can be used in Discord messages.
 	 * This should be preferred over {@link originalDefinition}.
