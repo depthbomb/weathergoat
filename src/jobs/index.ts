@@ -1,5 +1,6 @@
 import type { Awaitable } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
+import type Cron from 'croner';
 
 type JobOptions = {
 	name: string;
@@ -21,5 +22,5 @@ export abstract class Job {
 		this.runImmediately = options.runImmediately ?? false;
 	}
 
-	public abstract execute(client: WeatherGoat<boolean>): Awaitable<any>;
+	public abstract execute(client: WeatherGoat<boolean>, job: Cron): Awaitable<any>;
 }
