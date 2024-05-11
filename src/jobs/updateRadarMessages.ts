@@ -26,7 +26,7 @@ export default class UpdateRadarMessagesJob extends Job {
 				const embed = new EmbedBuilder()
 						.setColor(client.brandColor)
 						.setTitle(`Radar for ${location}`)
-						.setFooter({ text: `Location may not be precise. Closest station is ${radarStation}.` })
+						.setFooter({ text: `The closest station that covers the desired area is ${radarStation}.` })
 						.setImage(`${radarImageUrl}?${client.generateId(16)}`)
 						.addFields(
 							{ name: 'Last Updated', value: time(new Date(), 'R'), inline: true },
