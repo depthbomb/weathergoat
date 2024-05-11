@@ -3,8 +3,8 @@ import { Job } from '@jobs';
 import { logger } from '@lib/logger';
 import { time, EmbedBuilder } from 'discord.js';
 import { isDiscordAPIError } from '@utils/errors';
-import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import type Cron from 'croner';
 import type { WeatherGoat } from '@lib/client';
 
 export default class UpdateRadarMessagesJob extends Job {
@@ -12,7 +12,7 @@ export default class UpdateRadarMessagesJob extends Job {
 		super({ name: 'job.update-radar-messages', pattern: '*/5 * * * *', runImmediately: true });
 	}
 
-	public async execute(client: WeatherGoat<true>) {
+	public async execute(client: WeatherGoat<true>, self: Cron) {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {
@@ -30,7 +30,7 @@ export default class UpdateRadarMessagesJob extends Job {
 						.setImage(`${radarImageUrl}?${client.generateId(16)}`)
 						.addFields(
 							{ name: 'Last Updated', value: time(new Date(), 'R'), inline: true },
-							{ name: 'Next Update', value: time(new Duration('5m').fromNow, 'R'), inline: true },
+							{ name: 'Next Update', value: time(self.nextRun()!, 'R'), inline: true },
 						)
 
 				await message.edit({ embeds: [embed] });
