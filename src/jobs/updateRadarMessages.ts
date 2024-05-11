@@ -3,9 +3,9 @@ import { Job } from '@jobs';
 import { logger } from '@lib/logger';
 import { time, EmbedBuilder } from 'discord.js';
 import { isDiscordAPIError } from '@utils/errors';
+import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { WeatherGoat } from '@lib/client';
-import { Duration } from '@sapphire/time-utilities';
 
 export default class UpdateRadarMessagesJob extends Job {
 	public constructor() {
