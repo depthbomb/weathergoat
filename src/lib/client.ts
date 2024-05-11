@@ -52,9 +52,11 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 		}
 
 		await db.$disconnect();
+
 		if (!logger.closed) {
 			logger.close();
 		}
+
 		return super.destroy();
 	}
 

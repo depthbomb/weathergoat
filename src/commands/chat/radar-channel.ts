@@ -82,7 +82,7 @@ export default class RadarCommand extends Command {
 					}
 				});
 
-				await interaction.editReply({ content: `Radar channel successfully added in ${channel}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.`, components: [] });
+				await interaction.editReply({ content: `Radar channel destination successfully set to ${channel}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination.`, components: [] });
 			} else {
 				return initialReply.delete();
 			}
