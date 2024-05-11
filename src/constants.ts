@@ -5,8 +5,8 @@ export const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) App
 
 export const ROOT_DIR      = __dirname;
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
-export const DRIZZLE_DIR   = join(PROJECT_ROOT, 'drizzle');
 export const DATA_DIR      = join(PROJECT_ROOT, '.data');
+export const LOGS_DIR      = join(DATA_DIR, 'logs');
 export const DATABASE_PATH = join(DATA_DIR, 'weathergoat.db');
 export const COMMANDS_DIR  = join(ROOT_DIR, 'commands');
 export const EVENTS_DIR    = join(ROOT_DIR, 'events');

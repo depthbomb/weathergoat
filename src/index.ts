@@ -1,9 +1,6 @@
 import '@abraham/reflection';
 import { captureError } from '@lib/errors';
 import { Partials, GatewayIntentBits } from 'discord.js';
-import { installSourceMapSupport } from '@swc-node/sourcemap-support';
-
-installSourceMapSupport();
 
 if (process.argv.length > 2) {
 	const { runCli } = await import('@cli');

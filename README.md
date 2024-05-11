@@ -12,6 +12,7 @@ The project is specifically written for Bun and thus does not have any sort of b
 2. Install dependencies with `bun install`
 3. Create a `.env` file in the root directory with the following contents:
 ```env
+DEV=false # set to `true` to enable debug logging
 BOT_ID=<your-bot-id>
 BOT_TOKEN=<your-bot-token>
 DATABASE_URL=file:path/to/sqlite/database # example: file:../.data/weathergoat.db

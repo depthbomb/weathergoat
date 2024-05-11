@@ -1,3 +1,4 @@
+import { db } from '@db';
 import Cron from 'croner';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
@@ -9,7 +10,6 @@ import type { Job } from '@jobs';
 import type { Command } from '@commands';
 import type { DiscordEvent } from '@events';
 import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
-import { db } from '@db';
 
 type ClassModule<T> = { default: new() => T };
 type CommandModule  = ClassModule<Command>;
@@ -46,6 +46,9 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 	public async destroy() {
 		await db.$disconnect();
+		if (!logger.closed) {
+			logger.close();
+		}
 		return super.destroy();
 	}
 
@@ -117,6 +120,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 			const { default: eventClass }: EventModule = await import(file);
 			const event = new eventClass();
 
+			if (event.disabled) continue;
 			if (this.events.has(event.name)) continue;
 			if (event.once) {
 				this.once(event.name, async (...args) => await event.handle(...args));

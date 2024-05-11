@@ -2,6 +2,7 @@ import type { WeatherGoat } from '@lib/client';
 
 declare module 'bun' {
 	interface Env {
+		DEV: boolean;
 		BOT_ID: string;
 		BOT_TOKEN: string;
 		DATABASE_URL: string;

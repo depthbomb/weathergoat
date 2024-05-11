@@ -1,3 +1,4 @@
+import { logger } from '@lib/logger';
 import { joinURL, withQuery } from 'ufo';
 import { BOT_USER_AGENT, BROWSER_USER_AGENT } from '@constants';
 import { retry, handleResultType, ExponentialBackoff } from 'cockatiel';
@@ -20,7 +21,6 @@ type CreateHttpClientOptions = {
 };
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions  = Omit<RequestOptions, 'method'>;
-type POSTOptions = GETOptions;
 
 export class HttpClient {
 	private readonly _retry:       boolean;
@@ -37,10 +37,6 @@ export class HttpClient {
 
 	public async get(url: string | URL, options?: GETOptions): Promise<Response> {
 		return this._doRequest(url, { method: 'GET', ...options });
-	}
-
-	public async post(url: string | URL, options?: POSTOptions): Promise<Response> {
-		return this._doRequest(url, { method: 'POST', ...options });
 	}
 
 	// rewrite the function below to add retry logic please. you may proceed:
@@ -63,6 +59,12 @@ export class HttpClient {
 		if (init?.query) {
 			requestUrl = withQuery(requestUrl, init.query);
 		}
+
+		logger.http('Making HTTP request', {
+			method: init?.method,
+			url: requestUrl,
+			retry: this._retry
+		});
 
 		if (this._retry) {
 			return this._retryPolicy.execute(() => fetch(requestUrl, requestInit));

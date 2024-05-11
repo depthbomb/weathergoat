@@ -8,6 +8,8 @@ export default class ReadyEvent extends DiscordEvent<'ready'> {
 	}
 
 	public handle(client: Client<true>) {
-		logger.info('Logged in to Discord');
+		const { readyAt } = client;
+
+		logger.info('Logged in to Discord', { readyAt });
 	}
 }

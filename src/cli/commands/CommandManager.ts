@@ -2,6 +2,7 @@ import { logger } from '@lib/logger';
 import { WeatherGoat } from '@lib/client';
 import { REST, Routes } from 'discord.js';
 import { Option, Command } from 'clipanion';
+import { Stopwatch } from '@sapphire/stopwatch';
 import type { BaseContext } from 'clipanion';
 
 export class CommandManagerCommand extends Command<BaseContext> {
@@ -13,6 +14,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public async execute(): Promise<number> {
 		let exitCode = 0;
 
+		const sw     = new Stopwatch();
 		const global = this.guilds.length === 0;
 		const rest   = new REST().setToken(process.env.BOT_TOKEN);
 		const botId  = process.env.BOT_ID;
@@ -29,9 +31,11 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				} else {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body });
+
+						logger.info('Registered commands in guild', { guildId });
 					}
 
-					logger.info(`Registered commands in ${this.guilds.length} guild(s)`);
+					logger.info(`Finished Registering commands in guilds`, { guildCount: this.guilds.length });
 				}
 				break;
 			case 'delete':
@@ -42,9 +46,11 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				} else {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body: [] });
+
+						logger.info('Deleted command in guild', { guildId });
 					}
 
-					logger.info(`Deleted commands in ${this.guilds.length} guild(s)`);
+					logger.info('Finished deleting commands in guilds', { guildCount: this.guilds.length });
 				}
 				break;
 			default:
@@ -52,6 +58,8 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				exitCode = 1;
 				break;
 		}
+
+		logger.info('Operation finished', { elapsed: sw.stop().toString() })
 
 		return exitCode;
 	}
