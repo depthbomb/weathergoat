@@ -1,5 +1,6 @@
 import { db } from '@db';
 import { Job } from '@jobs';
+import { _ } from '@lib/i18n';
 import { withQuery } from 'ufo';
 import { getActiveAlertsForZone } from '@lib/alerts';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -50,22 +51,22 @@ export default class ReportAlertsJob extends Job {
 
 				const isUpdate = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
-					.setTitle(`${isUpdate ? '🔁 [UPDATE]' : '🚨'} ${alert.headline}`)
+					.setTitle(`${isUpdate ? _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock('md', alert.description))
 					.setColor(alert.severityColor)
 					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
 					.setFooter({ text: alert.event })
 					.addFields(
-						{ name: 'Certainty', value: alert.certainty, inline: true },
-						{ name: 'Effective', value: time(alert.effective, 'R'), inline: true },
-						{ name: 'Expires', value: time(alert.expires, 'R'), inline: true },
-						{ name: 'Affected Areas', value: alert.areaDesc }
+						{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
+						{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
+						{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
+						{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
 					)
 					.setTimestamp();
 
 				if (alert.instruction) {
-					embed.addFields({ name: 'Instructions', value: codeBlock('md', alert.instruction) });
+					embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
 				}
 
 				if (radarImageUrl) {
@@ -86,7 +87,7 @@ export default class ReportAlertsJob extends Job {
 					}
 
 					if (messageLinks.length) {
-						embed.addFields({ name: 'References', value: messageLinks.join('\n') });
+						embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: messageLinks.join('\n') });
 					}
 				}
 

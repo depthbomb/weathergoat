@@ -1,4 +1,5 @@
 import { Job } from '@jobs';
+import { _ } from '@lib/i18n';
 import { gitHash } from '@utils/gitHash';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
@@ -14,12 +15,13 @@ export default class UpdateStatusJob extends Job {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
-		const hash = await gitHash();
+		const duration = this._formatter.format(client.uptime, 3);
+		const hash     = await gitHash();
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: `Forecasting for ${this._formatter.format(client.uptime, 3)}\n(commit: ${hash})`,
+					name: _('jobs.status.activity', { duration, hash }),
 					type: ActivityType.Custom
 				}
 			]

@@ -8,49 +8,77 @@
 		"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}**.\nIs this correct?",
 		"confirmationCancelled": "Confirmation cancelled"
 	},
-	"interactions": {
-		"err": {
-			"commandError": "I encountered a problem executing that command. Please try again later."
+	"events": {
+		"interactions": {
+			"err": {
+				"commandError": "I encountered a problem executing that command. Please try again later."
+			}
 		}
 	},
-	"alerts": {
-		"err": {
-			"destExists": "This channel is already designated as an alert destination.",
-			"noDestById": "No alert destination exists with the ID `{{id}}`.",
-			"couldNotRemoveDest": "The alert destination could not be removed. Please try again later.",
-			"noDestInChannel": "{{channel}} does not have any alert reporting assigned to it."
+	"commands": {
+		"alerts": {
+			"err": {
+				"destExists": "This channel is already designated as an alert destination.",
+				"noDestById": "No alert destination exists with the ID `{{id}}`.",
+				"couldNotRemoveDest": "The alert destination could not be removed. Please try again later.",
+				"noDestInChannel": "{{channel}} does not have any alert reporting assigned to it."
+			},
+
+			"destCreated": "Alert reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the ID `{{destination.id}}`.",
+
+			"destRemoved": "Alert reporting destination has been successfully removed.",
+
+			"listEmbedTitle": "Alert reporting destinations for {{channel.name}}"
 		},
+		"forecasts": {
+			"err": {
+				"noDestById": "No forecast destination exists with the ID `{{id}}`.",
+				"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
+				"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it."
+			},
+			"destCreated": "Hourly forecast reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the ID `{{destination.id}}`.",
+			"destRemoved": "Forecast destination has been successfully removed.",
 
-		"destCreated": "Alert reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the ID `{{destination.id}}`.",
-
-		"destRemoved": "Alert reporting destination has been successfully removed.",
-
-		"listEmbedTitle": "Alert reporting destinations for {{channel.name}}"
-	},
-	"forecasts": {
-		"err": {
-			"noDestById": "No forecast destination exists with the ID `{{id}}`.",
-			"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
-			"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it."
+			"listEmbedTitle": "Forecast reporting destinations for {{channel.name}}"
 		},
-		"destCreated": "Hourly forecast reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the ID `{{destination.id}}`.",
-		"destRemoved": "Forecast destination has been successfully removed.",
+		"radarChannel": {
+			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}** with the radar image below.\nIs this correct?\n{{info.radarImageUrl}}",
 
-		"listEmbedTitle": "Forecast reporting destinations for {{channel.name}}"
-	},
-	"radarChannel": {
-		"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}** with the radar image below.\nIs this correct?\n{{info.radarImageUrl}}",
+			"embedTitle": "Radar for {{info.location}} ({{info.radarStation}})",
+			"embedFooter": "This is the closest station for this location",
 
-		"embedTitle": "Radar for {{info.location}} ({{info.radarStation}})",
-		"embedFooter": "This is the closest station for this location",
-
-		"destCreated": "Radar channel destination successfully set to {{channel}}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
-	},
-	"radar": {
-		"err": {
-			"invalidStation": "Invalid station: `{{station}}`."
+			"destCreated": "Radar channel destination successfully set to {{channel}}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
 		},
+		"radar": {
+			"err": {
+				"invalidStation": "Invalid station: `{{station}}`."
+			},
 
-		"embedTitle": "Radar Loop for {{station}}"
+			"embedTitle": "Radar Loop for {{station}}"
+		}
+	},
+	"jobs": {
+		"alerts": {
+			"updateTag": "🔁 [UPDATE]",
+			"certaintyTitle": "Certainty",
+			"effectiveTitle": "Effective",
+			"expiresTitle": "Expires",
+			"affectedAreasTitle": "Affected Areas",
+			"instructionsTitle": "Instructions",
+			"referencesTitle": "References"
+		},
+		"forecasts": {
+			"embedTitle": "⛅ {{forecast.name}}'s Forecast for {{location.location}}",
+			"atAGlanceTitle": "At a glance"
+		},
+		"radar": {
+			"embedTitle": "Radar for {{location}}",
+			"embedFooter": "The closest station that covers this area is {{radarStation}}.",
+			"lastUpdatedTitle": "Last Updated",
+			"nextUpdateTitle": "Next Update"
+		},
+		"status": {
+			"activity": "Forecasting for {{duration}} (commit: {{hash}})"
+		}
 	}
 }

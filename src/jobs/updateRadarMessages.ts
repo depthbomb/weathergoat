@@ -1,5 +1,6 @@
 import { db } from '@db';
 import { Job } from '@jobs';
+import { _ } from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { time, EmbedBuilder } from 'discord.js';
 import { isDiscordAPIError } from '@utils/errors';
@@ -25,12 +26,12 @@ export default class UpdateRadarMessagesJob extends Job {
 				const message = await channel.messages.fetch(messageId);
 				const embed = new EmbedBuilder()
 						.setColor(client.brandColor)
-						.setTitle(`Radar for ${location}`)
-						.setFooter({ text: `The closest station that covers the desired area is ${radarStation}.` })
+						.setTitle(_('jobs.radar.embedTitle', { location }))
+						.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
 						.setImage(`${radarImageUrl}?${client.generateId(32)}`)
 						.addFields(
-							{ name: 'Last Updated', value: time(new Date(), 'R'), inline: true },
-							{ name: 'Next Update', value: time(self.nextRun()!, 'R'), inline: true },
+							{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
+							{ name: _('jobs.radar.nextUpdateTitle'), value: time(self.nextRun()!, 'R'), inline: true },
 						)
 
 				await message.edit({ embeds: [embed] });

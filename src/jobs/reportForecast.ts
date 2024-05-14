@@ -1,5 +1,6 @@
 import { db } from '@db';
 import { Job } from '@jobs';
+import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
 import { getInfoFromCoordinates } from '@lib/location';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
@@ -38,11 +39,11 @@ export default class ReportForecastsJob extends Job {
 			const forecast = await getForecastForCoordinates(latitude, longitude);
 			const location = await getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
-				.setTitle(`⛅ ${forecast.name}'s Forecast for ${location.location}`)
+				.setTitle(_('jobs.forecasts.embedTitle', { forecast, location }))
 				.setColor(client.brandColor)
 				.setThumbnail(forecast.icon.replace('medium', 'large'))
 				.setDescription(forecast.detailedForecast)
-				.addFields({ name: 'At a glance', value: forecast.shortForecast })
+				.addFields({ name: _('jobs.forecasts.atAGlanceTitle'), value: forecast.shortForecast })
 				.setTimestamp();
 
 			if (radarImageUrl) {
