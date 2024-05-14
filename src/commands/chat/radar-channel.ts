@@ -1,7 +1,8 @@
 import { db } from '@db';
+import { _ } from '@lib/i18n';
 import { Command } from '@commands';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
-import { ChannelType, ButtonStyle, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends Command {
@@ -35,7 +36,7 @@ export default class RadarCommand extends Command {
 		const longitude = interaction.options.getString('longitude', true).trim();
 
 		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply('The provided latitude or longitude is not valid.');
+			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
@@ -54,7 +55,7 @@ export default class RadarCommand extends Command {
 			);
 
 		const initialReply = await interaction.editReply({
-			content: `The location found for coordinates \`${latitude},${longitude}\` is **${info.location}** with the radar image below.\nIs this correct?\n${info.radarImageUrl}`,
+			content: _('radarChannel.coordLocationAskConfirmation', { latitude, longitude, info }),
 			components: [row]
 		});
 
@@ -63,8 +64,8 @@ export default class RadarCommand extends Command {
 			if (customId === 'confirm') {
 				const embed = new EmbedBuilder()
 					.setColor(interaction.client.brandColor)
-					.setTitle(`Radar for ${info.location} (${info.radarStation})`)
-					.setFooter({ text: 'This is the closest station for this location' })
+					.setTitle(_('radarChannel.embedTitle', { info }))
+					.setFooter({ text: _('radarChannel.embedFooter') })
 					.setImage(info.radarImageUrl);
 
 				const guildId     = interaction.guildId!;
@@ -82,12 +83,12 @@ export default class RadarCommand extends Command {
 					}
 				});
 
-				await interaction.editReply({ content: `Radar channel destination successfully set to ${channel}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination.`, components: [] });
+				await interaction.editReply({ content: _('radarChannel.destCreated'), components: [] });
 			} else {
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: 'Confirmation cancelled', components: [] });
+			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
 		}
 	}
 }

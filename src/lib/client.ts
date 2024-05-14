@@ -1,4 +1,5 @@
 import { db } from '@db';
+import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
@@ -37,6 +38,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	}
 
 	public async login(token?: string | undefined): Promise<string> {
+		await initI18n();
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();

@@ -1,4 +1,5 @@
 import { db } from '@db';
+import { _ } from '@lib/i18n';
 import { Command } from '@commands';
 import { captureError } from '@lib/errors';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
@@ -63,12 +64,12 @@ export default class AlertsCommand extends Command {
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
 		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply('The provided latitude or longitude is not valid.');
+			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		const exists = await db.alertDestination.exists({ latitude, longitude, channelId });
 		if (exists) {
-			return interaction.reply('This channel is already designated as an alert destination.');
+			return interaction.reply(_('alerts.err.destExists'));
 		}
 
 		await interaction.deferReply();
@@ -88,7 +89,7 @@ export default class AlertsCommand extends Command {
 			);
 
 		const initialReply = await interaction.editReply({
-			content: `The location found for coordinates \`${latitude},${longitude}\` is **${info.location}**.\nIs this correct?`,
+			content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
 			components: [row]
 		});
 
@@ -109,23 +110,12 @@ export default class AlertsCommand extends Command {
 					select: { id: true }
 				});
 
-				let message = `Alert reporting created in ${channel}!`;
-				if (autoCleanup) {
-					message = `${message} My alert messages will be deleted automatically when they expire.`;
-				}
-
-				if (pingOnSevere) {
-					message = `${message}\nI will ping everyone in the server if there is a severe or extreme alert.`;
-				}
-
-				message = `${message}\nYou can remove this reporting destination by using the \`/alerts remove\` command with the ID \`${destination.id}\`.`;
-
-				return interaction.editReply({ content: message, components: [] });
+				return interaction.editReply({ content: _('alerts.destCreated', { channel, destination }), components: [] });
 			} else {
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: 'Confirmation cancelled', components: [] });
+			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
 		}
 	}
 
@@ -136,15 +126,15 @@ export default class AlertsCommand extends Command {
 
 		const exists = await db.alertDestination.exists({ id });
 		if (!exists) {
-			return interaction.editReply(`No alert destination exists with the ID \`${id}\`.`);
+			return interaction.editReply(_('alerts.err.noDestById', { id }));
 		}
 
 		try {
 			await db.alertDestination.delete({ where: { id } });
-			await interaction.editReply('Alert reporting destination has been successfully removed.');
+			await interaction.editReply(_('alerts.destRemoved'));
 		} catch (err: unknown) {
 			captureError('Failed to remove alert destination', err, { id });
-			await interaction.editReply('I was unable to remove that alert destination.');
+			await interaction.editReply(_('alerts.err.couldNotRemoveDest'));
 		}
 	}
 
@@ -166,10 +156,10 @@ export default class AlertsCommand extends Command {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(`${channel} does not have any alert reporting assigned to it.`);
+			return interaction.editReply(_('alerts.err.noDestInChannel', { channel }));
 		}
 
-		const embed = new EmbedBuilder().setTitle(`Alert reporting destinations for ${channel.name}`);
+		const embed = new EmbedBuilder().setTitle(_('alerts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, autoCleanup, pingOnSevere } of destinations) {
 			const info = await getInfoFromCoordinates(latitude, longitude);

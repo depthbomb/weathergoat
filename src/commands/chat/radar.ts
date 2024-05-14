@@ -1,3 +1,4 @@
+import { _ } from '@lib/i18n';
 import { Command } from '@commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { CacheType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
@@ -198,12 +199,12 @@ export default class RadarCommand extends Command {
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
 		const station = interaction.options.getString('station', true);
 		if (!this._radarCollection.find(v => v === station)) {
-			return interaction.reply(`Invalid station: \`${station}\``);
+			return interaction.reply(_('radar.err.invalidStation', { station }));
 		}
 
 		const embed = new EmbedBuilder()
 			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${interaction.client.generateId(16)}`)
-			.setTitle(`Radar Loop for ${station}`)
+			.setTitle(_('radar.embedTitle', { station }))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`)
 			.setColor(interaction.client.brandColor);
 

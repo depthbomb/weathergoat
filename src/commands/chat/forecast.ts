@@ -1,4 +1,5 @@
 import { db } from '@db';
+import { _ } from '@lib/i18n';
 import { Command } from '@commands';
 import { captureError } from '@lib/errors';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
@@ -43,8 +44,10 @@ export default class ForecastsCommand extends Command {
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
+				this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 				return this._addDestinationSubcommand(interaction);
 			case 'remove':
+				this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 				return this._removeDestinationSubcommand(interaction);
 			case 'list':
 				return this._listDestinationsSubcommand(interaction);
@@ -52,8 +55,6 @@ export default class ForecastsCommand extends Command {
 	}
 
 	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
-		this.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
-
 		const channelId   = interaction.channelId;
 		const latitude    = interaction.options.getString('latitude', true);
 		const longitude   = interaction.options.getString('longitude', true);
@@ -61,7 +62,7 @@ export default class ForecastsCommand extends Command {
 		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
 
 		if (!isValidCoordinates(latitude, longitude)) {
-			return interaction.reply('The provided latitude or longitude is not valid.');
+			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
@@ -72,16 +73,16 @@ export default class ForecastsCommand extends Command {
 			.addComponents(
 				new ButtonBuilder()
 					.setCustomId('confirm')
-					.setLabel('Yes')
+					.setLabel(_('common.yes'))
 					.setStyle(ButtonStyle.Success),
 				new ButtonBuilder()
 					.setCustomId('deny')
-					.setLabel('No')
+					.setLabel(_('common.no'))
 					.setStyle(ButtonStyle.Danger)
 			);
 
 		const initialReply = await interaction.editReply({
-			content: `The location found for coordinates \`${latitude},${longitude}\` is **${info.location}**.\nIs this correct?`,
+			content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
 			components: [row]
 		});
 
@@ -92,26 +93,19 @@ export default class ForecastsCommand extends Command {
 					data: {
 						latitude,
 						longitude,
-						channelId: channel.id,
+						channelId,
 						autoCleanup,
 						radarImageUrl: info.radarImageUrl
 					},
 					select: { id: true }
 				});
 
-				let message = `Hourly forecast reporting created in ${channel}!`;
-				if (autoCleanup) {
-					message = `${message} My messages will be deleted automatically after some time.`;
-				}
-
-				message = `${message}\nYou can remove this reporting destination by using the \`/forecasts remove\` command with the ID \`${destination.id}\`.`;
-
-				return interaction.editReply({ content: message, components: [] });
+				return interaction.editReply({ content: _('forecasts.destCreated', { channel, destination }), components: [] });
 			} else {
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: 'Confirmation cancelled', components: [] });
+			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
 		}
 	}
 
@@ -122,15 +116,15 @@ export default class ForecastsCommand extends Command {
 
 		const exists = await db.forecastDestination.exists({ id });
 		if (!exists) {
-			return interaction.editReply(`No alert destination exists with the ID \`${id}\`.`);
+			return interaction.editReply(_('forecasts.err.noDestById', { id }));
 		}
 
 		try {
 			await db.forecastDestination.delete({ where: { id } });
-			await interaction.editReply('Forecast destination has been successfully removed.');
+			await interaction.editReply(_('forecasts.destRemoved'));
 		} catch (err: unknown) {
 			captureError('Failed to remove forecast destination', err, { id });
-			await interaction.editReply('I was unable to remove that forecast destination.');
+			await interaction.editReply(_('forecasts.err.couldNotRemoveDest'));
 		}
 	}
 
@@ -151,10 +145,10 @@ export default class ForecastsCommand extends Command {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(`${channel} does not have any forecast reporting assigned to it.`);
+			return interaction.editReply(_('forecasts.err.noDestInChannel', { channel }));
 		}
 
-		const embed = new EmbedBuilder().setTitle('Forecast Reporting Destinations');
+		const embed = new EmbedBuilder().setTitle(_('forecasts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, autoCleanup } of destinations) {
 			const info = await getInfoFromCoordinates(latitude, longitude);
