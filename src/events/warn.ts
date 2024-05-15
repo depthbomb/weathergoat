@@ -3,7 +3,7 @@ import { DiscordEvent } from '@events';
 
 export default class WarnEvent extends DiscordEvent<'warn'> {
 	public constructor() {
-		super({ name: 'warn', disabled: !process.env.DEV });
+		super({ name: 'warn' });
 	}
 
 	public handle(message: string) {
