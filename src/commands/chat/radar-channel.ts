@@ -55,7 +55,7 @@ export default class RadarCommand extends Command {
 			);
 
 		const initialReply = await interaction.editReply({
-			content: _('radarChannel.coordLocationAskConfirmation', { latitude, longitude, info }),
+			content: _('commands.radarChannel.coordLocationAskConfirmation', { latitude, longitude, info }),
 			components: [row]
 		});
 
@@ -64,8 +64,8 @@ export default class RadarCommand extends Command {
 			if (customId === 'confirm') {
 				const embed = new EmbedBuilder()
 					.setColor(interaction.client.brandColor)
-					.setTitle(_('radarChannel.embedTitle', { info }))
-					.setFooter({ text: _('radarChannel.embedFooter') })
+					.setTitle(_('commands.radarChannel.embedTitle', { info }))
+					.setFooter({ text: _('commands.radarChannel.embedFooter') })
 					.setImage(info.radarImageUrl);
 
 				const guildId     = interaction.guildId!;
@@ -83,7 +83,7 @@ export default class RadarCommand extends Command {
 					}
 				});
 
-				await interaction.editReply({ content: _('radarChannel.destCreated'), components: [] });
+				await interaction.editReply({ content: _('commands.radarChannel.destCreated'), components: [] });
 			} else {
 				return initialReply.delete();
 			}

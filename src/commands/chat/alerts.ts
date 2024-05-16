@@ -69,7 +69,7 @@ export default class AlertsCommand extends Command {
 
 		const exists = await db.alertDestination.exists({ latitude, longitude, channelId });
 		if (exists) {
-			return interaction.reply(_('alerts.err.destExists'));
+			return interaction.reply(_('commands.alerts.err.destExists'));
 		}
 
 		await interaction.deferReply();
@@ -110,7 +110,7 @@ export default class AlertsCommand extends Command {
 					select: { id: true }
 				});
 
-				return interaction.editReply({ content: _('alerts.destCreated', { channel, destination }), components: [] });
+				return interaction.editReply({ content: _('commands.alerts.destCreated', { channel, destination }), components: [] });
 			} else {
 				return initialReply.delete();
 			}
@@ -126,15 +126,15 @@ export default class AlertsCommand extends Command {
 
 		const exists = await db.alertDestination.exists({ id });
 		if (!exists) {
-			return interaction.editReply(_('alerts.err.noDestById', { id }));
+			return interaction.editReply(_('commands.alerts.err.noDestById', { id }));
 		}
 
 		try {
 			await db.alertDestination.delete({ where: { id } });
-			await interaction.editReply(_('alerts.destRemoved'));
+			await interaction.editReply(_('commands.alerts.destRemoved'));
 		} catch (err: unknown) {
 			captureError('Failed to remove alert destination', err, { id });
-			await interaction.editReply(_('alerts.err.couldNotRemoveDest'));
+			await interaction.editReply(_('commands.alerts.err.couldNotRemoveDest'));
 		}
 	}
 
@@ -156,10 +156,10 @@ export default class AlertsCommand extends Command {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(_('alerts.err.noDestInChannel', { channel }));
+			return interaction.editReply(_('commands.alerts.err.noDestInChannel', { channel }));
 		}
 
-		const embed = new EmbedBuilder().setTitle(_('alerts.listEmbedTitle', { channel }));
+		const embed = new EmbedBuilder().setTitle(_('commands.alerts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, autoCleanup, pingOnSevere } of destinations) {
 			const info = await getInfoFromCoordinates(latitude, longitude);

@@ -100,7 +100,7 @@ export default class ForecastsCommand extends Command {
 					select: { id: true }
 				});
 
-				return interaction.editReply({ content: _('forecasts.destCreated', { channel, destination }), components: [] });
+				return interaction.editReply({ content: _('commands.forecasts.destCreated', { channel, destination }), components: [] });
 			} else {
 				return initialReply.delete();
 			}
@@ -116,15 +116,15 @@ export default class ForecastsCommand extends Command {
 
 		const exists = await db.forecastDestination.exists({ id });
 		if (!exists) {
-			return interaction.editReply(_('forecasts.err.noDestById', { id }));
+			return interaction.editReply(_('commands.forecasts.err.noDestById', { id }));
 		}
 
 		try {
 			await db.forecastDestination.delete({ where: { id } });
-			await interaction.editReply(_('forecasts.destRemoved'));
+			await interaction.editReply(_('commands.forecasts.destRemoved'));
 		} catch (err: unknown) {
 			captureError('Failed to remove forecast destination', err, { id });
-			await interaction.editReply(_('forecasts.err.couldNotRemoveDest'));
+			await interaction.editReply(_('commands.forecasts.err.couldNotRemoveDest'));
 		}
 	}
 
@@ -145,10 +145,10 @@ export default class ForecastsCommand extends Command {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(_('forecasts.err.noDestInChannel', { channel }));
+			return interaction.editReply(_('commands.forecasts.err.noDestInChannel', { channel }));
 		}
 
-		const embed = new EmbedBuilder().setTitle(_('forecasts.listEmbedTitle', { channel }));
+		const embed = new EmbedBuilder().setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, autoCleanup } of destinations) {
 			const info = await getInfoFromCoordinates(latitude, longitude);

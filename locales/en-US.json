@@ -44,8 +44,8 @@
 		"radarChannel": {
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}** with the radar image below.\nIs this correct?\n{{info.radarImageUrl}}",
 
-			"embedTitle": "Radar for {{info.location}} ({{info.radarStation}})",
-			"embedFooter": "This is the closest station for this location",
+			"embedTitle": "$t(jobs:radar.embedTitle)",
+			"embedFooter": "$t(jobs:radar.embedFooter)",
 
 			"destCreated": "Radar channel destination successfully set to {{channel}}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
 		},

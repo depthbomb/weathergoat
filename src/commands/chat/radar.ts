@@ -199,12 +199,12 @@ export default class RadarCommand extends Command {
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
 		const station = interaction.options.getString('station', true);
 		if (!this._radarCollection.find(v => v === station)) {
-			return interaction.reply(_('radar.err.invalidStation', { station }));
+			return interaction.reply(_('commands.radar.err.invalidStation', { station }));
 		}
 
 		const embed = new EmbedBuilder()
 			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${interaction.client.generateId(16)}`)
-			.setTitle(_('radar.embedTitle', { station }))
+			.setTitle(_('commands.radar.embedTitle', { station }))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`)
 			.setColor(interaction.client.brandColor);
 
