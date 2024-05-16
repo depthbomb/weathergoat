@@ -1,8 +1,9 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Command } from '@commands';
+import { Duration } from '@sapphire/time-utilities';
 import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
-import { ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { time, ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends Command {
@@ -64,8 +65,12 @@ export default class RadarCommand extends Command {
 			if (customId === 'confirm') {
 				const embed = new EmbedBuilder()
 					.setColor(interaction.client.brandColor)
-					.setTitle(_('commands.radarChannel.embedTitle', { info }))
-					.setFooter({ text: _('commands.radarChannel.embedFooter') })
+					.setTitle(_('jobs.radar.embedTitle', { info }))
+					.addFields(
+						{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
+						{ name: _('jobs.radar.nextUpdateTitle'), value: time(new Duration('5m').fromNow, 'R'), inline: true },
+					)
+					.setFooter({ text: _('jobs.radar.embedFooter') })
 					.setImage(info.radarImageUrl);
 
 				const guildId     = interaction.guildId!;
