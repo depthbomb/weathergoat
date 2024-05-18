@@ -66,15 +66,15 @@ export default class RadarCommand extends Command {
 				const embed = new EmbedBuilder()
 					.setColor(interaction.client.brandColor)
 					.setTitle(_('jobs.radar.embedTitle', { info }))
+					.setFooter({ text: _('jobs.radar.embedFooter') })
+					.setImage(info.radarImageUrl)
 					.addFields(
 						{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
 						{ name: _('jobs.radar.nextUpdateTitle'), value: time(new Duration('5m').fromNow, 'R'), inline: true },
 					)
-					.setFooter({ text: _('jobs.radar.embedFooter') })
-					.setImage(info.radarImageUrl);
 
-				const guildId     = interaction.guildId!;
-				const channelId   = channel.id;
+				const guildId      = interaction.guildId!;
+				const channelId    = channel.id;
 				const firstMessage = await channel.send({ embeds: [embed] });
 
 				await db.radarChannel.create({
