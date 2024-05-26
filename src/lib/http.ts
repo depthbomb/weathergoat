@@ -1,6 +1,6 @@
 import { logger } from '@lib/logger';
 import { joinURL, withQuery } from 'ufo';
-import { BOT_USER_AGENT, BROWSER_USER_AGENT } from '@constants';
+import { BOT_USER_AGENT } from '@constants';
 import { retry, handleResultType, ExponentialBackoff } from 'cockatiel';
 import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';
@@ -11,10 +11,6 @@ type CreateHttpClientOptions = {
 	 */
 	baseUrl?: string;
 	/**
-	 * Whether to mimick a browser user agent when sending requests.
-	 */
-	useBrowserUserAgent?: boolean;
-	/**
 	 * Whether to use a retry policy to retry failed requests.
 	 */
 	retry?: boolean;
@@ -24,14 +20,12 @@ type GETOptions  = Omit<RequestOptions, 'method'>;
 
 export class HttpClient {
 	private readonly _retry:       boolean;
-	private readonly _userAgent:   string;
 	private readonly _baseUrl?:    string;
 	private readonly _retryPolicy: RetryPolicy;
 
 	public constructor(options?: CreateHttpClientOptions) {
 		this._retry       = !!options?.retry;
 		this._baseUrl     = options?.baseUrl;
-		this._userAgent   = options?.useBrowserUserAgent ? BROWSER_USER_AGENT : BOT_USER_AGENT;
 		this._retryPolicy = retry(handleResultType(Response, (res) => res.status !== 200), { maxAttempts: 10, backoff: new ExponentialBackoff() });
 	}
 
@@ -49,7 +43,7 @@ export class HttpClient {
 		const requestInit = {
 			...init,
 			headers: {
-				'user-agent': this._userAgent,
+				'user-agent': BOT_USER_AGENT,
 				'accept': 'application/ld+json'
 			},
 		};

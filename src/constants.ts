@@ -1,7 +1,6 @@
 import { join } from 'node:path';
 
-export const BOT_USER_AGENT     = `WeatherGoat (Node.js/${process.version})`;
-export const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+export const BOT_USER_AGENT = `WeatherGoat (github: depthbomb/weathergoat)`;
 
 export const ROOT_DIR      = __dirname;
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
