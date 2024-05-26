@@ -1,6 +1,7 @@
 import { captureError } from '@lib/errors';
 import { sleep } from '@sapphire/utilities';
 import { AsyncQueue } from '@sapphire/async-queue';
+import { Duration } from '@sapphire/time-utilities';
 import type { Awaitable } from 'discord.js';
 
 type QueueableFunc = (...args: unknown[]) => Awaitable<unknown>;
@@ -11,11 +12,16 @@ export class Queue {
 	private readonly _queue: Array<QueueableFunc>;
 	private readonly _delay: number;
 
-	public constructor(name: string, delay: number) {
+	public constructor(name: string, delay: number | string) {
 		this._name  = name;
 		this._lock  = new AsyncQueue();
 		this._queue = [];
-		this._delay = delay;
+
+		if (typeof delay === 'string') {
+			this._delay = new Duration(delay).offset;
+		} else {
+			this._delay = delay;
+		}
 	}
 
 	public enqueue(func: QueueableFunc) {
