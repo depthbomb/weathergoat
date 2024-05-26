@@ -1,4 +1,5 @@
 import '@abraham/reflection';
+import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
@@ -6,6 +7,8 @@ if (process.argv.length > 2) {
 	const { runCli } = await import('@cli');
 	await runCli();
 } else {
+	logger.info('Booting up', { mode: process.env.MODE });
+
 	if (process.env.SENTRY_DSN) {
 		const { init } = await import('@sentry/bun');
 

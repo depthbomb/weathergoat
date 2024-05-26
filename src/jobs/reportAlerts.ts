@@ -31,9 +31,8 @@ export default class ReportAlertsJob extends Job {
 		});
 		for (const { zoneId, countyId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
-			if (!isTextChannel(channel)) {
-				continue;
-			}
+
+			if (!isTextChannel(channel)) continue;
 
 			const guildId = channel.guildId;
 			const alerts  = await getActiveAlertsForZone(zoneId, countyId);

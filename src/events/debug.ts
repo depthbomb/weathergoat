@@ -3,7 +3,7 @@ import { DiscordEvent } from '@events';
 
 export default class DebugEvent extends DiscordEvent<'debug'> {
 	public constructor() {
-		super({ name: 'debug', disabled: process.env.DEV === false });
+		super({ name: 'debug', disabled: process.env.MODE === 'production' });
 	}
 
 	public handle(message: string) {
