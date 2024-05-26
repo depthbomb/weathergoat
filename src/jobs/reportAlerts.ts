@@ -12,7 +12,7 @@ export default class ReportAlertsJob extends Job {
 	private readonly _webhookReason: string;
 
 	public constructor() {
-		super({ name: 'job.report-alerts', pattern: '*/15 * * * * *', runImmediately: true });
+		super({ name: 'job.report-alerts', pattern: '*/10 * * * * *', runImmediately: true });
 
 		this._webhookName   = 'WeatherGoat#Alerts';
 		this._webhookReason = 'Required for weather alert reporting';
