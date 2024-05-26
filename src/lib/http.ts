@@ -82,7 +82,6 @@ export class HttpClient {
 		logger.http('Finished HTTP request', {
 			id,
 			status: `${res.status} - ${res.statusText}`,
-			size: res.body?.length,
 			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
 		});
 
