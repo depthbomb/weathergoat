@@ -70,20 +70,19 @@ export class HttpClient {
 
 		const startTime = hrtime.bigint();
 
-		let res: Promise<Response>;
+		let res: Response;
 		if (this._retry) {
-			res = this._retryPolicy.execute(() => fetch(requestUrl, requestInit));
+			res = await this._retryPolicy.execute(() => fetch(requestUrl, requestInit));
 		} else {
-			res = fetch(requestUrl, requestInit);
+			res = await fetch(requestUrl, requestInit);
 		}
 
 		const endTime = hrtime.bigint();
 
 		logger.http('Finished HTTP request', {
 			id,
-			method: init?.method,
-			url: requestUrl,
-			retry: this._retry,
+			status: `${res.status} - ${res.statusText}`,
+			size: res.body?.length,
 			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
 		});
 
