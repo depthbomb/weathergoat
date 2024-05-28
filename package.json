@@ -17,7 +17,7 @@
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/stopwatch": "^1.5.2",
 		"@sapphire/time-utilities": "^1.7.12",
-		"@sentry/bun": "^8",
+		"@sentry/bun": "^8.5.0",
 		"bufferutil": "^4.0.8",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.3",
