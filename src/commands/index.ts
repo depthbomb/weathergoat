@@ -14,9 +14,7 @@ export abstract class Command {
 		public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder
 	) {}
 
-	public handle(interaction: ChatInputCommandInteraction): Awaitable<any> {
-		throw new Error(`Interaction command handler not implemented for ${interaction.commandName}`);
-	}
+	abstract handle(interaction: ChatInputCommandInteraction): Awaitable<any>;
 
 	public handleAutocomplete?(interaction: AutocompleteInteraction): Awaitable<any> {}
 

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 
-export const BOT_USER_AGENT = `WeatherGoat (github: depthbomb/weathergoat)`;
+export const BOT_USER_AGENT = 'WeatherGoat (github: depthbomb/weathergoat)' as const;
 
 export const ROOT_DIR      = __dirname;
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
