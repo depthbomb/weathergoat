@@ -47,6 +47,8 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	}
 
 	public async destroy() {
+		logger.info('Shutting down', { date: new Date() });
+
 		await db.$disconnect();
 
 		if (!logger.closed) {
