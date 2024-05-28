@@ -11,6 +11,8 @@ export function isWeatherGoatError(err: unknown): err is WeatherGoatError {
 }
 
 export function captureError(message: string, err: unknown, context?: object) {
-	logger.error(message, { ...context, err });
+	const { message: errorMessage, stack } = err as Error;
+
+	logger.error(message, { ...context, errorMessage, stack });
 	captureException(err);
 }
