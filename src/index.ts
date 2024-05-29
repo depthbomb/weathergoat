@@ -30,7 +30,7 @@ if (process.argv.length > 2) {
 	for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => await wg.destroy());
 	for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
 		captureError('Unhandled error', err);
-		await wg.destroy()
+		await wg.destroy();
 		process.exit(1);
 	});
 }
