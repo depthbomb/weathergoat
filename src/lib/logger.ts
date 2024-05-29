@@ -17,7 +17,7 @@ const consoleTransportFormat = format.combine(
 	format.padLevels(),
 	format.printf(({ level, message, timestamp, ...meta }) => `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`)
 );
-const consoleTransport = new transports.Console({ level: process.env.DEV === true ? 'silly' : 'http', format: consoleTransportFormat });
+const consoleTransport = new transports.Console({ level: process.env.MODE === 'development' ? 'silly' : 'http', format: consoleTransportFormat });
 
 const fileTransportFormat = format.combine(
 	format.timestamp(),
