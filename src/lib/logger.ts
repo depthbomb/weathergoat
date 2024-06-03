@@ -31,7 +31,7 @@ export const logger = createLogger({
 			level: 'error',
 			filename: join(LOGS_DIR, 'error.%DATE%.log'),
 			datePattern: 'YYYYMMDD',
-			maxFiles: '7d',
+			maxFiles: '5d',
 			zippedArchive: true,
 			format: fileTransportFormat
 		}),
@@ -39,7 +39,7 @@ export const logger = createLogger({
 			level: 'silly',
 			filename: join(LOGS_DIR, 'combined.%DATE%.log'),
 			datePattern: 'YYYYMMDD',
-			maxFiles: '7d',
+			maxFiles: '5d',
 			zippedArchive: true,
 			format: fileTransportFormat
 		}),
