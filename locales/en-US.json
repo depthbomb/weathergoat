@@ -3,6 +3,7 @@
 		"err": {
 			"invalidLatOrLon": "The provided latitude or longitude is not valid.",
 			"guildOnly": "This action can only be performed inside a server channel.",
+			"noDestinations": "There are no {{type}} destinations in this server.",
 			"tooManyDestinations": "You have exceeded the max limit of {{type}} destinations (`{{max}}`)."
 		},
 		"yes": "Yes",
@@ -30,7 +31,7 @@
 
 			"destRemoved": "Alert reporting destination has been successfully removed.",
 
-			"listEmbedTitle": "Alert reporting destinations for {{channel.name}}"
+			"listEmbedTitle": "Alert reporting destinations in this server"
 		},
 		"forecasts": {
 			"err": {
@@ -41,7 +42,7 @@
 			"destCreated": "Hourly forecast reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the ID `{{destination.id}}`.",
 			"destRemoved": "Forecast destination has been successfully removed.",
 
-			"listEmbedTitle": "Forecast reporting destinations for {{channel.name}}"
+			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},
 		"radarChannel": {
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}** with the radar image below.\nIs this correct?\n{{info.radarImageUrl}}",

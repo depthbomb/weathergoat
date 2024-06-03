@@ -38,8 +38,7 @@ export default class AlertsCommand extends Command {
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
-				.setDescription('Lists all alert reporting destinations for a channel')
-				.addChannelOption(o => o.setName('channel').setDescription('The channel to list alert reporting destinations of').setRequired(true))
+				.setDescription('Lists all alert reporting destinations in the server')
 			));
 	}
 
@@ -152,7 +151,10 @@ export default class AlertsCommand extends Command {
 	}
 
 	private async _listDestinationsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
-		const channel = interaction.options.getChannel('channel', true);
+		const guildId = interaction.guildId;
+		if (!guildId) {
+			return interaction.reply(_('common.err.guildOnly'));
+		}
 
 		await interaction.deferReply();
 
@@ -161,24 +163,29 @@ export default class AlertsCommand extends Command {
 				id: true,
 				latitude: true,
 				longitude: true,
+				channelId: true,
 				autoCleanup: true,
 				pingOnSevere: true
 			},
 			where: {
-				channelId: channel.id
+				guildId
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(_('commands.alerts.err.noDestInChannel', { channel }));
+			return interaction.editReply(_('common.err.noDestinations', { type: 'alert' }));
 		}
 
-		const embed = new EmbedBuilder().setTitle(_('commands.alerts.listEmbedTitle', { channel }));
+		const embed = new EmbedBuilder().setTitle(_('commands.alerts.listEmbedTitle'));
 
-		for (const { id, latitude, longitude, autoCleanup, pingOnSevere } of destinations) {
-			const info = await getInfoFromCoordinates(latitude, longitude);
+		for (const { id, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
+			const info    = await getInfoFromCoordinates(latitude, longitude);
+			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
-				value: codeBlock('json', JSON.stringify({ id, autoCleanup, pingOnSevere }, null, 4))
+				value: [
+					`Reporting to ${channel}`,
+					codeBlock('json', JSON.stringify({ id, autoCleanup, pingOnSevere }, null, 4))
+				].join('\n')
 			});
 		}
 

@@ -37,8 +37,7 @@ export default class ForecastsCommand extends Command {
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
-				.setDescription('Lists all forecast reporting destinations for a channel')
-				.addChannelOption(o => o.setName('channel').setDescription('The channel to list forecast reporting destinations of').setRequired(true))
+				.setDescription('Lists all forecast reporting destinations in the server')
 			));
 	}
 
@@ -142,7 +141,12 @@ export default class ForecastsCommand extends Command {
 	}
 
 	private async _listDestinationsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+		const guildId = interaction.guildId;
 		const channel = interaction.options.getChannel('channel', true);
+
+		if (!guildId) {
+			return interaction.reply(_('common.err.guildOnly'));
+		}
 
 		await interaction.deferReply();
 
@@ -151,23 +155,28 @@ export default class ForecastsCommand extends Command {
 				id: true,
 				latitude: true,
 				longitude: true,
+				channelId: true,
 				autoCleanup: true
 			},
 			where: {
-				channelId: channel.id
+				guildId
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(_('commands.forecasts.err.noDestInChannel', { channel }));
+			return interaction.editReply(_('common.err.noDestinations', { type: 'forecast reporting' }));
 		}
 
 		const embed = new EmbedBuilder().setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
 
-		for (const { id, latitude, longitude, autoCleanup } of destinations) {
-			const info = await getInfoFromCoordinates(latitude, longitude);
+		for (const { id, latitude, longitude, channelId, autoCleanup } of destinations) {
+			const info    = await getInfoFromCoordinates(latitude, longitude);
+			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
-				value: codeBlock('json', JSON.stringify({ id, autoCleanup }, null, 4))
+				value: [
+					`Reporting to ${channel}`,
+					codeBlock('json', JSON.stringify({ id, autoCleanup }, null, 4))
+				].join('\n')
 			});
 		}
 
