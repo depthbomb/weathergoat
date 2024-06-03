@@ -31,7 +31,7 @@ export class HttpClient {
 	public constructor(options?: CreateHttpClientOptions) {
 		this._retry = !!options?.retry;
 		this._baseUrl = options?.baseUrl;
-		this._retryPolicy = retry(handleResultType(Response, (res) => res.status !== 200), { maxAttempts: 10, backoff: new ExponentialBackoff() });
+		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ExponentialBackoff() });
 		this._generateId = init({ length: 6 });
 		this._durationFormatter = new DurationFormatter()
 	}
