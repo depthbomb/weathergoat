@@ -3,6 +3,8 @@ import { Type, Expose, plainToInstance } from 'class-transformer';
 
 class CommitMessage {
 	public hash!: string;
+	@Expose({ name: 'hash_short' })
+	public shortHash!: string;
 	@Expose({ name: 'author_name' })
 	public authorName!: string;
 	public message!: string;
@@ -32,9 +34,9 @@ export class Git {
 	public static async getCommitMessages(count: number | null = null) {
 		let res: string;
 		if (!count || count < 1) {
-			res = await $`git log --pretty="{\"hash\":\"%H\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
+			res = await $`git log --pretty="{\"hash\":\"%H\",\"hash_short\":\"%h\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
 		} else {
-			res = await $`git log -${count} --pretty="{\"hash\":\"%H\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
+			res = await $`git log -${count} --pretty="{\"hash\":\"%H\",\"hash_short\":\"%h\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
 		}
 
 		const json = `[${res.trim().split('\n').map(line => line).join()}]`;
