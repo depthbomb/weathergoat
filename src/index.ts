@@ -1,7 +1,6 @@
 import '@abraham/reflection';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
-import { Partials, GatewayIntentBits } from 'discord.js';
 
 if (process.argv.length > 2) {
 	const { runCli } = await import('@cli');
@@ -15,7 +14,8 @@ if (process.argv.length > 2) {
 		init({ dsn: process.env.SENTRY_DSN });
 	}
 
-	const { WeatherGoat } = await import('@lib/client');
+	const { WeatherGoat }                 = await import('@lib/client');
+	const { Partials, GatewayIntentBits } = await import('discord.js');
 	const wg = new WeatherGoat({
 		intents: [
 			GatewayIntentBits.Guilds,
