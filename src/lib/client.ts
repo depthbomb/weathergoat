@@ -2,6 +2,7 @@ import { db } from '@db';
 import { Cron } from 'croner';
 import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
+import { singleton } from 'tsyringe';
 import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
@@ -17,6 +18,7 @@ type CommandModule  = ClassModule<Command>;
 type EventModule    = ClassModule<DiscordEvent<keyof ClientEvents>>;
 type JobModule      = ClassModule<Job>;
 
+@singleton()
 export class WeatherGoat<T extends boolean> extends Client<T> {
 	public readonly jobs: Set<Job>;
 	public readonly events: Collection<string, DiscordEvent<keyof ClientEvents>>;

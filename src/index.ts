@@ -1,5 +1,5 @@
-import '@abraham/reflection';
 import { logger } from '@lib/logger';
+import { WeatherGoat } from '@lib/client';
 import { captureError } from '@lib/errors';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
@@ -15,16 +15,31 @@ if (process.argv.length > 2) {
 		init({ dsn: process.env.SENTRY_DSN });
 	}
 
-	const { WeatherGoat } = await import('@lib/client');
-	const wg = new WeatherGoat({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMembers,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.GuildWebhooks,
-		],
-		partials: [Partials.Message, Partials.Channel]
+	const { container }       = await import('tsyringe');
+	const { Tokens }          = await import('@tokens');
+	const { WeatherGoat }     = await import('@lib/client');
+	const { HttpService }     = await import('@services/http');
+	const { AlertsService }   = await import('@services/alerts');
+	const { ForecastService } = await import('@services/forecast');
+	const { LocationService } = await import('@services/location');
+
+	container.register(Tokens.Http, HttpService);
+	container.register(Tokens.Alerts, AlertsService);
+	container.register(Tokens.Forecast, ForecastService);
+	container.register(Tokens.Location, LocationService);
+	container.register('Client', {
+			useValue: new WeatherGoat({
+			intents: [
+				GatewayIntentBits.Guilds,
+				GatewayIntentBits.GuildMembers,
+				GatewayIntentBits.GuildMessages,
+				GatewayIntentBits.GuildWebhooks,
+			],
+			partials: [Partials.Message, Partials.Channel]
+		})
 	});
+
+	const wg = container.resolve<WeatherGoat<boolean>>('Client');
 	await wg.login(process.env.BOT_TOKEN);
 
 	for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => await wg.destroy());
