@@ -113,6 +113,7 @@ export default class AlertsCommand extends Command {
 						latitude,
 						longitude,
 						zoneId: info.zoneId,
+						guildId,
 						countyId: info.countyId,
 						channelId: channel.id,
 						autoCleanup,

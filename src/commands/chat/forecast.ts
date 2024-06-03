@@ -105,6 +105,7 @@ export default class ForecastsCommand extends Command {
 					data: {
 						latitude,
 						longitude,
+						guildId,
 						channelId,
 						autoCleanup,
 						radarImageUrl: info.radarImageUrl
