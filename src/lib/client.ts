@@ -136,10 +136,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 			this.events.set(event.name, event);
 
-			logger.info('Registered event', {
-				name: event.name,
-				once: event.once
-			});
+			logger.info('Registered event', { name: event.name, once: event.once });
 		}
 	}
 
