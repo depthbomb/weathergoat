@@ -27,7 +27,7 @@ if (process.argv.length > 2) {
 	container.register(Tokens.Alerts, AlertsService);
 	container.register(Tokens.Forecast, ForecastService);
 	container.register(Tokens.Location, LocationService);
-	container.register('Client', {
+	container.register(Tokens.Client, {
 			useValue: new WeatherGoat({
 			intents: [
 				GatewayIntentBits.Guilds,
