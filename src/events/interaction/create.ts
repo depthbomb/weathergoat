@@ -26,7 +26,7 @@ export default class InteractionCreateEvent extends DiscordEvent<'interactionCre
 			} catch (err: unknown) {
 				captureError('Error in interaction handler', err, { interaction: interaction.commandName });
 
-				await tryToRespond(interaction, _('interactions.err.commandError'));
+				await tryToRespond(interaction, _('events.interactions.err.commandError'));
 			} finally {
 				logger.info(`Interaction completed in ${sw.toString()}`);
 			}
