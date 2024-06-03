@@ -32,14 +32,9 @@ export class Git {
 	}
 
 	public static async getCommitMessages(count: number | null = null) {
-		let res: string;
-		if (!count || count < 1) {
-			res = await $`git log --pretty="{\"hash\":\"%H\",\"hash_short\":\"%h\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
-		} else {
-			res = await $`git log -${count} --pretty="{\"hash\":\"%H\",\"hash_short\":\"%h\",\"author_name\":\"%cn\",\"message\":\"%s\",\"date\":\"%cd\"}"`.text();
-		}
-
-		const json = `[${res.trim().split('\n').map(line => line).join()}]`;
+		const option = count && count > 0 ? `-${count}` : '';
+		const res    = await $`git log ${option} --format='{"hash":"%H","hash_short":"%h","author_name":"%cn","message":"%s","date":"%cd"}'`.text();
+		const json   = `[${res.trim().split('\n').map(line => line).join()}]`;
 
 		return (JSON.parse(json) as object[]).map(v => plainToInstance(CommitMessage, v));
 	}
