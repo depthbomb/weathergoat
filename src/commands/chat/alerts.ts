@@ -175,7 +175,9 @@ export default class AlertsCommand extends Command {
 			return interaction.editReply(_('common.err.noDestinations', { type: 'alert' }));
 		}
 
-		const embed = new EmbedBuilder().setTitle(_('commands.alerts.listEmbedTitle'));
+		const embed = new EmbedBuilder()
+			.setColor(interaction.client.brandColor)
+			.setTitle(_('commands.alerts.listEmbedTitle'));
 
 		for (const { id, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const info    = await getInfoFromCoordinates(latitude, longitude);
