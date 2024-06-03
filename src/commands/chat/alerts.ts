@@ -16,6 +16,8 @@ import {
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends Command {
+	private readonly _maxDestinations = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
+
 	public constructor() {
 		super(new SlashCommandBuilder()
 			.setName('alerts')
@@ -56,12 +58,22 @@ export default class AlertsCommand extends Command {
 	}
 
 	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+		const guildId      = interaction.guildId;
 		const channelId    = interaction.channelId;
 		const latitude     = interaction.options.getString('latitude', true);
 		const longitude    = interaction.options.getString('longitude', true);
 		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
+
+		if (!guildId) {
+			return interaction.reply(_('common.err.guildOnly'));
+		}
+
+		const existingCount = await db.alertDestination.countByGuild(guildId);
+		if (existingCount >= this._maxDestinations) {
+			return interaction.reply(_('common.err.tooManyDestinations', { type: 'alert', max: this._maxDestinations }));
+		}
 
 		if (!isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));

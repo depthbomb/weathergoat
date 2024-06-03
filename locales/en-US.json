@@ -1,7 +1,9 @@
 {
 	"common": {
 		"err": {
-			"invalidLatOrLon": "The provided latitude or longitude is not valid."
+			"invalidLatOrLon": "The provided latitude or longitude is not valid.",
+			"guildOnly": "This action can only be performed inside a server channel.",
+			"tooManyDestinations": "You have exceeded the max limit of {{type}} destinations (`{{max}}`)."
 		},
 		"yes": "Yes",
 		"no": "No",

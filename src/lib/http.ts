@@ -33,7 +33,7 @@ export class HttpClient {
 		this._baseUrl = options?.baseUrl;
 		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ExponentialBackoff() });
 		this._generateId = init({ length: 6 });
-		this._durationFormatter = new DurationFormatter()
+		this._durationFormatter = new DurationFormatter();
 	}
 
 	public async get(url: string | URL, options?: GETOptions): Promise<Response> {

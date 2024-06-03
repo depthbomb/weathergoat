@@ -1,17 +1,15 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+// Extensions
+import exists from './extensions/exists';
+import radarChannelCountByGuild from './extensions/radarChannelCountByGuild';
+import alertDestinationCountByGuild from './extensions/alertDestinationCountByGuild';
+import forecastDestinationCountByGuild from './extensions/forecastDestinationCountByGuild';
 
 export const db = new PrismaClient()
-	.$extends({
-		model: {
-			$allModels: {
-				async exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
-					const ctx = Prisma.getExtensionContext(this);
-					const res = await (ctx as any).findFirst({ where });
-
-					return res !== null;
-				}
-			}
-		}
-	});
+	.$extends(exists)
+	.$extends(radarChannelCountByGuild)
+	.$extends(alertDestinationCountByGuild)
+	.$extends(forecastDestinationCountByGuild);
 
 export * from '@prisma/client';

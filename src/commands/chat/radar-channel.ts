@@ -7,6 +7,8 @@ import { time, ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowB
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends Command {
+	private readonly _maxCount = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
+
 	public constructor() {
 		super(new SlashCommandBuilder()
 			.setName('radar-channel')
@@ -32,9 +34,19 @@ export default class RadarCommand extends Command {
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
 		this.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
 
+		const guildId   = interaction.guildId;
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const latitude  = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
+
+		if (!guildId) {
+			return interaction.reply(_('common.err.guildOnly'));
+		}
+
+		const existingCount = await db.radarChannel.countByGuild(guildId);
+		if (existingCount >= this._maxCount) {
+			return interaction.reply(_('common.err.tooManyDestinations', { type: 'radar channel', max: this._maxCount }));
+		}
 
 		if (!isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));

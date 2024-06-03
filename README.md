@@ -17,6 +17,10 @@ BOT_ID=<your-bot-id>
 BOT_TOKEN=<your-bot-token>
 DATABASE_URL=file:path/to/sqlite/database # example: file:../.data/weathergoat.db
 SENTRY_DSN=<sentry-project-dsn> # Optional Sentry error reporting
+# Max destinations per guild
+MAX_RADAR_CHANNELS_PER_GUILD=5
+MAX_ALERT_DESTINATIONS_PER_GUILD=5
+MAX_FORECAST_DESTINATIONS_PER_GUILD=5
 ```
 4. Generate the Prisma client with `bun generate-client`
 5. Run database production migrations with `bun migrate:p`
@@ -45,4 +49,4 @@ The `/add` and `/remove` subcommands require the user to have the **MANAGE_GUILD
 
 ## Other features
 
-Using the `/radar-image` command allows you to specify a channel in which the bot will send a message containing a weather radar loop for a region. The message will be periodically edited to update the image to achieve a form of "live" radar.
+Using the `/radar-channel` command allows you to specify a channel in which the bot will send a message containing a weather radar loop for a region. The message will be periodically edited to update the image to achieve a form of "live" radar.
