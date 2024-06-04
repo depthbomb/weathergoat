@@ -1,0 +1,9 @@
+model RadarChannel {
+  id            String @id @default(cuid())
+  guildId       String
+  channelId     String
+  messageId     String
+  location      String
+  radarStation  String
+  radarImageUrl String
+}

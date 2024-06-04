@@ -1,0 +1,8 @@
+model SentAlert {
+  id        String  @id @default(cuid())
+  alertId   String
+  guildId   String
+  channelId String
+  messageId String
+  json      String?
+}

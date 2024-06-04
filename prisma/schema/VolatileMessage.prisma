@@ -1,0 +1,7 @@
+model VolatileMessage {
+  id        String   @id @default(cuid())
+  guildId   String
+  channelId String
+  messageId String
+  expiresAt DateTime
+}
