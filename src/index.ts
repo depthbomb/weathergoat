@@ -1,4 +1,3 @@
-import '@abraham/reflection';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { Partials, GatewayIntentBits } from 'discord.js';
