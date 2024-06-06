@@ -1,10 +1,9 @@
 {
 	"name": "weathergoat",
-	"version": "1.0.0",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
-		"start": "bun run src/index.ts",
+		"start": "bun src/index.ts",
 		"generate-client": "prisma generate",
 		"migrate:d": "prisma migrate dev",
 		"migrate:p": "prisma migrate deploy"
