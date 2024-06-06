@@ -1,12 +1,15 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
+import { Tokens } from '@tokens';
 import { Command } from '@commands';
+import { container } from 'tsyringe';
 import { Duration } from '@sapphire/time-utilities';
-import { isValidCoordinates, getInfoFromCoordinates } from '@lib/location';
 import { time, ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import type { LocationService } from '@services/location';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends Command {
+	private readonly _location: LocationService;
 	private readonly _maxCount = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
 
 	public constructor() {
@@ -29,6 +32,8 @@ export default class RadarCommand extends Command {
 				.setRequired(true)
 			)
 		);
+
+		this._location = container.resolve(Tokens.Location);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -48,13 +53,13 @@ export default class RadarCommand extends Command {
 			return interaction.reply(_('common.err.tooManyDestinations', { type: 'radar channel', max: this._maxCount }));
 		}
 
-		if (!isValidCoordinates(latitude, longitude)) {
+		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
 
-		const info = await getInfoFromCoordinates(latitude, longitude);
+		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 		const row = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()

@@ -22,11 +22,11 @@
 		"clipanion": "^4.0.0-rc.3",
 		"cockatiel": "^3.1.3",
 		"croner": "^8.0.2",
-		"typescript": "^5.4.5",
 		"discord.js": "^14.15.3",
 		"fejl": "^3.0.1",
 		"i18next": "^23.11.5",
 		"i18next-fs-backend": "^2.3.1",
+		"tsyringe": "^4.8.0",
 		"ufo": "^1.5.3",
 		"utf-8-validate": "^6.0.4",
 		"winston": "^3.13.0",
@@ -35,7 +35,8 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
-		"prisma": "^5.15.0"
+		"prisma": "^5.15.0",
+		"typescript": "^5.4.5"
 	},
 	"trustedDependencies": [
 		"@prisma/client",

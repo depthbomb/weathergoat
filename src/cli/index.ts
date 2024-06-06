@@ -1,10 +1,9 @@
 import { Cli } from 'clipanion';
-import { version } from '../../package.json';
-import { CommandManagerCommand } from '@cli/commands/CommandManager';
+import { CommandManagerCommand } from './commands/CommandManager';
 
 const cli = new Cli({
 	binaryLabel: 'WeatherGoat CLI',
-	binaryVersion: version,
+	binaryVersion: '0.0.0',
 	binaryName: process.argv[0]
 });
 

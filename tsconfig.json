@@ -5,6 +5,7 @@
 			"ESNext",
 			"DOM"
 		],
+		"types": ["@abraham/reflection"],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleDetection": "force",

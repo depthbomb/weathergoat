@@ -1,5 +1,7 @@
 import { logger } from '@lib/logger';
+import { singleton } from 'tsyringe';
 import { hrtime } from 'node:process';
+import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
 import { init } from '@paralleldrive/cuid2';
 import { BOT_USER_AGENT } from '@constants';
@@ -8,7 +10,7 @@ import { retry, handleResultType, ExponentialBackoff } from 'cockatiel';
 import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';
 
-type CreateHttpClientOptions = {
+type HttpClientOptions = {
 	/**
 	 * The base URL of requests the client makes.
 	 */
@@ -18,6 +20,7 @@ type CreateHttpClientOptions = {
 	 */
 	retry?: boolean;
 };
+type CreateHttpClientOptions = HttpClientOptions;
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions  = Omit<RequestOptions, 'method'>;
 
@@ -28,7 +31,7 @@ export class HttpClient {
 	private readonly _generateId:        () => string;
 	private readonly _durationFormatter: DurationFormatter;
 
-	public constructor(options?: CreateHttpClientOptions) {
+	public constructor(options?: HttpClientOptions) {
 		this._retry = !!options?.retry;
 		this._baseUrl = options?.baseUrl;
 		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ExponentialBackoff() });
@@ -86,5 +89,28 @@ export class HttpClient {
 		});
 
 		return res;
+	}
+}
+
+@singleton()
+export class HttpService {
+	private readonly _clients: Collection<string, HttpClient>;
+
+	public constructor() {
+		this._clients = new Collection();
+	}
+
+	public createClient(options: CreateHttpClientOptions) {
+		const { baseUrl, retry } = options;
+		const key = JSON.stringify({ baseUrl, retry });
+		if (this._clients.has(key)) {
+			return this._clients.get(key)!;
+		}
+
+		const client = new HttpClient({ baseUrl, retry });
+
+		this._clients.set(key, client);
+
+		return client;
 	}
 }
