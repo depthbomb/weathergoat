@@ -1,8 +1,9 @@
-import { join } from 'node:path';
+import { main } from 'bun';
+import { join, dirname } from 'node:path';
 
 export const BOT_USER_AGENT = 'WeatherGoat (github: depthbomb/weathergoat)' as const;
 
-export const ROOT_DIR      = __dirname;
+export const ROOT_DIR      = dirname(main);
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
 export const DATA_DIR      = join(PROJECT_ROOT, '.data');
 export const LOGS_DIR      = join(DATA_DIR, 'logs');
