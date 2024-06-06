@@ -12,7 +12,7 @@ import type { Command } from '@commands';
 import type { DiscordEvent } from '@events';
 import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
 
-type ClassModule<T> = { default: new() => T };
+type ClassModule<T> = { default: new(client?: WeatherGoat<boolean>) => T };
 type CommandModule  = ClassModule<Command>;
 type EventModule    = ClassModule<DiscordEvent<keyof ClientEvents>>;
 type JobModule      = ClassModule<Job>;
@@ -85,7 +85,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	public async registerJobs() {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
 			const { default: jobClass }: JobModule = await import(file);
-			const job = new jobClass();
+			const job = new jobClass(this);
 
 			if (this.jobs.has(job)) continue;
 
@@ -124,7 +124,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	public async registerEvents() {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
 			const { default: eventClass }: EventModule = await import(file);
-			const event = new eventClass();
+			const event = new eventClass(this);
 
 			if (event.disabled) continue;
 			if (this.events.has(event.name)) continue;
@@ -143,7 +143,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 	public async registerCommands() {
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this._moduleFilePattern)) {
 			const { default: commandClass }: CommandModule = await import(file);
-			const command = new commandClass();
+			const command = new commandClass(this);
 			const { name } = command.data;
 
 			this.commands.set(name, command);
