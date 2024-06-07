@@ -12,11 +12,13 @@ The project is specifically written for Bun and thus does not have any sort of b
 2. Install dependencies with `bun install`
 3. Create a `.env` file in the root directory with the following contents:
 ```env
-DEV=false # set to `true` to enable debug logging
-BOT_ID=<your-bot-id>
-BOT_TOKEN=<your-bot-token>
+MODE=production # set to "development" to enable debug features
+BOT_ID=1234
+BOT_TOKEN=abcdef
 DATABASE_URL=file:path/to/sqlite/database # example: file:../.data/weathergoat.db
-SENTRY_DSN=<sentry-project-dsn> # Optional Sentry error reporting
+SENTRY_DSN=https://abcdef # Optional Sentry error reporting
+GITHUB_REPO=depthbomb/weathergoat # Optional, required if the value below is set
+GITHUB_ACCESS_TOKEN=ghp_12345abdef # Optional, ignore unless you are self-hosting *your own fork* of the project
 # Max destinations per guild
 MAX_RADAR_CHANNELS_PER_GUILD=5
 MAX_ALERT_DESTINATIONS_PER_GUILD=5

@@ -1,6 +1,6 @@
+import type Cron from 'croner';
 import type { Awaitable } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
-import type Cron from 'croner';
 
 type JobOptions = {
 	name: string;

@@ -23,12 +23,14 @@ if (process.argv.length > 2) {
 	const { WeatherGoat }     = await import('@lib/client');
 	const { HttpService }     = await import('@services/http');
 	const { CacheService }    = await import('@services/cache');
+	const { GithubService }   = await import('@services/github');
 	const { AlertsService }   = await import('@services/alerts');
 	const { ForecastService } = await import('@services/forecast');
 	const { LocationService } = await import('@services/location');
 
 	container.register(Tokens.Http, HttpService);
 	container.register(Tokens.Cache, CacheService);
+	container.register(Tokens.Github, GithubService);
 	container.register(Tokens.Alerts, AlertsService);
 	container.register(Tokens.Forecast, ForecastService);
 	container.register(Tokens.Location, LocationService);

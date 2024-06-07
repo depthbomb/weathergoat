@@ -1,12 +1,15 @@
 import { _ } from '@lib/i18n';
-import { Git } from '@utils/git';
+import { Tokens } from '@tokens';
 import { Command } from '@commands';
+import { container } from 'tsyringe';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import type { GithubService } from '@services/github';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends Command {
+	private readonly _github: GithubService;
 	private readonly _formatter: DurationFormatter;
 
 	public constructor() {
@@ -23,6 +26,7 @@ export default class AboutCommand extends Command {
 			)
 		);
 
+		this._github    = container.resolve(Tokens.Github);
 		this._formatter = new DurationFormatter();
 	}
 
@@ -37,12 +41,14 @@ export default class AboutCommand extends Command {
 	}
 
 	private async _changelogSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
-		const messages = await Git.getCommitMessages(12);
+		await interaction.deferReply();
+
+		const messages = await this._github.getCommits(10);
 		const response = messages.map(
-			msg => `${time(msg.date, 'R')} [${msg.message}](https://github.com/depthbomb/weathergoat/commit/${msg.shortHash}) by ${msg.authorName}`
+			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) by [${msg.commit.author?.name}](${msg.author?.html_url})`
 		).join('\n');
 
-		return interaction.reply(response);
+		return interaction.editReply(response);
 	}
 
 	private async _statsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {

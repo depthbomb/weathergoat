@@ -7,6 +7,8 @@ declare module 'bun' {
 		BOT_TOKEN: string;
 		DATABASE_URL: string;
 		SENTRY_DSN?: string;
+		GITHUB_REPO?: string;
+		GITHUB_ACCESS_TOKEN?: string;
 		MAX_RADAR_CHANNELS_PER_GUILD: number;
 		MAX_ALERT_DESTINATIONS_PER_GUILD: number;
 		MAX_FORECAST_DESTINATIONS_PER_GUILD: number;

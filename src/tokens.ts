@@ -5,5 +5,6 @@ export const enum Tokens {
 	Alerts = 'alerts',
 	Forecast = 'forecast',
 	Cache = 'cache',
-	Logger = 'logger'
+	Logger = 'logger',
+	Github = 'github'
 }
