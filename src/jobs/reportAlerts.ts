@@ -27,18 +27,18 @@ export default class ReportAlertsJob extends Job {
 			select: {
 				zoneId: true,
 				countyId: true,
+				guildId: true,
 				channelId: true,
 				autoCleanup: true,
 				radarImageUrl: true,
 				pingOnSevere: true,
 			}
 		});
-		for (const { zoneId, countyId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
+		for (const { zoneId, countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 
 			if (!isTextChannel(channel)) continue;
 
-			const guildId = channel.guildId;
 			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId, countyId);
 			for (const alert of alerts) {
 				const alreadyReported = await db.sentAlert.findFirst({

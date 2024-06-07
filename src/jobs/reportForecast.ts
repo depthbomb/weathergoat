@@ -30,17 +30,17 @@ export default class ReportForecastsJob extends Job {
 			select: {
 				latitude: true,
 				longitude: true,
+				guildId: true,
 				channelId: true,
 				autoCleanup: true,
 				radarImageUrl: true,
 			}
 		});
-		for (const { latitude, longitude, channelId, autoCleanup, radarImageUrl } of destinations) {
+		for (const { latitude, longitude, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 
 			if (!isTextChannel(channel)) continue;
 
-			const guildId  = channel.guildId;
 			const forecast = await this._forecast.getForecastForCoordinates(latitude, longitude);
 			const location = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
