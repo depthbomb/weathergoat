@@ -50,10 +50,7 @@ export const serviceManager: IServiceManager = ({
 	},
 	async initializeServices(client: WeatherGoat<boolean>) {
 		for (const [_, service] of this[kServices]) {
-			const init = Reflect.get(service, 'init');
-			if (init) {
-				await init(client);
-			}
+			await service.init?.(client);
 		}
 	}
 });
