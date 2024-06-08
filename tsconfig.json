@@ -29,9 +29,12 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
+		"noImplicitThis": true,
 
 		"paths": {
-			"@*": ["./src/*"]
+			"@*": ["./src/*"],
+			"#types": ["./src/@types/index.ts"],
+			"#types/*": ["./src/@types/*"]
 		}
 	}
 }

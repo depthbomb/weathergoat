@@ -1,9 +1,8 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
-import { Tokens } from '@tokens';
 import { Command } from '@commands';
-import { container } from 'tsyringe';
 import { captureError } from '@lib/errors';
+import { locationService } from '@services/location';
 import {
 	codeBlock,
 	ChannelType,
@@ -14,11 +13,9 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { LocationService } from '@services/location';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends Command {
-	private readonly _location: LocationService;
 	private readonly _maxDestinations = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
 
 	public constructor() {
@@ -44,8 +41,6 @@ export default class AlertsCommand extends Command {
 				.setDescription('Lists all alert reporting destinations in the server')
 			)
 		);
-
-		this._location = container.resolve(Tokens.Location);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -80,7 +75,7 @@ export default class AlertsCommand extends Command {
 			return interaction.reply(_('common.err.tooManyDestinations', { type: 'alert', max: this._maxDestinations }));
 		}
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) {
+		if (!locationService.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
@@ -91,7 +86,7 @@ export default class AlertsCommand extends Command {
 
 		await interaction.deferReply();
 
-		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
+		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
 
 		const row = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
@@ -186,7 +181,7 @@ export default class AlertsCommand extends Command {
 			.setTitle(_('commands.alerts.listEmbedTitle'));
 
 		for (const { id, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
-			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
+			const info    = await locationService.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,

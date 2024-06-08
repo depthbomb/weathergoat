@@ -1,15 +1,12 @@
 import { _ } from '@lib/i18n';
-import { Tokens } from '@tokens';
 import { Command } from '@commands';
-import { container } from 'tsyringe';
+import { githubService } from '@services/github';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { GithubService } from '@services/github';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends Command {
-	private readonly _github: GithubService;
 	private readonly _formatter: DurationFormatter;
 
 	public constructor() {
@@ -18,7 +15,7 @@ export default class AboutCommand extends Command {
 			.setDescription('Read about me!')
 			.addSubcommand(sc => sc
 				.setName('changelog')
-				.setDescription('Read the last 12 commit messages made to my repository')
+				.setDescription('Retrieve the latest commits made to my repository')
 			)
 			.addSubcommand(sc => sc
 				.setName('stats')
@@ -26,7 +23,6 @@ export default class AboutCommand extends Command {
 			)
 		);
 
-		this._github    = container.resolve(Tokens.Github);
 		this._formatter = new DurationFormatter();
 	}
 
@@ -43,7 +39,7 @@ export default class AboutCommand extends Command {
 	private async _changelogSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		await interaction.deferReply();
 
-		const messages = await this._github.getCommits(10);
+		const messages = await githubService.getCommits(10);
 		const response = messages.map(
 			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) by [${msg.commit.author?.name}](${msg.author?.html_url})`
 		).join('\n');

@@ -1,19 +1,27 @@
-import { Tokens } from '@tokens';
-import { inject, singleton } from 'tsyringe';
+import { httpService } from './http';
+import { defineService } from '@services';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/alert-collection';
-import type { HttpClient, HttpService } from '@services/http';
+import type { Alert } from '@models/alert';
 
-@singleton()
-export class AlertsService {
-	private readonly _http: HttpClient;
+interface IAlertsService {
+	/**
+	 * Retrieves all active alerts.
+	 */
+	getActiveAlerts(): Promise<Alert[]>;
+	/**
+	 * Retrieves weather alerts for a zone.
+	 * @param zoneId The ID of the zone to retrieve alerts of.
+	 * @param countyId Optional county ID to retrieve alerts of.
+	 */
+	getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]>;
+}
 
-	public constructor(@inject(Tokens.Http) httpService: HttpService) {
-		this._http = httpService.createClient({ baseUrl: 'https://api.weather.gov' });
-	}
+export const alertsService = defineService<IAlertsService>('Alerts', () => {
+	const http = httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' });
 
-	public async getActiveAlerts() {
-		const res = await this._http.get('/alerts/active');
+	async function getActiveAlerts() {
+		const res = await http.get('/alerts/active');
 		if (!res.ok) {
 			throw new Error(res.statusText);
 		}
@@ -24,13 +32,13 @@ export class AlertsService {
 		return data.alerts;
 	}
 
-	public async getActiveAlertsForZone(zoneId: string, countyId?: string) {
+	async function getActiveAlertsForZone(zoneId: string, countyId?: string) {
 		const ids = [zoneId];
 		if (countyId) {
 			ids.push(countyId);
 		}
 
-		const res = await this._http.get('/alerts/active', {
+		const res = await http.get('/alerts/active', {
 			query: {
 				'zone[]': ids
 			}
@@ -44,4 +52,6 @@ export class AlertsService {
 
 		return data.alerts;
 	}
-}
+
+	return { getActiveAlerts, getActiveAlertsForZone };
+});

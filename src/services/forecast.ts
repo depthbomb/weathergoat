@@ -1,24 +1,25 @@
-import { Tokens } from '@tokens';
-import { inject, singleton } from 'tsyringe';
+import { httpService } from './http';
+import { defineService } from '@services';
+import { locationService } from './location';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/gridpoint-forecast';
-import type { LocationService } from '@services/location';
-import type { HttpClient, HttpService } from '@services/http';
+import type { GridpointForecastPeriod } from '@models/gridpoint-forecast-period';
 
-@singleton()
-export class ForecastService {
-	private readonly _http: HttpClient;
+interface IForecastService {
+	/**
+	 * Retrieves the latest forecast period for the provided coordinates.
+	 * @param latitude The latitude of the location.
+	 * @param longitude The longitude of the location.
+	 */
+	getForecastForCoordinates(latitude: string, longitude: string): Promise<GridpointForecastPeriod>;
+}
 
-	public constructor(
-		@inject(Tokens.Http) httpService: HttpService,
-		@inject(Tokens.Location) private readonly _location: LocationService
-	) {
-		this._http = httpService.createClient({ retry: true });
-	}
+export const forecastService = defineService<IForecastService>('Forecast', () => {
+	const http = httpService.getClient('forecasts', { retry: true });
 
-	public async getForecastForCoordinates(latitude: string, longitude: string) {
-		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
-		const res  = await this._http.get(info.forecastUrl);
+	async function getForecastForCoordinates(latitude: string, longitude: string) {
+		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
+		const res  = await http.get(info.forecastUrl);
 		if (!res.ok) {
 			throw new Error(res.statusText);
 		}
@@ -28,4 +29,6 @@ export class ForecastService {
 
 		return data.periods[0];
 	}
-}
+
+	return { getForecastForCoordinates };
+});

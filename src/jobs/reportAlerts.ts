@@ -2,22 +2,18 @@ import { db } from '@db';
 import { Job } from '@jobs';
 import { _ } from '@lib/i18n';
 import { withQuery } from 'ufo';
-import { Tokens } from '@tokens';
-import { container } from 'tsyringe';
+import { alertsService } from '@services/alerts';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
-import type { AlertsService } from '@services/alerts';
 
 export default class ReportAlertsJob extends Job {
-	private readonly _alerts: AlertsService;
 	private readonly _webhookName: string;
 	private readonly _webhookReason: string;
 
 	public constructor() {
 		super({ name: 'job.report-alerts', pattern: '*/10 * * * * *' });
 
-		this._alerts        = container.resolve(Tokens.Alerts);
 		this._webhookName   = 'WeatherGoat#Alerts';
 		this._webhookReason = 'Required for weather alert reporting';
 	}
@@ -39,7 +35,7 @@ export default class ReportAlertsJob extends Job {
 
 			if (!isTextChannel(channel)) continue;
 
-			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId, countyId);
+			const alerts  = await alertsService.getActiveAlertsForZone(zoneId, countyId);
 			for (const alert of alerts) {
 				const alreadyReported = await db.sentAlert.findFirst({
 					where: {

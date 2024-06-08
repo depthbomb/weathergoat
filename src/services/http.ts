@@ -1,8 +1,8 @@
 import { logger } from '@lib/logger';
-import { singleton } from 'tsyringe';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
+import { defineService } from '@services';
 import { init } from '@paralleldrive/cuid2';
 import { BOT_USER_AGENT } from '@constants';
 import { DurationFormatter } from '@sapphire/time-utilities';
@@ -22,9 +22,18 @@ type HttpClientOptions = {
 };
 type CreateHttpClientOptions = HttpClientOptions;
 type RequestOptions = RequestInit & { query?: QueryObject };
-type GETOptions  = Omit<RequestOptions, 'method'>;
+type GETOptions = Omit<RequestOptions, 'method'>;
 
-export class HttpClient {
+interface IHttpService {
+	/**
+	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
+	 * @param name The name to identify the HTTP client.
+	 * @param options Options to use when creating the HTTP client.
+	 */
+	getClient(name: string, options: CreateHttpClientOptions): HttpClient;
+}
+
+class HttpClient {
 	private readonly _retry:             boolean;
 	private readonly _baseUrl?:          string;
 	private readonly _retryPolicy:       RetryPolicy;
@@ -92,25 +101,21 @@ export class HttpClient {
 	}
 }
 
-@singleton()
-export class HttpService {
-	private readonly _clients: Collection<string, HttpClient>;
+export const httpService = defineService<IHttpService>('HTTP', () => {
+	const clients = new Collection<string, HttpClient>();
 
-	public constructor() {
-		this._clients = new Collection();
-	}
-
-	public createClient(options: CreateHttpClientOptions) {
-		const { baseUrl, retry } = options;
-		const key = JSON.stringify({ baseUrl, retry });
-		if (this._clients.has(key)) {
-			return this._clients.get(key)!;
+	function getClient(name: string, options: CreateHttpClientOptions) {
+		if (clients.has(name)) {
+			return clients.get(name)!;
 		}
 
-		const client = new HttpClient({ baseUrl, retry });
+		const { baseUrl, retry } = options;
+		const client             = new HttpClient({ baseUrl, retry });
 
-		this._clients.set(key, client);
+		clients.set(name, client);
 
 		return client;
 	}
-}
+
+	return { getClient };
+});

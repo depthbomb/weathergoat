@@ -1,9 +1,30 @@
 import { Collection } from 'discord.js';
 import { Duration } from '@sapphire/time-utilities';
+import { defineService } from '@services';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
 
-export class CacheStore {
+interface ICacheService {
+	/**
+	 * Creates a new cache store.
+	 * @param name The name of the cache store.
+	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
+	 */
+	createStore(name: string, defaultTtl?: string): CacheStore;
+	/**
+	 * Retrieves an existing cache store.
+	 * @param name The name of the cache store.
+	 */
+	getStore(name: string): CacheStore;
+	/**
+	 * Retrieves an existing cache store or creates it if it doesn't exist.
+	 * @param name The name of the cache store.
+	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
+	 */
+	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
+}
+
+class CacheStore {
 	private readonly _ttl: string;
 	private readonly _cache: Map<string, CacheItem<unknown>>;
 
@@ -48,38 +69,36 @@ export class CacheStore {
 	}
 }
 
-export class CacheService {
-	private readonly _stores: Collection<string, CacheStore>;
+export const cacheService = defineService<ICacheService>('Cache', () => {
+	const stores = new Collection<string, CacheStore>();
 
-	public constructor() {
-		this._stores = new Collection();
-	}
-
-	public createStore(name: string, defaultTtl?: string) {
-		if (this._stores.has(name)) {
+	function createStore(name: string, defaultTtl?: string) {
+		if (stores.has(name)) {
 			throw new Error(`Cache store "${name}" already exists`);
 		}
 
 		const store = new CacheStore(defaultTtl);
 
-		this._stores.set(name, store);
+		stores.set(name, store);
 
 		return store;
 	}
 
-	public getStore(name: string) {
-		if (!this._stores.has(name)) {
+	function getStore(name: string) {
+		if (!stores.has(name)) {
 			throw new Error(`Cache store "${name}" does not exist`);
 		}
 
-		return this._stores.get(name)!;
+		return stores.get(name)!;
 	}
 
-	public getOrCreateStore(name: string, defaultTtl?: string) {
-		if (this._stores.has(name)) {
-			return this._stores.get(name)!;
+	function getOrCreateStore(name: string, defaultTtl?: string) {
+		if (stores.has(name)) {
+			return stores.get(name)!;
 		}
 
-		return this.createStore(name, defaultTtl);
+		return createStore(name, defaultTtl);
 	}
-}
+
+	return { createStore, getStore, getOrCreateStore };
+});
