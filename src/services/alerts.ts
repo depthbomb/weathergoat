@@ -36,7 +36,6 @@ export const alertsService: IAlertsService = ({
 
 		return data.alerts;
 	},
-
 	async getActiveAlertsForZone(zoneId: string, countyId?: string) {
 		const ids = [zoneId];
 		if (countyId) {

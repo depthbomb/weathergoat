@@ -1,15 +1,17 @@
 import { db } from '@db';
-import { Job } from '@jobs';
 import { captureError } from '@lib/errors';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-export default class MessageCleanupJob extends Job {
-	public constructor() {
-		super({ name: 'job.message-cleanup', pattern: '* * * * *', runImmediately: true });
-	}
+interface IMessageCleanupJob extends IJob {};
 
-	public async execute(client: WeatherGoat<true>) {
+export const messageCleanupJob: IMessageCleanupJob = ({
+	name: 'job.message-cleanup',
+	pattern: '* * * * *',
+	runImmediately: true,
+
+	async execute(client: WeatherGoat<true>) {
 		const messages = await db.volatileMessage.findMany({
 			select: {
 				id: true,
@@ -37,4 +39,4 @@ export default class MessageCleanupJob extends Job {
 			}
 		}
 	}
-}
+});

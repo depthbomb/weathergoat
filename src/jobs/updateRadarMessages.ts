@@ -1,19 +1,19 @@
 import { db } from '@db';
-import { Job } from '@jobs';
 import { _ } from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type Cron from 'croner';
-import type { WeatherGoat } from '@lib/client';
+import type { IJob } from '@jobs';
 
-export default class UpdateRadarMessagesJob extends Job {
-	public constructor() {
-		super({ name: 'job.update-radar-messages', pattern: '*/5 * * * *', runImmediately: true });
-	}
+interface IUpdateRadarMessagesJob extends IJob {}
 
-	public async execute(client: WeatherGoat<true>, self: Cron) {
+export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
+	name: 'job.update-radar-messages',
+	pattern: '*/5 * * * *',
+	runImmediately: true,
+
+	async execute(client, self) {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {
@@ -49,4 +49,4 @@ export default class UpdateRadarMessagesJob extends Job {
 			}
 		}
 	}
-}
+});

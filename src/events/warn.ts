@@ -1,12 +1,11 @@
 import { logger } from '@lib/logger';
-import { DiscordEvent } from '@events';
+import type { IEvent } from '@events';
 
-export default class WarnEvent extends DiscordEvent<'warn'> {
-	public constructor() {
-		super({ name: 'warn' });
-	}
+interface IWarnEvent extends IEvent<'warn'> {}
 
-	public handle(message: string) {
+export const warnEvent: IWarnEvent = ({
+	name: 'warn',
+	handle(message) {
 		logger.warn(message);
-	}
-}
+	},
+});

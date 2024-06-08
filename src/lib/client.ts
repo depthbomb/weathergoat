@@ -2,25 +2,25 @@ import { db } from '@db';
 import { Cron } from 'croner';
 import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
-import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
+import { captureError, InvalidPermissionsError } from '@lib/errors';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
-import type { Job } from '@jobs';
-import type { Command } from '@commands';
-import type { DiscordEvent } from '@events';
-import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
+import { isGuildBasedChannel, isGuildMember } from '@sapphire/discord.js-utilities';
+import type { IJob } from '@jobs';
+import type { IEvent } from '@events';
+import type { ICommand } from '@commands';
+import type { TextChannel, ClientEvents, ClientOptions, PermissionResolvable, ChatInputCommandInteraction } from 'discord.js';
 
-type ClassModule<T> = { default: new(client?: WeatherGoat<boolean>) => T };
-type CommandModule  = ClassModule<Command>;
-type EventModule    = ClassModule<DiscordEvent<keyof ClientEvents>>;
-type JobModule      = ClassModule<Job>;
+type CommandModule = ICommand;
+type EventModule   = IEvent<keyof ClientEvents>;
+type JobModule     = IJob<boolean>;
 
 export class WeatherGoat<T extends boolean> extends Client<T> {
-	public readonly jobs: Set<Job>;
-	public readonly events: Collection<string, DiscordEvent<keyof ClientEvents>>;
-	public readonly commands: Collection<string, Command>;
+	public readonly jobs: Set<JobModule>;
+	public readonly events: Collection<string, EventModule>;
+	public readonly commands: Collection<string, CommandModule>;
 	public readonly brandColor = '#5876aa';
 
 	private readonly _idGenerators: Collection<number, () => string>;
@@ -69,6 +69,17 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 		return ourWebhook;
 	}
 
+	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
+		const { channel, member } = interaction;
+
+		message ??= 'You do not shave permission to use this command.';
+
+		return InvalidPermissionsError.assert(
+			isGuildBasedChannel(channel) && isGuildMember(member) && member.permissions.has(permissions),
+			message
+		);
+	}
+
 	public generateId(length: number) {
 		let generateFunc: () => string;
 		if (!this._idGenerators.has(length)) {
@@ -83,22 +94,28 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 	public async registerJobs() {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
-			const { default: jobClass }: JobModule = await import(file);
-			const job = new jobClass(this);
+			const module         = await import(file);
+			const [moduleObject] = Object.keys(module);
+			const job            = module[moduleObject] as JobModule;
 
 			if (this.jobs.has(job)) continue;
 
-			const j = Cron(job.pattern, async (self: Cron) => job.execute(this, self), {
-				name: job.name,
+			const name           = job.name;
+			const pattern        = job.pattern;
+			const runImmediately = job.runImmediately ?? false;
+			const waitUntilReady = job.waitUntilReady ?? true;
+
+			const j = Cron(pattern, async (self: Cron) => job.execute(this, self), {
+				name,
 				paused: true,
-				protect: (job) => logger.warn('Job overrun', { name: job.name, calledAt: job.currentRun()?.getDate() }),
-				catch: (err: any) => captureError('Job error', err, { name: job.name })
+				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
+				catch: (err: any) => captureError('Job error', err, { name })
 			});
 
 			this.jobs.add(job);
 
-			if (job.runImmediately) {
-				if (job.waitUntilReady) {
+			if (runImmediately) {
+				if (waitUntilReady) {
 					this.once('ready', async () => {
 						await job.execute(this, j);
 						j.resume();
@@ -112,38 +129,44 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 			}
 
 			logger.info('Registered job', {
-				name: job.name,
-				pattern: job.pattern,
-				waitUntilReady: job.waitUntilReady,
-				runImmediately: job.runImmediately,
+				name,
+				pattern,
+				waitUntilReady,
+				runImmediately,
 			});
 		}
 	}
 
 	public async registerEvents() {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
-			const { default: eventClass }: EventModule = await import(file);
-			const event = new eventClass(this);
+			const module         = await import(file);
+			const [moduleObject] = Object.keys(module);
+			const event          = module[moduleObject] as EventModule;
 
-			if (event.disabled) continue;
-			if (this.events.has(event.name)) continue;
-			if (event.once) {
-				this.once(event.name, async (...args) => await event.handle(...args));
+			const name     = event.name;
+			const once     = event.once ?? false;
+			const disabled = event.disabled ?? false;
+
+			if (disabled) continue;
+			if (this.events.has(name)) continue;
+			if (once) {
+				this.once(name, async (...args) => await event.handle(...args));
 			} else {
-				this.on(event.name, async (...args) => await event.handle(...args));
+				this.on(name, async (...args) => await event.handle(...args));
 			}
 
-			this.events.set(event.name, event);
+			this.events.set(name, event);
 
-			logger.info('Registered event', { name: event.name, once: event.once });
+			logger.info('Registered event', { name, once });
 		}
 	}
 
 	public async registerCommands() {
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this._moduleFilePattern)) {
-			const { default: commandClass }: CommandModule = await import(file);
-			const command = new commandClass(this);
-			const { name } = command.data;
+			const module         = await import(file);
+			const [moduleObject] = Object.keys(module);
+			const command        = module[moduleObject] as CommandModule;
+			const { name }       = command.data;
 
 			this.commands.set(name, command);
 

@@ -81,7 +81,6 @@ export const locationService: ILocationService = ({
 
 		return this[kLatitudePattern].test(combinedCoordinatesOrLatitude) && this[kLongitudePattern].test(longitude as string);
 	},
-
 	async getInfoFromCoordinates(latitude, longitude) {
 		const res = await this[kLocationHttpClient].get(`/points/${latitude},${longitude}`);
 		if (!res.ok) {

@@ -1,6 +1,5 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
-import { Command } from '@commands';
 import { captureError } from '@lib/errors';
 import { locationService } from '@services/location';
 import {
@@ -13,51 +12,44 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ICommand } from '@commands';
+import type { Message, CacheType, InteractionResponse, ChatInputCommandInteraction } from 'discord.js';
 
-export default class AlertsCommand extends Command {
-	private readonly _maxDestinations = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
+interface IAlertsCommand extends ICommand {
+	[kAddSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean> | InteractionResponse<boolean>>;
+	[kRemoveSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean> | InteractionResponse<boolean>>;
+	[kListSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean> | InteractionResponse<boolean>>;
+}
 
-	public constructor() {
-		super(new SlashCommandBuilder()
-			.setName('alerts')
-			.setDescription('Alerts super command')
-			.addSubcommand(sc => sc
-				.setName('add')
-				.setDescription('Designates a channel for posting weather alerts to')
-				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to check for active alerts').setRequired(true))
-				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
-				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
-				.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
-				.addBooleanOption(o => o.setName('ping-on-severe').setDescription('Whether to ping everyone when a severe or extreme alert is posted (false by default)').setRequired(false))
-			)
-			.addSubcommand(sc => sc
-				.setName('remove')
-				.setDescription('Removes an alert reporting destination')
-				.addStringOption(o => o.setName('id').setDescription('The ID of the alert destination to delete').setRequired(true))
-			)
-			.addSubcommand(sc => sc
-				.setName('list')
-				.setDescription('Lists all alert reporting destinations in the server')
-			)
-		);
-	}
+const kAddSubcommand    = Symbol('add-subcommand');
+const kRemoveSubcommand = Symbol('remove-subcommand');
+const kListSubcommand   = Symbol('list-subcommand');
 
-	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
-		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
-		switch (subcommand) {
-			case 'add':
-				this.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
-				return this._addDestinationSubcommand(interaction);
-			case 'remove':
-				this.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
-				return this._removeDestinationSubcommand(interaction);
-			case 'list':
-				return this._listDestinationsSubcommand(interaction);
-		}
-	}
+export const alertsCommand: IAlertsCommand = ({
+	data: new SlashCommandBuilder()
+	.setName('alerts')
+	.setDescription('Alerts super command')
+	.addSubcommand(sc => sc
+		.setName('add')
+		.setDescription('Designates a channel for posting weather alerts to')
+		.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to check for active alerts').setRequired(true))
+		.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
+		.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
+		.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
+		.addBooleanOption(o => o.setName('ping-on-severe').setDescription('Whether to ping everyone when a severe or extreme alert is posted (false by default)').setRequired(false))
+	)
+	.addSubcommand(sc => sc
+		.setName('remove')
+		.setDescription('Removes an alert reporting destination')
+		.addStringOption(o => o.setName('id').setDescription('The ID of the alert destination to delete').setRequired(true))
+	)
+	.addSubcommand(sc => sc
+		.setName('list')
+		.setDescription('Lists all alert reporting destinations in the server')
+	),
 
-	private async _addDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	async [kAddSubcommand](interaction) {
+		const maxCount     = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
 		const guildId      = interaction.guildId;
 		const channelId    = interaction.channelId;
 		const latitude     = interaction.options.getString('latitude', true);
@@ -71,8 +63,8 @@ export default class AlertsCommand extends Command {
 		}
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
-		if (existingCount >= this._maxDestinations) {
-			return interaction.reply(_('common.err.tooManyDestinations', { type: 'alert', max: this._maxDestinations }));
+		if (existingCount >= maxCount) {
+			return interaction.reply(_('common.err.tooManyDestinations', { type: 'alert', max: maxCount }));
 		}
 
 		if (!locationService.isValidCoordinates(latitude, longitude)) {
@@ -130,9 +122,8 @@ export default class AlertsCommand extends Command {
 		} catch (err: unknown) {
 			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
 		}
-	}
-
-	private async _removeDestinationSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	},
+	async [kRemoveSubcommand](interaction) {
 		const id = interaction.options.getString('id', true);
 
 		await interaction.deferReply();
@@ -144,14 +135,13 @@ export default class AlertsCommand extends Command {
 
 		try {
 			await db.alertDestination.delete({ where: { id } });
-			await interaction.editReply(_('commands.alerts.destRemoved'));
+			return interaction.editReply(_('commands.alerts.destRemoved'));
 		} catch (err: unknown) {
 			captureError('Failed to remove alert destination', err, { id });
-			await interaction.editReply(_('commands.alerts.err.couldNotRemoveDest'));
+			return interaction.editReply(_('commands.alerts.err.couldNotRemoveDest'));
 		}
-	}
-
-	private async _listDestinationsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	},
+	async [kListSubcommand](interaction) {
 		const guildId = interaction.guildId;
 		if (!guildId) {
 			return interaction.reply(_('common.err.guildOnly'));
@@ -192,6 +182,20 @@ export default class AlertsCommand extends Command {
 			});
 		}
 
-		await interaction.editReply({ embeds: [embed] });
+		return interaction.editReply({ embeds: [embed] });
+	},
+
+	async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
+		switch (subcommand) {
+			case 'add':
+				interaction.client.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
+				return this[kAddSubcommand](interaction);
+			case 'remove':
+				interaction.client.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
+				return this[kRemoveSubcommand](interaction);
+			case 'list':
+				return this[kListSubcommand](interaction);
+		}
 	}
-}
+});

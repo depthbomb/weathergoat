@@ -1,12 +1,12 @@
 import { logger } from '@lib/logger';
-import { DiscordEvent } from '@events';
+import type { IEvent } from '@events';
 
-export default class DebugEvent extends DiscordEvent<'debug'> {
-	public constructor() {
-		super({ name: 'debug', disabled: process.env.MODE === 'production' });
-	}
+interface IDebugEvent extends IEvent<'debug'> {}
 
-	public handle(message: string) {
+export const debugEvent: IDebugEvent = ({
+	name: 'debug',
+	disabled: process.env.MODE === 'production',
+	handle(message) {
 		logger.silly(message);
-	}
-}
+	},
+});

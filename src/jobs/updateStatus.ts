@@ -1,21 +1,25 @@
-import { Job } from '@jobs';
 import { _ } from '@lib/i18n';
 import { githubService } from '@services/github';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
+import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-export default class UpdateStatusJob extends Job {
-	private readonly _formatter: DurationFormatter;
+interface IUpdateStatusJob extends IJob {
+	[kFormatter]: DurationFormatter;
+}
 
-	public constructor() {
-		super({ name: 'job.update-status', pattern: '*/15 * * * * *', runImmediately: true });
+const kFormatter = Symbol('formatter');
 
-		this._formatter = new DurationFormatter();
-	}
+export const updateStatusJob: IUpdateStatusJob = ({
+	name: 'job.update-status',
+	pattern: '*/15 * * * * *',
+	runImmediately: true,
 
-	public async execute(client: WeatherGoat<true>) {
-		const duration = this._formatter.format(client.uptime, 3);
+	[kFormatter]: new DurationFormatter(),
+
+	async execute(client: WeatherGoat<true>) {
+		const duration = this[kFormatter].format(client.uptime, 3);
 		const hash     = await githubService.getCurrentCommitHash(true);
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
@@ -27,4 +31,4 @@ export default class UpdateStatusJob extends Job {
 			]
 		});
 	}
-}
+});

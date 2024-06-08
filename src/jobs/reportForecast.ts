@@ -1,25 +1,29 @@
 import { db } from '@db';
-import { Job } from '@jobs';
 import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
 import { locationService } from '@services/location';
 import { forecastService } from '@services/forecast';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-export default class ReportForecastsJob extends Job {
-	private readonly _webhookName: string;
-	private readonly _webhookReason: string;
+interface IReportForecastsJob extends IJob {
+	[kWebhookName]: string;
+	[kWebhookReason]: string;
+}
 
-	public constructor() {
-		super({ name: 'job.report-forecasts', pattern: '0 * * * *' });
+const kWebhookName   = Symbol('webhook-name');
+const kWebhookReason = Symbol('webhook-reason');
 
-		this._webhookName = 'WeatherGoat#Forecast';
-		this._webhookReason = 'Required for weather forecast reporting';
-	}
+export const reportForecastsJob: IReportForecastsJob = ({
+	name: 'job.report-forecasts',
+	pattern: '0 * * * *',
 
-	public async execute(client: WeatherGoat<true>) {
+	[kWebhookName]: 'WeatherGoat#Forecast',
+	[kWebhookReason]: 'Required for weather forecast reporting',
+
+	async execute(client: WeatherGoat<true>) {
 		const destinations = await db.forecastDestination.findMany({
 			select: {
 				latitude: true,
@@ -49,10 +53,10 @@ export default class ReportForecastsJob extends Job {
 				embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
 			}
 
-			const webhook = await client.getOrCreateWebhook(channel, this._webhookName, this._webhookReason);
+			const webhook = await client.getOrCreateWebhook(channel, this[kWebhookName], this[kWebhookReason]);
 
 			const { id: messageId } = await webhook.send({
-				username: this._webhookName,
+				username: this[kWebhookName],
 				avatarURL: client.user!.avatarURL({ forceStatic: false })!,
 				embeds: [embed],
 				flags: MessageFlags.SuppressNotifications
@@ -70,4 +74,4 @@ export default class ReportForecastsJob extends Job {
 			}
 		}
 	}
-}
+});

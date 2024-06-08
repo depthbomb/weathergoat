@@ -1,23 +1,25 @@
 import type { Awaitable, ClientEvents } from 'discord.js';
 
-type DiscordEventOptions<T extends keyof ClientEvents> = {
+export interface IEvent<T extends keyof ClientEvents> {
+	/**
+	 * The name of the event.
+	 */
 	name: T;
+	/**
+	 * Whether the event should only be handled once.
+	 *
+	 * `false` by default.
+	 */
 	once?: boolean;
+	/**
+	 * Whether the event is disabled.
+	 *
+	 * `false` by default.
+	 */
 	disabled?: boolean;
-};
-
-export abstract class DiscordEvent<T extends keyof ClientEvents> {
-	public readonly name: T;
-	public readonly once: boolean;
-	public readonly disabled: boolean;
-
-	public constructor(options: DiscordEventOptions<T>) {
-		this.name     = options.name;
-		this.once     = options.once ?? false;
-		this.disabled = options.disabled ?? false;
-	}
-
-	public handle(...args: ClientEvents[T]): Awaitable<any> {
-		throw new Error(`Handler not implemented for event ${this.name}`);
-	}
+	/**
+	 * Called when the event is fired.
+	 * @param args Event-specific arguments.
+	 */
+	handle(...args: ClientEvents[T]): Awaitable<unknown>;
 }

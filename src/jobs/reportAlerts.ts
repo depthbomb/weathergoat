@@ -1,24 +1,28 @@
 import { db } from '@db';
-import { Job } from '@jobs';
 import { _ } from '@lib/i18n';
 import { withQuery } from 'ufo';
 import { alertsService } from '@services/alerts';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
+import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-export default class ReportAlertsJob extends Job {
-	private readonly _webhookName: string;
-	private readonly _webhookReason: string;
+interface IReportAlertsJob extends IJob {
+	[kWebhookName]: string;
+	[kWebhookReason]: string;
+}
 
-	public constructor() {
-		super({ name: 'job.report-alerts', pattern: '*/10 * * * * *' });
+const kWebhookName   = Symbol('webhook-name');
+const kWebhookReason = Symbol('webhook-reason');
 
-		this._webhookName   = 'WeatherGoat#Alerts';
-		this._webhookReason = 'Required for weather alert reporting';
-	}
+export const reportAlertsJob: IReportAlertsJob = ({
+	name: 'job.report-alerts',
+	pattern: '*/10 * * * * *',
 
-	public async execute(client: WeatherGoat<true>) {
+	[kWebhookName]: 'WeatherGoat#Alerts',
+	[kWebhookReason]: 'Required for weather alert reporting',
+
+	async execute(client: WeatherGoat<true>) {
 		const destinations = await db.alertDestination.findMany({
 			select: {
 				zoneId: true,
@@ -91,10 +95,10 @@ export default class ReportAlertsJob extends Job {
 				}
 
 				const shouldPingEveryone = !!((alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere);
-				const webhook            = await client.getOrCreateWebhook(channel, this._webhookName, this._webhookReason);
+				const webhook            = await client.getOrCreateWebhook(channel, this[kWebhookName], this[kWebhookReason]);
 				const { id: messageId }  = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
-					username: this._webhookName,
+					username: this[kWebhookName],
 					avatarURL: client.user.avatarURL({ forceStatic: false })!,
 					embeds: [embed]
 				});
@@ -123,4 +127,4 @@ export default class ReportAlertsJob extends Job {
 			}
 		}
 	}
-}
+});
