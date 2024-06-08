@@ -1,10 +1,11 @@
 import { httpService } from './http';
-import { defineService } from '@services';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/alert-collection';
+import type { IService } from '@services';
 import type { Alert } from '@models/alert';
 
-interface IAlertsService {
+interface IAlertsService extends IService {
+	[kHttpClient]: ReturnType<typeof httpService.getClient>;
 	/**
 	 * Retrieves all active alerts.
 	 */
@@ -17,11 +18,15 @@ interface IAlertsService {
 	getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]>;
 }
 
-export const alertsService = defineService<IAlertsService>('Alerts', () => {
-	const http = httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' });
+const kHttpClient = Symbol('http-client');
 
-	async function getActiveAlerts() {
-		const res = await http.get('/alerts/active');
+export const alertsService: IAlertsService = ({
+	name: 'Alerts',
+
+	[kHttpClient]: httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' }),
+
+	async getActiveAlerts() {
+		const res = await this[kHttpClient].get('/alerts/active');
 		if (!res.ok) {
 			throw new Error(res.statusText);
 		}
@@ -30,15 +35,15 @@ export const alertsService = defineService<IAlertsService>('Alerts', () => {
 		const data = plainToClass(AlertCollection, json);
 
 		return data.alerts;
-	}
+	},
 
-	async function getActiveAlertsForZone(zoneId: string, countyId?: string) {
+	async getActiveAlertsForZone(zoneId: string, countyId?: string) {
 		const ids = [zoneId];
 		if (countyId) {
 			ids.push(countyId);
 		}
 
-		const res = await http.get('/alerts/active', {
+		const res = await this[kHttpClient].get('/alerts/active', {
 			query: {
 				'zone[]': ids
 			}
@@ -52,6 +57,4 @@ export const alertsService = defineService<IAlertsService>('Alerts', () => {
 
 		return data.alerts;
 	}
-
-	return { getActiveAlerts, getActiveAlertsForZone };
 });

@@ -1,5 +1,6 @@
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
+import { serviceManager } from '@services';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
 if (process.argv.length > 2) {
@@ -16,7 +17,13 @@ if (process.argv.length > 2) {
 		init({ dsn: process.env.SENTRY_DSN });
 	}
 
-	const { WeatherGoat } = await import('@lib/client');
+	const { WeatherGoat }     = await import('@lib/client');
+	const { alertsService }   = await import('@services/alerts');
+	const { cacheService }    = await import('@services/cache');
+	const { forecastService } = await import('@services/forecast');
+	const { githubService }   = await import('@services/github');
+	const { httpService }     = await import('@services/http');
+	const { locationService } = await import('@services/location');
 
 	const wg = new WeatherGoat({
 		presence: {
@@ -30,6 +37,15 @@ if (process.argv.length > 2) {
 		],
 		partials: [Partials.Message, Partials.Channel]
 	});
+
+	await serviceManager
+		.registerService(alertsService)
+		.registerService(cacheService)
+		.registerService(forecastService)
+		.registerService(githubService)
+		.registerService(httpService)
+		.registerService(locationService)
+		.initializeServices(wg);
 
 	await wg.login(process.env.BOT_TOKEN);
 

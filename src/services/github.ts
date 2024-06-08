@@ -1,11 +1,28 @@
 import { Octokit } from 'octokit';
 import { logger } from '@lib/logger';
 import { cacheService } from './cache';
-import { defineService } from '@services';
 import type { Maybe } from '#types';
+import type { IService } from '@services';
 import type { Endpoints } from '@octokit/types';
 
-interface IGithubService {
+interface IGithubService extends IService {
+	/**
+	 * @internal
+	 */
+	[kCache]: ReturnType<typeof cacheService.createStore>;
+	/**
+	 * @internal
+	 */
+	[kRepoName]: Maybe<string>;
+	/**
+	 * @internal
+	 */
+	[kRepoOwner]: Maybe<string>;
+	/**
+	 * @internal
+	 */
+	[kOctokit]: Maybe<Octokit>;
+	[kGetCommits](): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']>;
 	/**
 	 * Returns the SHA hash of the project's latest commit.
 	 * @param short Whether to return the hash in a shortened format.
@@ -18,37 +35,49 @@ interface IGithubService {
 	getCommits(count?: number): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']['data']>;
 }
 
-export const githubService = defineService<IGithubService>('GitHub', () => {
-	const cache = cacheService.createStore('github', '10 minutes');
+const kCache      = Symbol('cache');
+const kRepoName   = Symbol('repo-name');
+const kRepoOwner  = Symbol('repo-owner');
+const kOctokit    = Symbol('octokit');
+const kGetCommits = Symbol('get-commits-method');
 
-	let repoOwner: Maybe<string>;
-	let repoName: Maybe<string>;
-	let octokit: Maybe<Octokit>;
+export const githubService: IGithubService = ({
+	name: 'GitHub',
 
-	if (process.env.GITHUB_ACCESS_TOKEN) {
-		if (!process.env.GITHUB_REPO) {
-			throw new Error('Missing GITHUB_REPO environment variable');
+	[kCache]: cacheService.createStore('github', '10 minutes'),
+	[kRepoName]: undefined,
+	[kRepoOwner]: undefined,
+	[kOctokit]: undefined,
+
+	async [kGetCommits]() {
+		return this[kOctokit]!.request('GET /repos/{owner}/{repo}/commits', {
+			owner: this[kRepoOwner]!,
+			repo: this[kRepoName]!
+		});
+	},
+
+	init() {
+		if (process.env.GITHUB_ACCESS_TOKEN) {
+			if (!process.env.GITHUB_REPO) {
+				throw new Error('Missing GITHUB_REPO environment variable');
+			}
+
+			const split      = process.env.GITHUB_REPO.split('/');
+			this[kRepoOwner] = split[0];
+			this[kRepoName]  = split[1];
+			this[kOctokit]   = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: 'depthbomb/weathergoat' });
+		} else {
+			logger.warn('No GitHub access token has been configured; operations that use the GitHub API may not work.');
 		}
+	},
 
-		const split = process.env.GITHUB_REPO.split('/');
-		repoOwner   = split[0];
-		repoName    = split[1];
-		octokit     = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: 'depthbomb/weathergoat' });
-	} else {
-		logger.warn('No GitHub access token has been configured; operations that use the GitHub API may not work.');
-	}
-
-	async function _getCommits() {
-		return octokit!.request('GET /repos/{owner}/{repo}/commits', { owner: repoOwner!, repo: repoName! });
-	}
-
-	async function getCurrentCommitHash(short = false) {
+	async getCurrentCommitHash(short = false) {
 		const cacheKey = 'commit-hash_' + short;
-		if (cache.has(cacheKey)) {
-			return cache.get<string>(cacheKey)!;
+		if (this[kCache].has(cacheKey)) {
+			return this[kCache].get<string>(cacheKey)!;
 		}
 
-		const res = await _getCommits();
+		const res = await this[kGetCommits]();
 		if (!res) {
 			throw new Error('Could not retrieve project commits from GitHub API');
 		}
@@ -56,13 +85,12 @@ export const githubService = defineService<IGithubService>('GitHub', () => {
 		const { sha } = res.data[0];
 		const hash    = short ? sha.slice(0, 7) : sha;
 
-		cache.set(cacheKey, hash);
+		this[kCache].set(cacheKey, hash);
 
 		return hash;
-	}
-
-	async function getCommits(count?: number) {
-		const res = await _getCommits();
+	},
+	async getCommits(count?: number) {
+		const res = await this[kGetCommits]();
 		if (!res) {
 			throw new Error('Could not retrieve project commits from GitHub API');
 		}
@@ -73,6 +101,4 @@ export const githubService = defineService<IGithubService>('GitHub', () => {
 
 		return res.data;
 	}
-
-	return { getCurrentCommitHash, getCommits };
 });

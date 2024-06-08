@@ -1,10 +1,14 @@
 import { Collection } from 'discord.js';
 import { Duration } from '@sapphire/time-utilities';
-import { defineService } from '@services';
+import type { IService } from '@services';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
 
-interface ICacheService {
+interface ICacheService extends IService {
+	/**
+	 * @internal
+	 */
+	[kStores]: Collection<string, CacheStore>;
 	/**
 	 * Creates a new cache store.
 	 * @param name The name of the cache store.
@@ -23,6 +27,8 @@ interface ICacheService {
 	 */
 	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
 }
+
+const kStores = Symbol('stores');
 
 class CacheStore {
 	private readonly _ttl: string;
@@ -69,36 +75,34 @@ class CacheStore {
 	}
 }
 
-export const cacheService = defineService<ICacheService>('Cache', () => {
-	const stores = new Collection<string, CacheStore>();
+export const cacheService: ICacheService = ({
+	name: 'Cache',
 
-	function createStore(name: string, defaultTtl?: string) {
-		if (stores.has(name)) {
+	[kStores]: new Collection(),
+
+	createStore(name: string, defaultTtl?: string) {
+		if (this[kStores].has(name)) {
 			throw new Error(`Cache store "${name}" already exists`);
 		}
 
 		const store = new CacheStore(defaultTtl);
 
-		stores.set(name, store);
+		this[kStores].set(name, store);
 
 		return store;
-	}
-
-	function getStore(name: string) {
-		if (!stores.has(name)) {
+	},
+	getStore(name: string) {
+		if (!this[kStores].has(name)) {
 			throw new Error(`Cache store "${name}" does not exist`);
 		}
 
-		return stores.get(name)!;
-	}
-
-	function getOrCreateStore(name: string, defaultTtl?: string) {
-		if (stores.has(name)) {
-			return stores.get(name)!;
+		return this[kStores].get(name)!;
+	},
+	getOrCreateStore(name: string, defaultTtl?: string) {
+		if (this[kStores].has(name)) {
+			return this[kStores].get(name)!;
 		}
 
-		return createStore(name, defaultTtl);
+		return this.createStore(name, defaultTtl);
 	}
-
-	return { createStore, getStore, getOrCreateStore };
 });

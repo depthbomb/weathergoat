@@ -2,12 +2,12 @@ import { logger } from '@lib/logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
-import { defineService } from '@services';
 import { init } from '@paralleldrive/cuid2';
 import { BOT_USER_AGENT } from '@constants';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { retry, handleResultType, ExponentialBackoff } from 'cockatiel';
 import type { QueryObject } from 'ufo';
+import type { IService } from '@services';
 import type { RetryPolicy } from 'cockatiel';
 
 type HttpClientOptions = {
@@ -24,7 +24,11 @@ type CreateHttpClientOptions = HttpClientOptions;
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
-interface IHttpService {
+interface IHttpService extends IService {
+	/**
+	 * @internal
+	 */
+	[kClients]: Collection<string, HttpClient>;
 	/**
 	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
 	 * @param name The name to identify the HTTP client.
@@ -32,6 +36,8 @@ interface IHttpService {
 	 */
 	getClient(name: string, options: CreateHttpClientOptions): HttpClient;
 }
+
+const kClients = Symbol('http-clients');
 
 class HttpClient {
 	private readonly _retry:             boolean;
@@ -101,21 +107,21 @@ class HttpClient {
 	}
 }
 
-export const httpService = defineService<IHttpService>('HTTP', () => {
-	const clients = new Collection<string, HttpClient>();
+export const httpService: IHttpService = ({
+	name: 'HTTP',
 
-	function getClient(name: string, options: CreateHttpClientOptions) {
-		if (clients.has(name)) {
-			return clients.get(name)!;
+	[kClients]: new Collection(),
+
+	getClient(name: string, options: CreateHttpClientOptions) {
+		if (this[kClients].has(name)) {
+			return this[kClients].get(name)!;
 		}
 
 		const { baseUrl, retry } = options;
 		const client             = new HttpClient({ baseUrl, retry });
 
-		clients.set(name, client);
+		this[kClients].set(name, client);
 
 		return client;
 	}
-
-	return { getClient };
 });
