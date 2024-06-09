@@ -21,7 +21,7 @@ interface IForecastService extends IService {
 const kHttpClient = Symbol('http-client');
 
 export const forecastService: IForecastService = ({
-	name: 'Forecast',
+	name: 'com.services.forecasts',
 
 	[kHttpClient]: httpService.getClient('forecasts', { retry: true }),
 

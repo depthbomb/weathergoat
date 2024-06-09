@@ -76,7 +76,7 @@ class CacheStore {
 }
 
 export const cacheService: ICacheService = ({
-	name: 'Cache',
+	name: 'com.services.cache',
 
 	[kStores]: new Collection(),
 

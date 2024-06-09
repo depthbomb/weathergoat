@@ -3,17 +3,20 @@ import { _ } from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
+import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { IJob } from '@jobs';
 
 interface IUpdateRadarMessagesJob extends IJob {}
 
 export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
-	name: 'job.update-radar-messages',
+	name: 'com.jobs.update-radar-messages',
 	pattern: '*/5 * * * *',
 	runImmediately: true,
 
 	async execute(client, self) {
+		if (featuresService.isFeatureEnabled('com.jobs.update-radar-messages.Disable', false)) return;
+
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {

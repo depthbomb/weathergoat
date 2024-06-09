@@ -2,6 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { withQuery } from 'ufo';
 import { alertsService } from '@services/alerts';
+import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
 import type { IJob } from '@jobs';
@@ -16,13 +17,15 @@ const kWebhookName   = Symbol('webhook-name');
 const kWebhookReason = Symbol('webhook-reason');
 
 export const reportAlertsJob: IReportAlertsJob = ({
-	name: 'job.report-alerts',
+	name: 'com.jobs.report-alerts',
 	pattern: '*/10 * * * * *',
 
 	[kWebhookName]: 'WeatherGoat#Alerts',
 	[kWebhookReason]: 'Required for weather alert reporting',
 
 	async execute(client: WeatherGoat<true>) {
+		if (featuresService.isFeatureEnabled('com.jobs.report-alerts.Disabled', false)) return;
+
 		const destinations = await db.alertDestination.findMany({
 			select: {
 				zoneId: true,

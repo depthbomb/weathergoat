@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
+import { featuresService } from '@services/features';
 import { locationService } from '@services/location';
 import { forecastService } from '@services/forecast';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
@@ -17,13 +18,15 @@ const kWebhookName   = Symbol('webhook-name');
 const kWebhookReason = Symbol('webhook-reason');
 
 export const reportForecastsJob: IReportForecastsJob = ({
-	name: 'job.report-forecasts',
+	name: 'com.jobs.report-forecasts',
 	pattern: '0 * * * *',
 
 	[kWebhookName]: 'WeatherGoat#Forecast',
 	[kWebhookReason]: 'Required for weather forecast reporting',
 
 	async execute(client: WeatherGoat<true>) {
+		if (featuresService.isFeatureEnabled('com.jobs.report-forecasts.Disabled', false)) return;
+
 		const destinations = await db.forecastDestination.findMany({
 			select: {
 				latitude: true,

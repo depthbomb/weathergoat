@@ -1,5 +1,6 @@
 import { _ } from '@lib/i18n';
 import { githubService } from '@services/github';
+import { featuresService } from '@services/features';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { IJob } from '@jobs';
@@ -12,13 +13,15 @@ interface IUpdateStatusJob extends IJob {
 const kFormatter = Symbol('formatter');
 
 export const updateStatusJob: IUpdateStatusJob = ({
-	name: 'job.update-status',
+	name: 'com.jobs.update-status',
 	pattern: '*/15 * * * * *',
 	runImmediately: true,
 
 	[kFormatter]: new DurationFormatter(),
 
 	async execute(client: WeatherGoat<true>) {
+		if (featuresService.isFeatureEnabled('com.jobs.update-status.Disabled', false)) return;
+
 		const duration = this[kFormatter].format(client.uptime, 3);
 		const hash     = await githubService.getCurrentCommitHash(true);
 		client.user.setPresence({

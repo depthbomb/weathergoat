@@ -6,6 +6,8 @@ A Discord bot for reporting weather alerts and hourly forecasts to channels. Bui
 
 ## Self-Hosting
 
+### Installing
+
 The project is specifically written for Bun and thus does not have any sort of build step. Running via Node.js is not supported and may not be supported in the future.
 
 1. Clone the repository
@@ -32,6 +34,34 @@ MAX_FORECAST_DESTINATIONS_PER_GUILD=5
     - In specific guilds by running `bun start mc create <guild-id1> <guild-id2> ...`
 7. Start the bot with `bun start`
 
+### Feature flags
+
+WeatherGoat implements a type of feature flag system that allows you to adjust the probability of a feature being enabled or toggling a feature outright without restarting it. This is achieved by editing the **features.toml** file located in the project root. When changes to it are made, WeatherGoat will parse it and reload the features.
+
+If you are developing new features to test then you can add them:
+
+```toml
+features = [
+	{ name = "com.my.cool.Feature", fraction = 0.5 },
+]
+```
+and check if they should be enabled with:
+```ts
+const isEnabled = featuresService.get('com.my.cool.Feature');
+if (isEnabled()) {
+	// ...
+}
+
+// or with graceful degredation by providing a default value
+const isEnabled = featuresService.isFeatureEnabled('com.my.cool.Feature', false);
+if (isEnabled) {
+	// `isEnabled` will be `false` if "com.my.cool.Feature" does not exist.
+	// Not providing a default value will throw if the feature does not exist.
+}
+```
+
+Currently this system is used as a sort of killswitch to quickly toggle features such as forecast and alert reporting in the case of an emergency.
+
 ## Using the bot
 
 WeatherGoat's main purpose, reporting, works by checking "destinations" that you create via slash commands. There are two types of destinations:
@@ -49,6 +79,4 @@ The `list` subcommand simply lists all destinations for a channel as well as the
 
 The `/add` and `/remove` subcommands require the user to have the **MANAGE_GUILD** permission.
 
-## Other features
-
-Using the `/radar-channel` command allows you to specify a channel in which the bot will send a message containing a weather radar loop for a region. The message will be periodically edited to update the image to achieve a form of "live" radar.
+The `/radar-channel` command allows you to specify a channel in which the bot will send a message containing a weather radar loop for a region. The message will be periodically edited to update the image to achieve a form of "live" radar.

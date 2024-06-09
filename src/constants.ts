@@ -12,3 +12,4 @@ export const LOCALES_PATH  = join(PROJECT_ROOT, 'locales');
 export const COMMANDS_DIR  = join(ROOT_DIR, 'commands');
 export const EVENTS_DIR    = join(ROOT_DIR, 'events');
 export const JOBS_DIR      = join(ROOT_DIR, 'jobs');
+export const FEATURES_PATH = join(PROJECT_ROOT, 'features.toml');

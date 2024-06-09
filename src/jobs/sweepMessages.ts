@@ -1,17 +1,20 @@
 import { db } from '@db';
 import { captureError } from '@lib/errors';
+import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-interface IMessageCleanupJob extends IJob {};
+interface ISweepMessagesJob extends IJob {};
 
-export const messageCleanupJob: IMessageCleanupJob = ({
-	name: 'job.message-cleanup',
+export const sweepMessagesJob: ISweepMessagesJob = ({
+	name: 'com.jobs.sweep-messages',
 	pattern: '* * * * *',
 	runImmediately: true,
 
 	async execute(client: WeatherGoat<true>) {
+		if (featuresService.isFeatureEnabled('com.jobs.sweep-messages.Disabled', false)) return;
+
 		const messages = await db.volatileMessage.findMany({
 			select: {
 				id: true,

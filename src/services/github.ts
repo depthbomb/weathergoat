@@ -42,7 +42,7 @@ const kOctokit    = Symbol('octokit');
 const kGetCommits = Symbol('get-commits-method');
 
 export const githubService: IGithubService = ({
-	name: 'GitHub',
+	name: 'com.services.github',
 
 	[kCache]: cacheService.createStore('github', '10 minutes'),
 	[kRepoName]: undefined,

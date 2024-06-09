@@ -20,6 +20,7 @@ if (process.argv.length > 2) {
 	const { WeatherGoat }     = await import('@lib/client');
 	const { alertsService }   = await import('@services/alerts');
 	const { cacheService }    = await import('@services/cache');
+	const { featuresService } = await import('@services/features');
 	const { forecastService } = await import('@services/forecast');
 	const { githubService }   = await import('@services/github');
 	const { httpService }     = await import('@services/http');
@@ -41,6 +42,7 @@ if (process.argv.length > 2) {
 	await serviceManager
 		.registerService(alertsService)
 		.registerService(cacheService)
+		.registerService(featuresService)
 		.registerService(forecastService)
 		.registerService(githubService)
 		.registerService(httpService)
