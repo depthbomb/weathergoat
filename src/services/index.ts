@@ -17,6 +17,10 @@ interface IServiceManager {
 	 * @param client An instance of {@link WeatherGoat}.
 	 */
 	initializeServices(client: WeatherGoat<boolean>): Promise<void>;
+	/**
+	 * Calls the `init` method of all registered services if they implement it.
+	 */
+	destroyServices(): Promise<void>;
 }
 
 export interface IService {
@@ -33,13 +37,18 @@ export interface IService {
 	 * @param client An instance of {@link WeatherGoat}.
 	 */
 	init?(client: WeatherGoat<boolean>): Awaitable<unknown>;
+	/**
+	 * If implemented, called before the application exits.
+	 */
+	destroy?(): Awaitable<unknown>;
 }
 
 const kServices = Symbol('services');
 
 export const serviceManager: IServiceManager = ({
 	[kServices]: new Collection(),
-	registerService(service: IService) {
+
+	registerService(service) {
 		if (this[kServices].has(service.name)) {
 			throw new Error(`Service "${service.name}" has already been registered.`);
 		}
@@ -48,9 +57,14 @@ export const serviceManager: IServiceManager = ({
 
 		return this;
 	},
-	async initializeServices(client: WeatherGoat<boolean>) {
+	async initializeServices(client) {
 		for (const [_, service] of this[kServices]) {
 			await service.init?.(client);
 		}
-	}
+	},
+	async destroyServices() {
+		for (const [_, service] of this[kServices]) {
+			await service.destroy?.();
+		}
+	},
 });

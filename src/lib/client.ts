@@ -2,6 +2,7 @@ import { db } from '@db';
 import { Cron } from 'croner';
 import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
+import { serviceManager } from '@services';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
@@ -51,6 +52,7 @@ export class WeatherGoat<T extends boolean> extends Client<T> {
 
 		await db.$disconnect();
 		await super.destroy();
+		await serviceManager.destroyServices();
 
 		if (!logger.closed) {
 			logger.close();
