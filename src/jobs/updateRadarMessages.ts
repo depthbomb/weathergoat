@@ -1,18 +1,44 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { logger } from '@lib/logger';
+import { queueService } from '@services/queue';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
 import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { IJob } from '@jobs';
+import type { Queue } from '@services/queue';
+import type { Message, Awaitable } from 'discord.js';
 
-interface IUpdateRadarMessagesJob extends IJob {}
+type UpdateRadarMessagesQueue = (id: string, message: Message<true>, embed: EmbedBuilder) => Awaitable<unknown>;
+
+interface IUpdateRadarMessagesJob extends IJob {
+	[kQueue]: Queue<UpdateRadarMessagesQueue>;
+}
+
+const kQueue = Symbol('queue');
 
 export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 	name: 'com.jobs.update-radar-messages',
 	pattern: '*/5 * * * *',
 	runImmediately: true,
+
+	[kQueue]: queueService.createQueue('com.queues.update-radar-messages', async (id, message, embed) => {
+		try {
+			await message.edit({ embeds: [embed] });
+		} catch (err: unknown) {
+			if (isDiscordAPIError(err)) {
+				const { code, message } = err;
+				if ([10003, 10004, 10008].includes(code as number)) {
+					logger.error('Could not fetch required resource(s), deleting corresponding record', { id, code, message });
+
+					await db.radarChannel.delete({ where: { id } });
+				}
+			} else {
+				logger.error('An error occurred while updating a radar channel message', { err });
+			}
+		}
+	}, '1.5s'),
 
 	async execute(client, self) {
 		if (featuresService.isFeatureEnabled('com.jobs.update-radar-messages.Disable', false)) return;
@@ -23,7 +49,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 
-				if (!isTextChannel(channel)) continue;
+				if (!isTextChannel(channel)) continue; // TODO delete record?
 
 				const message = await channel.messages.fetch(messageId);
 				const embed = new EmbedBuilder()
@@ -34,9 +60,13 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 						.addFields(
 							{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
 							{ name: _('jobs.radar.nextUpdateTitle'), value: time(self.nextRun()!, 'R'), inline: true },
-						)
+						);
 
-				await message.edit({ embeds: [embed] });
+				if (featuresService.isFeatureEnabled('com.jobs.*.UseQueue', false)) {
+					this[kQueue].add(id, message, embed);
+				} else {
+					await message.edit({ embeds: [embed] });
+				}
 			} catch (err: unknown) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

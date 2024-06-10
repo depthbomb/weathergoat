@@ -1,16 +1,27 @@
 import { db } from '@db';
 import { captureError } from '@lib/errors';
+import { queueService } from '@services/queue';
 import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { IJob } from '@jobs';
+import type { Queue } from '@services/queue';
 import type { WeatherGoat } from '@lib/client';
+import type { Message, Awaitable } from 'discord.js';
 
-interface ISweepMessagesJob extends IJob {};
+type SweepMessagesQueue = (message: Message<true>) => Awaitable<unknown>;
+
+interface ISweepMessagesJob extends IJob {
+	[kQueue]: Queue<SweepMessagesQueue>;
+}
+
+const kQueue = Symbol('queue');
 
 export const sweepMessagesJob: ISweepMessagesJob = ({
 	name: 'com.jobs.sweep-messages',
 	pattern: '* * * * *',
 	runImmediately: true,
+
+	[kQueue]: queueService.createQueue('com.queues.sweep-messages', async (message) => await message.delete(), '1s'),
 
 	async execute(client: WeatherGoat<true>) {
 		if (featuresService.isFeatureEnabled('com.jobs.sweep-messages.Disabled', false)) return;
@@ -32,7 +43,11 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 				if (isTextChannel(channel)) {
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
-						await message.delete();
+						if (featuresService.isFeatureEnabled('com.jobs.sweep-messages.UseQueue', false)) {
+							this[kQueue].add(message);
+						} else {
+							await message.delete();
+						}
 					}
 				}
 			} catch (err) {

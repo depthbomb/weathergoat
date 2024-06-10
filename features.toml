@@ -1,7 +1,12 @@
 features = [
+	# killswtiches
 	{ name = 'com.jobs.report-alerts.Disable', fraction = 0.0 },
 	{ name = 'com.jobs.report-forecasts.Disable', fraction = 0.0 },
 	{ name = 'com.jobs.sweep-messages.Disable', fraction = 0.0 },
 	{ name = 'com.jobs.update-radar-messages.Disable', fraction = 0.0 },
 	{ name = 'com.jobs.update-status.Disable', fraction = 0.0 },
+
+	# experiments
+	{ name = 'com.jobs.sweep-messages.UseQueue', fraction = 0.5 },
+	{ name = 'com.jobs.update-radar-messages.UseQueue', fraction = 0.5 },
 ]

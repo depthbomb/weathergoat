@@ -13,7 +13,7 @@ interface IQueueService extends IService {
 	createQueue<T extends Queueable>(name: string, fn: T, delay: string | number): Queue<T>;
 }
 
-class Queue<T extends Queueable = Queueable> {
+export class Queue<T extends Queueable = Queueable> {
 	private readonly _name: string;
 	private readonly _lock: AsyncQueue;
 	private readonly _queue: Array<Parameters<T>>;
