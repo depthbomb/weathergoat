@@ -13,9 +13,10 @@ interface IFeaturesService extends IService {
 	[kWatcher]: Maybe<FSWatcher>;
 	[kRequire]: NodeRequire;
 	[kFeatures]: Collection<string, Feature>;
-	loadFeatures(reload: boolean): Promise<Feature[]>;
+	loadFeatures(reload: boolean): Promise<void>;
 	isFeatureEnabled(name: string, defaultValue?: boolean): boolean;
 	get(name: string): () => boolean;
+	allFeatures(): Feature[];
 }
 
 class Feature {
@@ -59,11 +60,11 @@ export const featuresService: IFeaturesService = ({
 		logger.info('Loading features...');
 
 		const { features } = this[kRequire](FEATURES_PATH);
-		const featuresArray = (features as object[]).map(f => plainToInstance(Feature, f));
+		for (const feature of (features as Array<{ name: string; fraction: number; }>)) {
+			this[kFeatures].set(feature.name, plainToInstance(Feature, feature));
 
-		featuresArray.map(f => logger.info('Loaded feature', { name: f.name, fraction: f.fraction }));
-
-		return featuresArray;
+			logger.info('Loaded feature', { name: feature.name, fraction: feature.fraction });
+		}
 	},
 	get(name) {
 		const feature = this[kFeatures].find(f => f.name === name);
@@ -85,4 +86,7 @@ export const featuresService: IFeaturesService = ({
 
 		return feature.check();
 	},
+	allFeatures() {
+		return Array.from(this[kFeatures].values());
+	}
 });
