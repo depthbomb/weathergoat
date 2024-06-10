@@ -25,6 +25,7 @@ if (process.argv.length > 2) {
 	const { githubService }   = await import('@services/github');
 	const { httpService }     = await import('@services/http');
 	const { locationService } = await import('@services/location');
+	const { queueService }   = await import('@services/queue');
 
 	const wg = new WeatherGoat({
 		presence: {
@@ -47,6 +48,7 @@ if (process.argv.length > 2) {
 		.registerService(githubService)
 		.registerService(httpService)
 		.registerService(locationService)
+		.registerService(queueService)
 		.initializeServices(wg);
 
 	await wg.login(process.env.BOT_TOKEN);
