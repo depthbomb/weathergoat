@@ -13,14 +13,14 @@ interface IUpdateStatusJob extends IJob {
 const kFormatter = Symbol('formatter');
 
 export const updateStatusJob: IUpdateStatusJob = ({
-	name: 'com.jobs.update-status',
+	name: 'com.weathergoat.jobs.UpdateStatus',
 	pattern: '*/15 * * * * *',
 	runImmediately: true,
 
 	[kFormatter]: new DurationFormatter(),
 
 	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.jobs.update-status.Disabled', false)) return;
+		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableStatusUpdating', false)) return;
 
 		const duration = this[kFormatter].format(client.uptime, 3);
 		const hash     = await githubService.getCurrentCommitHash(true);

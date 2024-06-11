@@ -16,7 +16,7 @@ interface IServiceManager {
 	 * Calls the `init` method of all registered services if they implement it.
 	 * @param client An instance of {@link WeatherGoat}.
 	 */
-	initializeServices(client: WeatherGoat<boolean>): Promise<void>;
+	initializeServices(client: WeatherGoat<false>): Promise<void>;
 	/**
 	 * Calls the `init` method of all registered services if they implement it.
 	 */
@@ -36,7 +36,7 @@ export interface IService {
 	 *
 	 * @param client An instance of {@link WeatherGoat}.
 	 */
-	init?(client: WeatherGoat<boolean>): Awaitable<unknown>;
+	init?(client: WeatherGoat<false>): Awaitable<unknown>;
 	/**
 	 * If implemented, called before the application exits.
 	 */

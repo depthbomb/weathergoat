@@ -21,7 +21,7 @@ interface IAlertsService extends IService {
 const kHttpClient = Symbol('http-client');
 
 export const alertsService: IAlertsService = ({
-	name: 'com.services.alerts',
+	name: 'com.weathergoat.services.Alerts',
 
 	[kHttpClient]: httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' }),
 

@@ -108,7 +108,7 @@ class HttpClient {
 }
 
 export const httpService: IHttpService = ({
-	name: 'com.services.http',
+	name: 'com.weathergoat.services.HTTP',
 
 	[kClients]: new Collection(),
 

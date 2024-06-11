@@ -18,7 +18,7 @@ type CommandModule = ICommand;
 type EventModule   = IEvent<keyof ClientEvents>;
 type JobModule     = IJob<boolean>;
 
-export class WeatherGoat<T extends boolean> extends Client<T> {
+export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Set<JobModule>;
 	public readonly events: Collection<string, EventModule>;
 	public readonly commands: Collection<string, CommandModule>;

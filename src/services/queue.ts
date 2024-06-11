@@ -62,7 +62,7 @@ export class Queue<T extends Queueable = Queueable> {
 }
 
 export const queueService: IQueueService = ({
-	name: 'com.services.queue',
+	name: 'com.weathergoat.services.Queue',
 
 	queues: new Collection(),
 

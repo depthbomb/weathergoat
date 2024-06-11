@@ -18,14 +18,14 @@ const kWebhookName   = Symbol('webhook-name');
 const kWebhookReason = Symbol('webhook-reason');
 
 export const reportForecastsJob: IReportForecastsJob = ({
-	name: 'com.jobs.report-forecasts',
+	name: 'com.weathergoat.jobs.ReportForecasts',
 	pattern: '0 * * * *',
 
 	[kWebhookName]: 'WeatherGoat#Forecast',
 	[kWebhookReason]: 'Required for weather forecast reporting',
 
 	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.jobs.report-forecasts.Disabled', false)) return;
+		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableForecastReporting', false)) return;
 
 		const destinations = await db.forecastDestination.findMany({
 			select: {

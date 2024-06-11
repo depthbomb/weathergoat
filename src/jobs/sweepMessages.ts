@@ -17,14 +17,14 @@ interface ISweepMessagesJob extends IJob {
 const kQueue = Symbol('queue');
 
 export const sweepMessagesJob: ISweepMessagesJob = ({
-	name: 'com.jobs.sweep-messages',
+	name: 'com.weathergoat.jobs.SweepMessages',
 	pattern: '* * * * *',
 	runImmediately: true,
 
-	[kQueue]: queueService.createQueue('com.queues.sweep-messages', async (message) => await message.delete(), '1s'),
+	[kQueue]: queueService.createQueue('com.weathergoat.queues.MessageSweeper', async (message) => await message.delete(), '1s'),
 
 	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.jobs.sweep-messages.Disabled', false)) return;
+		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableMessageSweeping', false)) return;
 
 		const messages = await db.volatileMessage.findMany({
 			select: {
@@ -43,7 +43,7 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 				if (isTextChannel(channel)) {
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
-						if (featuresService.isFeatureEnabled('com.jobs.sweep-messages.UseQueue', false)) {
+						if (featuresService.isFeatureEnabled('com.weathergoat.features.UseMessageSweeperQueue', false)) {
 							this[kQueue].add(message);
 						} else {
 							await message.delete();

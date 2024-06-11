@@ -63,7 +63,7 @@ const kLatitudePattern    = Symbol('latitude-pattern');
 const kLongitudePattern   = Symbol('longitude-pattern');
 
 export const locationService: ILocationService = ({
-	name: 'com.services.location',
+	name: 'com.weathergoat.services.Location',
 
 	[kLocationCache]: cacheService.getOrCreateStore('locations', '1 week'),
 	[kLocationHttpClient]: httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true }),

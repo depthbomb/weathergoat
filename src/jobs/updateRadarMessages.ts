@@ -19,11 +19,11 @@ interface IUpdateRadarMessagesJob extends IJob {
 const kQueue = Symbol('queue');
 
 export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
-	name: 'com.jobs.update-radar-messages',
+	name: 'com.weathergoat.jobs.UpdateRadarMessages',
 	pattern: '*/5 * * * *',
 	runImmediately: true,
 
-	[kQueue]: queueService.createQueue('com.queues.update-radar-messages', async (id, message, embed) => {
+	[kQueue]: queueService.createQueue('com.weathergoat.queues.RadarMessageUpdater', async (id, message, embed) => {
 		try {
 			await message.edit({ embeds: [embed] });
 		} catch (err: unknown) {
@@ -41,7 +41,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 	}, '1.5s'),
 
 	async execute(client, self) {
-		if (featuresService.isFeatureEnabled('com.jobs.update-radar-messages.Disable', false)) return;
+		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableRadarMessageUpdating', false)) return;
 
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
@@ -62,7 +62,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 							{ name: _('jobs.radar.nextUpdateTitle'), value: time(self.nextRun()!, 'R'), inline: true },
 						);
 
-				if (featuresService.isFeatureEnabled('com.jobs.*.UseQueue', false)) {
+				if (featuresService.isFeatureEnabled('com.weathergoat.features.UseRadarMessageUpdateQueue', false)) {
 					this[kQueue].add(id, message, embed);
 				} else {
 					await message.edit({ embeds: [embed] });

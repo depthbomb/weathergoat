@@ -76,7 +76,7 @@ class CacheStore {
 }
 
 export const cacheService: ICacheService = ({
-	name: 'com.services.cache',
+	name: 'com.weathergoat.services.Cache',
 
 	[kStores]: new Collection(),
 

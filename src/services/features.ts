@@ -32,7 +32,7 @@ const kFeatures = Symbol('features');
 const kRequire  = Symbol('require');
 
 export const featuresService: IFeaturesService = ({
-	name: 'com.services.features',
+	name: 'com.weathergoat.services.Features',
 
 	[kWatcher]: undefined,
 	[kRequire]: createRequire(import.meta.url),

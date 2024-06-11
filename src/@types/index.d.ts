@@ -21,6 +21,4 @@ declare module 'discord.js' {
 	interface BaseInteraction {
 		client: WeatherGoat<true>;
 	}
-
-	interface Client extends WeatherGoat<boolean> {}
 }
