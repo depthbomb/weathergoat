@@ -16,7 +16,7 @@ interface IFeaturesService extends IService {
 	loadFeatures(reload: boolean): Promise<void>;
 	isFeatureEnabled(name: string, defaultValue?: boolean): boolean;
 	get(name: string): () => boolean;
-	allFeatures(): Feature[];
+	all(): Feature[];
 }
 
 class Feature {
@@ -86,7 +86,7 @@ export const featuresService: IFeaturesService = ({
 
 		return feature.check();
 	},
-	allFeatures() {
+	all() {
 		return Array.from(this[kFeatures].values());
 	}
 });

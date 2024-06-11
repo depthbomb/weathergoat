@@ -5,8 +5,10 @@ export type Maybe<T> = T | undefined;
 declare module 'bun' {
 	interface Env {
 		MODE: 'production' | 'development';
+		OWNER_ID: string;
 		BOT_ID: string;
 		BOT_TOKEN: string;
+		LEGACY_COMMAND_PREFIX?: string;
 		DATABASE_URL: string;
 		SENTRY_DSN?: string;
 		GITHUB_REPO?: string;
@@ -19,6 +21,10 @@ declare module 'bun' {
 
 declare module 'discord.js' {
 	interface BaseInteraction {
+		client: WeatherGoat<true>;
+	}
+
+	interface Message {
 		client: WeatherGoat<true>;
 	}
 }

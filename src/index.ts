@@ -36,6 +36,7 @@ if (process.argv.length > 2) {
 			GatewayIntentBits.GuildMembers,
 			GatewayIntentBits.GuildMessages,
 			GatewayIntentBits.GuildWebhooks,
+			GatewayIntentBits.MessageContent,
 		],
 		partials: [Partials.Message, Partials.Channel]
 	});

@@ -21,6 +21,7 @@ interface IServiceManager {
 	 * Calls the `init` method of all registered services if they implement it.
 	 */
 	destroyServices(): Promise<void>;
+	all(): IService[];
 }
 
 export interface IService {
@@ -67,4 +68,7 @@ export const serviceManager: IServiceManager = ({
 			await service.destroy?.();
 		}
 	},
+	all() {
+		return Array.from(this[kServices].values());
+	}
 });
