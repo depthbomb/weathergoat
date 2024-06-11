@@ -1,4 +1,5 @@
 import { httpService } from './http';
+import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
 import type { IService } from '@services';
@@ -27,9 +28,8 @@ export const alertsService: IAlertsService = ({
 
 	async getActiveAlerts() {
 		const res = await this[kHttpClient].get('/alerts/active');
-		if (!res.ok) {
-			throw new Error(res.statusText);
-		}
+
+		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
 		const data = plainToClass(AlertCollection, json);
@@ -47,9 +47,8 @@ export const alertsService: IAlertsService = ({
 				'zone[]': ids
 			}
 		});
-		if (!res.ok) {
-			throw new Error(res.statusText);
-		}
+
+		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
 		const data = plainToClass(AlertCollection, json);

@@ -5,7 +5,7 @@ import { joinURL, withQuery } from 'ufo';
 import { init } from '@paralleldrive/cuid2';
 import { BOT_USER_AGENT } from '@constants';
 import { DurationFormatter } from '@sapphire/time-utilities';
-import { retry, handleResultType, ExponentialBackoff } from 'cockatiel';
+import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
 import type { QueryObject } from 'ufo';
 import type { IService } from '@services';
 import type { RetryPolicy } from 'cockatiel';
@@ -49,7 +49,7 @@ class HttpClient {
 	public constructor(options?: HttpClientOptions) {
 		this._retry = !!options?.retry;
 		this._baseUrl = options?.baseUrl;
-		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ExponentialBackoff() });
+		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ConstantBackoff(500) });
 		this._generateId = init({ length: 6 });
 		this._durationFormatter = new DurationFormatter();
 	}

@@ -1,6 +1,7 @@
 import { httpService } from './http';
 import { Point } from '@models/Point';
 import { cacheService } from './cache';
+import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
 import type { IService } from '@services';
 
@@ -27,11 +28,11 @@ interface ILocationService extends IService {
 	/**
 	 * @internal
 	 */
-	[kLatitudePattern]: RegExp;
+	[kCoordinatePattern]: RegExp;
 	/**
 	 * @internal
 	 */
-	[kLongitudePattern]: RegExp;
+	[kCoordinatesPattern]: RegExp;
 	/**
 	 * Whether the input coordinates are valid.
 	 * @param coordinates The latitude and longitude joined by a comma (for example `21.3271,-157.8793`).
@@ -58,17 +59,17 @@ interface ILocationService extends IService {
 }
 
 const kLocationCache      = Symbol('location-cache');
-const kLocationHttpClient = Symbol('location-http-client');
-const kLatitudePattern    = Symbol('latitude-pattern');
-const kLongitudePattern   = Symbol('longitude-pattern');
+const kLocationHttpClient = Symbol('http-client');
+const kCoordinatePattern  = Symbol('coordinate-pattern');
+const kCoordinatesPattern = Symbol('coordinates-pattern');
 
 export const locationService: ILocationService = ({
 	name: 'com.weathergoat.services.Location',
 
 	[kLocationCache]: cacheService.getOrCreateStore('locations', '1 week'),
 	[kLocationHttpClient]: httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true }),
-	[kLatitudePattern]: /^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$/,
-	[kLongitudePattern]: /^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$/,
+	[kCoordinatePattern]: /^(-?\d+(?:\.\d+)?)$/,
+	[kCoordinatesPattern]: /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/,
 
 	isValidCoordinates(combinedCoordinatesOrLatitude, longitude?) {
 		if (combinedCoordinatesOrLatitude.includes(',') || !longitude) {
@@ -79,13 +80,12 @@ export const locationService: ILocationService = ({
 			return this.isValidCoordinates(lat, lon);
 		}
 
-		return this[kLatitudePattern].test(combinedCoordinatesOrLatitude) && this[kLongitudePattern].test(longitude as string);
+		return this[kCoordinatePattern].test(combinedCoordinatesOrLatitude) && this[kCoordinatePattern].test(longitude as string);
 	},
 	async getInfoFromCoordinates(latitude, longitude) {
 		const res = await this[kLocationHttpClient].get(`/points/${latitude},${longitude}`);
-		if (!res.ok) {
-			throw new Error(res.statusText);
-		}
+
+		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const cacheKey = latitude + longitude;
 		if (this[kLocationCache].has(cacheKey)) {

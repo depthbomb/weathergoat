@@ -1,5 +1,6 @@
 import { httpService } from './http';
 import { locationService } from './location';
+import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { IService } from '@services';
@@ -28,9 +29,8 @@ export const forecastService: IForecastService = ({
 	async getForecastForCoordinates(latitude: string, longitude: string) {
 		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
 		const res  = await this[kHttpClient].get(info.forecastUrl);
-		if (!res.ok) {
-			throw new Error(res.statusText);
-		}
+
+		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
 		const data = plainToClass(GridpointForecast, json);
