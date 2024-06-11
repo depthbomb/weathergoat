@@ -12,6 +12,7 @@ export const radarCommand: IRadarChannelCommand = ({
 	data: new SlashCommandBuilder()
 	.setName('radar-channel')
 	.setDescription('Designates a channel to post auto-updating radar images for a region')
+	.setDMPermission(false)
 	.addChannelOption(o => o
 		.setName('channel')
 		.setDescription('The channel')

@@ -29,6 +29,7 @@ export const forecastsCommand: IForecastsCommand = ({
 	data: new SlashCommandBuilder()
 	.setName('forecasts')
 	.setDescription('Forecasts super command')
+	.setDMPermission(false)
 	.addSubcommand(sc => sc
 		.setName('add')
 		.setDescription('Designates a channel for posting hourly weather forecasts to')

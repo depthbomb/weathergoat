@@ -29,6 +29,7 @@ export const alertsCommand: IAlertsCommand = ({
 	data: new SlashCommandBuilder()
 	.setName('alerts')
 	.setDescription('Alerts super command')
+	.setDMPermission(false)
 	.addSubcommand(sc => sc
 		.setName('add')
 		.setDescription('Designates a channel for posting weather alerts to')
