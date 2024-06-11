@@ -1,8 +1,8 @@
 import { _ } from '@lib/i18n';
 import { logger } from '@lib/logger';
-import { captureError } from '@lib/errors';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
+import { captureError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import type { Maybe } from '#types';
 import type { IEvent } from '@events';
 import type { ICommand } from '@commands';
@@ -34,17 +34,25 @@ export const interactionCreateEvent: IInteractionCreateEvent = ({
 				logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.data.name}`);
 
 				await interaction.channel?.sendTyping();
-				return command.handle(interaction);
+				await command.handle(interaction);
 			} catch (err: unknown) {
-				captureError('Error in interaction handler', err, { interaction: interaction.commandName });
+				if (isWeatherGoatError(err)) {
+					if (err instanceof MaxDestinationError) {
+						await tryToRespond(interaction, `[${err.name}] ${err.message} (${err.max}).`);
+					} else {
+						await tryToRespond(interaction, `[${err.name}] ${err.message}.`);
+					}
+				} else {
+					captureError('Error in interaction handler', err, { interaction: interaction.commandName });
 
-				return tryToRespond(interaction, _('events.interactions.err.commandError'));
+					await tryToRespond(interaction, _('events.interactions.err.commandError'));
+				}
 			} finally {
 				logger.info(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {
-				return command.handleAutocomplete?.(interaction);
+				await command.handleAutocomplete?.(interaction);
 			} catch (err: unknown) {
 				captureError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
 			}

@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { locationService } from '@services/location';
-import { captureError, isDiscordJSError, isWeatherGoatError } from '@lib/errors';
+import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -65,9 +65,7 @@ export const forecastsCommand: IForecastsCommand = ({
 		}
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
-		if (existingCount >= maxCount) {
-			return interaction.reply(_('common.err.tooManyDestinations', { type: 'forecast', max: maxCount }));
-		}
+		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of forecast destinations in this server.', { max: maxCount });
 
 		if (!locationService.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));

@@ -2,7 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
 import { locationService } from '@services/location';
-import { isDiscordJSError, isWeatherGoatError } from '@lib/errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	time,
 	ChannelType,
@@ -54,9 +54,7 @@ export const radarCommand: IRadarChannelCommand = ({
 		}
 
 		const existingCount = await db.radarChannel.countByGuild(guildId);
-		if (existingCount >= maxCount) {
-			return interaction.reply(_('common.err.tooManyDestinations', { type: 'radar channel', max: maxCount }));
-		}
+		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of radar channels in this server.', { max: maxCount });
 
 		if (!locationService.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
