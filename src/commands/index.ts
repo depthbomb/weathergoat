@@ -1,4 +1,10 @@
-import type { Awaitable, AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
+import type {
+	Awaitable,
+	AutocompleteInteraction,
+	ChatInputCommandInteraction,
+	SlashCommandOptionsOnlyBuilder,
+	SlashCommandSubcommandsOnlyBuilder
+} from 'discord.js';
 
 export interface ICommand {
 	data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;

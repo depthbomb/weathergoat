@@ -49,7 +49,12 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 
-				if (!isTextChannel(channel)) continue; // TODO delete record?
+				if (!isTextChannel(channel)) {
+					logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
+
+					await db.radarChannel.delete({ where: { id } });
+					continue;
+				}
 
 				const message = await channel.messages.fetch(messageId);
 				const embed = new EmbedBuilder()
@@ -72,7 +77,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 					const { code, message } = err;
 					if ([10003, 10004, 10008].includes(code as number)) {
 						// Unknown channel, guild, or message
-						logger.error('Could not fetch required resource(s), deleting corresponding record', { id, code, message });
+						logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
 
 						await db.radarChannel.delete({ where: { id } });
 					}
