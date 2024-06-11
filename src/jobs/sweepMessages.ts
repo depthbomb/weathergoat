@@ -21,7 +21,7 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 	pattern: '* * * * *',
 	runImmediately: true,
 
-	[kQueue]: queueService.createQueue('com.weathergoat.queues.MessageSweeper', async (message) => await message.delete(), '1s'),
+	[kQueue]: queueService.createQueue('com.weathergoat.queues.MessageSweeper', '1s'),
 
 	async execute(client: WeatherGoat<true>) {
 		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableMessageSweeping', false)) return;
@@ -36,7 +36,6 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 				expiresAt: { lte: new Date() }
 			}
 		});
-
 		for (const { id, channelId, messageId } of messages) {
 			try {
 				const channel = await client.channels.fetch(channelId);
@@ -44,7 +43,7 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
 						if (featuresService.isFeatureEnabled('com.weathergoat.features.UseMessageSweeperQueue', false)) {
-							this[kQueue].add(message);
+							this[kQueue].enqueue(async () => await message.delete());
 						} else {
 							await message.delete();
 						}

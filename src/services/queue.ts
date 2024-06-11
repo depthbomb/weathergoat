@@ -10,22 +10,20 @@ type Queueable = (...args: any[]) => Awaitable<unknown>;
 
 interface IQueueService extends IService {
 	queues: Collection<string, Queue>;
-	createQueue<T extends Queueable>(name: string, fn: T, delay: string | number): Queue<T>;
+	createQueue(name: string, delay: string | number): Queue;
 }
 
 export class Queue<T extends Queueable = Queueable> {
 	private readonly _name: string;
 	private readonly _lock: AsyncQueue;
-	private readonly _queue: Array<Parameters<T>>;
+	private readonly _queue: Array<T>;
 	private readonly _delay: number;
-	private readonly _consumer: T;
 
-	public constructor(name: string, fn: T, delay: number) {
-		this._name     = name;
-		this._lock     = new AsyncQueue();
-		this._queue    = [];
-		this._delay    = delay;
-		this._consumer = fn;
+	public constructor(name: string, delay: number) {
+		this._name  = name;
+		this._lock  = new AsyncQueue();
+		this._queue = [];
+		this._delay = delay;
 	}
 
 	public get size() {
@@ -38,18 +36,18 @@ export class Queue<T extends Queueable = Queueable> {
 		}
 	}
 
-	public add(...args: Parameters<T>) {
-		this._queue.push(args);
+	public enqueue(fn: T) {
+		this._queue.push(fn);
 		this._runNext();
 	}
 
 	private async _runNext() {
 		await this._lock.wait();
 
-		const args = this._queue.shift()!;
+		const fn = this._queue.shift()!;
 
 		try {
-			await this._consumer(...args);
+			await fn();
 		} catch (err: unknown) {
 			captureError('Error running queued function', err, { queue: this._name });
 		} finally {
@@ -66,13 +64,13 @@ export const queueService: IQueueService = ({
 
 	queues: new Collection(),
 
-	createQueue(name, fn, delay) {
+	createQueue(name, delay) {
 		if (typeof delay === 'string') {
 			delay = new Duration(delay).offset;
 		} else {
 			delay = delay;
 		}
 
-		return new Queue(name, fn, delay);
+		return new Queue(name, delay);
 	},
 });
