@@ -30,6 +30,7 @@ export const alertsCommand: IAlertsCommand = ({
 	.setName('alerts')
 	.setDescription('Alerts super command')
 	.setDMPermission(false)
+	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.addSubcommand(sc => sc
 		.setName('add')
 		.setDescription('Designates a channel for posting weather alerts to')

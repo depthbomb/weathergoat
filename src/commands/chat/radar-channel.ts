@@ -13,6 +13,7 @@ export const radarCommand: IRadarChannelCommand = ({
 	.setName('radar-channel')
 	.setDescription('Designates a channel to post auto-updating radar images for a region')
 	.setDMPermission(false)
+	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.addChannelOption(o => o
 		.setName('channel')
 		.setDescription('The channel')
@@ -30,8 +31,6 @@ export const radarCommand: IRadarChannelCommand = ({
 	),
 
 	async handle(interaction: ChatInputCommandInteraction<CacheType>) {
-		interaction.client.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
-
 		const maxCount  = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
 		const guildId   = interaction.guildId;
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);

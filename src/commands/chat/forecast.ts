@@ -9,7 +9,7 @@ import {
 	EmbedBuilder,
 	ButtonBuilder,
 	ActionRowBuilder,
-	PermissionsBitField,
+	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
 import type { ICommand } from '@commands';
@@ -30,6 +30,7 @@ export const forecastsCommand: IForecastsCommand = ({
 	.setName('forecasts')
 	.setDescription('Forecasts super command')
 	.setDMPermission(false)
+	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.addSubcommand(sc => sc
 		.setName('add')
 		.setDescription('Designates a channel for posting hourly weather forecasts to')
@@ -181,10 +182,8 @@ export const forecastsCommand: IForecastsCommand = ({
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
-				interaction.client.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 				return this[kAddSubcommand](interaction);
 			case 'remove':
-				interaction.client.assertPermissions(interaction, PermissionsBitField.Flags.ManageGuild);
 				return this[kRemoveSubcommand](interaction);
 			case 'list':
 				return this[kListSubcommand](interaction);
