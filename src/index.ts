@@ -27,7 +27,7 @@ if (process.argv.length > 2) {
 	const { locationService } = await import('@services/location');
 	const { queueService }    = await import('@services/queue');
 
-	const wg = new WeatherGoat({
+	const wg = new WeatherGoat<false>({
 		presence: {
 			status: 'dnd'
 		},

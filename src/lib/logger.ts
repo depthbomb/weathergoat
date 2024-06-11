@@ -36,6 +36,14 @@ export const logger = createLogger({
 			format: fileTransportFormat
 		}),
 		new transports.DailyRotateFile({
+			level: 'info',
+			filename: join(LOGS_DIR, 'info.%DATE%.log'),
+			datePattern: 'YYYYMMDD',
+			maxFiles: '5d',
+			zippedArchive: true,
+			format: fileTransportFormat
+		}),
+		new transports.DailyRotateFile({
 			level: 'silly',
 			filename: join(LOGS_DIR, 'combined.%DATE%.log'),
 			datePattern: 'YYYYMMDD',
