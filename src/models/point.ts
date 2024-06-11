@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { RelativeLocation } from '@models/relative-location';
+import { RelativeLocation } from '@models/RelativeLocation';
 
 export class Point {
 	public gridX!: number;

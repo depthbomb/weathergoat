@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
-import { Geocode } from '@models/geocode';
-import { AlertReference } from '@models/alert-reference';
+import { Geocode } from '@models/Geocode';
+import { AlertReference } from '@models/AlertReference';
 import type { ColorResolvable } from 'discord.js';
 
 export class Alert {

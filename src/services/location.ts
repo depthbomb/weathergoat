@@ -1,5 +1,5 @@
 import { httpService } from './http';
-import { Point } from '@models/point';
+import { Point } from '@models/Point';
 import { cacheService } from './cache';
 import { plainToClass } from 'class-transformer';
 import type { IService } from '@services';

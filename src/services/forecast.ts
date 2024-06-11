@@ -1,9 +1,9 @@
 import { httpService } from './http';
 import { locationService } from './location';
 import { plainToClass } from 'class-transformer';
-import { GridpointForecast } from '@models/gridpoint-forecast';
+import { GridpointForecast } from '@models/GridpointForecast';
 import type { IService } from '@services';
-import type { GridpointForecastPeriod } from '@models/gridpoint-forecast-period';
+import type { GridpointForecastPeriod } from '@models/GridpointForecastPeriod';
 
 interface IForecastService extends IService {
 	/**

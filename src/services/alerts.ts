@@ -1,8 +1,8 @@
 import { httpService } from './http';
 import { plainToClass } from 'class-transformer';
-import { AlertCollection } from '@models/alert-collection';
+import { AlertCollection } from '@models/AlertCollection';
 import type { IService } from '@services';
-import type { Alert } from '@models/alert';
+import type { Alert } from '@models/Alert';
 
 interface IAlertsService extends IService {
 	[kHttpClient]: ReturnType<typeof httpService.getClient>;

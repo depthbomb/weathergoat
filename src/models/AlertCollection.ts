@@ -1,4 +1,4 @@
-import { Alert } from '@models/alert';
+import { Alert } from '@models/Alert';
 import { Type, Expose } from 'class-transformer';
 
 export class AlertCollection {
