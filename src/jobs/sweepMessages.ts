@@ -42,7 +42,7 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 				if (isTextChannel(channel)) {
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
-						if (featuresService.isFeatureEnabled('com.weathergoat.features.UseMessageSweeperQueue', false)) {
+						if (featuresService.isFeatureEnabled('com.weathergoat.features.experiments.UseMessageSweeperQueue', false)) {
 							this[kQueue].enqueue(async () => await message.delete());
 						} else {
 							await message.delete();

@@ -7,6 +7,6 @@ features = [
 	{ name = 'com.weathergoat.features.DisableStatusUpdating', fraction = 0.0 },
 
 	# experiments
-	{ name = 'com.weathergoat.features.UseMessageSweeperQueue', fraction = 0.5 },
-	{ name = 'com.weathergoat.features.UseRadarMessageUpdateQueue', fraction = 0.5 },
+	{ name = 'com.weathergoat.features.experiments.UseMessageSweeperQueue', fraction = 0.5 },
+	{ name = 'com.weathergoat.features.experiments.UseRadarMessageUpdateQueue', fraction = 0.5 },
 ]

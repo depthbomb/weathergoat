@@ -71,7 +71,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
-			if (featuresService.isFeatureEnabled('com.weathergoat.features.UseRadarMessageUpdateQueue', false)) {
+			if (featuresService.isFeatureEnabled('com.weathergoat.features.experiments.UseRadarMessageUpdateQueue', false)) {
 				this[kQueue].enqueue(async () => await this[kUpdateMessage](
 					client, self,
 					id, guildId, channelId, messageId, location, radarStation, radarImageUrl
