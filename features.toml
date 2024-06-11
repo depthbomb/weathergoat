@@ -1,5 +1,5 @@
 features = [
-	# killswtiches
+	# killswitches
 	{ name = 'com.weathergoat.features.DisableAlertReporting', fraction = 0.0 },
 	{ name = 'com.weathergoat.features.DisableForecastReporting', fraction = 0.0 },
 	{ name = 'com.weathergoat.features.DisableMessageSweeping', fraction = 0.0 },
