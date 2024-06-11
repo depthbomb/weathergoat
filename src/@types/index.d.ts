@@ -1,5 +1,7 @@
 import type { WeatherGoat } from '@lib/client';
 
+export type Maybe<T> = T | undefined;
+
 declare module 'bun' {
 	interface Env {
 		MODE: 'production' | 'development';
@@ -17,6 +19,8 @@ declare module 'bun' {
 
 declare module 'discord.js' {
 	interface BaseInteraction {
-		client: WeatherGoat<boolean>;
+		client: WeatherGoat<true>;
 	}
+
+	interface Client extends WeatherGoat<boolean> {}
 }

@@ -3,8 +3,8 @@ import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
-import type { IEvent } from '@events';
 import type { Maybe } from '#types';
+import type { IEvent } from '@events';
 import type { ICommand } from '@commands';
 import type { CacheType, Interaction } from 'discord.js';
 
@@ -18,9 +18,7 @@ export const interactionCreateEvent: IInteractionCreateEvent = ({
 	name: 'interactionCreate',
 
 	[kGetCommandName](interaction: Interaction<CacheType>) {
-		if (!('commandName' in interaction)) {
-			return;
-		}
+		if (!('commandName' in interaction)) return;
 
 		return interaction.client.commands.get(interaction.commandName);
 	},

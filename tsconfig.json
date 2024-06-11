@@ -5,7 +5,7 @@
 			"ESNext",
 			"DOM"
 		],
-		"types": ["@abraham/reflection"],
+		"types": ["@abraham/reflection", "./src/@types/index.d.ts"],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleDetection": "force",
@@ -33,7 +33,7 @@
 
 		"paths": {
 			"@*": ["./src/*"],
-			"#types": ["./src/@types/index.ts"],
+			"#types": ["./src/@types/index.d.ts"],
 			"#types/*": ["./src/@types/*"]
 		}
 	}
