@@ -57,7 +57,7 @@ export const reportAlertsJob: IReportAlertsJob = ({
 
 				const isUpdate = alert.messageType === 'Update';
 				const embed = new EmbedBuilder()
-					.setTitle(`${isUpdate ? _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
+					.setTitle(`${isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock('md', alert.description))
 					.setColor(alert.severityColor)
 					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })

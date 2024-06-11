@@ -45,7 +45,7 @@ export const reportForecastsJob: IReportForecastsJob = ({
 			const forecast = await forecastService.getForecastForCoordinates(latitude, longitude);
 			const location = await locationService.getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
-				.setTitle(_('jobs.forecasts.embedTitle', { forecast, location }))
+				.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
 				.setColor(client.brandColor)
 				.setThumbnail(forecast.icon.replace('medium', 'large'))
 				.setDescription(forecast.detailedForecast)

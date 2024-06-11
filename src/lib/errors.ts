@@ -1,12 +1,12 @@
 import { logger } from '@lib/logger';
 import { MakeErrorClass } from 'fejl';
 import { captureException } from '@sentry/bun';
-import { DiscordjsError, DiscordAPIError } from 'discord.js';
+import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';
 
 export type WeatherGoatError = InvalidPermissionsError | HTTPRequestError;
 
 export class InvalidPermissionsError extends MakeErrorClass('You do not have permission to perform this action') {}
-export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>('An error occured while making an HTTP request') {}
+export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>('An error occurred while making an HTTP request') {}
 
 export function isWeatherGoatError<T extends WeatherGoatError>(err: unknown): err is T {
 	return err instanceof InvalidPermissionsError || err instanceof HTTPRequestError;
@@ -23,8 +23,15 @@ export function isDiscordAPIError(err: unknown): err is DiscordAPIError {
 	return err instanceof DiscordAPIError;
 }
 
-export function isDiscordJSError(err: unknown): err is DiscordjsError {
-	return err instanceof DiscordjsError;
+export function isDiscordJSError(err: unknown): err is DiscordjsError;
+export function isDiscordJSError(err: unknown, code: DiscordjsErrorCodes): err is DiscordjsError;
+export function isDiscordJSError(err: unknown, code?: DiscordjsErrorCodes): err is DiscordjsError {
+	const isDiscordjsError = err instanceof DiscordjsError;
+	if (code) {
+		return isDiscordjsError && err.code === code;
+	}
+
+	return isDiscordjsError;
 }
 
 export function isDiscordAPIErrorCode(err: unknown, code: number): boolean;

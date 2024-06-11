@@ -2,8 +2,20 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
 import { locationService } from '@services/location';
-import { time, ChannelType, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { isDiscordJSError, isWeatherGoatError } from '@lib/errors';
+import {
+	time,
+	ChannelType,
+	ButtonStyle,
+	EmbedBuilder,
+	ButtonBuilder,
+	ActionRowBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+	DiscordjsErrorCodes
+} from 'discord.js';
 import type { ICommand } from '@commands';
+import type { HTTPRequestError } from '@lib/errors';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
 interface IRadarChannelCommand extends ICommand {}
@@ -103,7 +115,13 @@ export const radarCommand: IRadarChannelCommand = ({
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
+			if (isWeatherGoatError<HTTPRequestError>(err)) {
+				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
+				return interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+			}
+
+			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
 	}
 });

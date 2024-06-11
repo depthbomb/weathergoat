@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
-import { captureError } from '@lib/errors';
 import { locationService } from '@services/location';
+import { captureError, isDiscordJSError, isWeatherGoatError } from '@lib/errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -10,9 +10,11 @@ import {
 	ButtonBuilder,
 	ActionRowBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
+	DiscordjsErrorCodes
 } from 'discord.js';
 import type { ICommand } from '@commands';
+import type { HTTPRequestError } from '@lib/errors';
 import type { Message, CacheType, InteractionResponse, ChatInputCommandInteraction } from 'discord.js';
 
 interface IForecastsCommand extends ICommand {
@@ -73,26 +75,25 @@ export const forecastsCommand: IForecastsCommand = ({
 
 		await interaction.deferReply();
 
-		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
-
-		const row = new ActionRowBuilder<ButtonBuilder>()
-			.addComponents(
-				new ButtonBuilder()
-					.setCustomId('confirm')
-					.setLabel(_('common.yes'))
-					.setStyle(ButtonStyle.Success),
-				new ButtonBuilder()
-					.setCustomId('deny')
-					.setLabel(_('common.no'))
-					.setStyle(ButtonStyle.Danger)
-			);
-
-		const initialReply = await interaction.editReply({
-			content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
-			components: [row]
-		});
-
 		try {
+			const info = await locationService.getInfoFromCoordinates(latitude, longitude);
+			const row  = new ActionRowBuilder<ButtonBuilder>()
+				.addComponents(
+					new ButtonBuilder()
+						.setCustomId('confirm')
+						.setLabel(_('common.yes'))
+						.setStyle(ButtonStyle.Success),
+					new ButtonBuilder()
+						.setCustomId('deny')
+						.setLabel(_('common.no'))
+						.setStyle(ButtonStyle.Danger)
+				);
+
+			const initialReply = await interaction.editReply({
+				content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
+				components: [row]
+			});
+
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
 				const destination = await db.forecastDestination.create({
@@ -112,7 +113,13 @@ export const forecastsCommand: IForecastsCommand = ({
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
+			if (isWeatherGoatError<HTTPRequestError>(err)) {
+				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
+				return interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+			}
+
+			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
 	},
 	async [kRemoveSubcommand](interaction) {
@@ -169,7 +176,7 @@ export const forecastsCommand: IForecastsCommand = ({
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					`Reporting to ${channel}`,
+					_('common.reportingTo', { location: channel }),
 					codeBlock('json', JSON.stringify({ id, autoCleanup }, null, 4))
 				].join('\n')
 			});

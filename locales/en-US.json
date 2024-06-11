@@ -4,12 +4,16 @@
 			"invalidLatOrLon": "The provided latitude or longitude is not valid.",
 			"guildOnly": "This action can only be performed inside a server channel.",
 			"noDestinations": "There are no {{type}} destinations in this server.",
-			"tooManyDestinations": "You have exceeded the max limit of {{type}} destinations (`{{max}}`)."
+			"tooManyDestinations": "You have exceeded the max limit of {{type}} destinations (`{{max}}`).",
+			"locationQueryHttpError": "There was a problem retrieving the location you provided.```{{err.code}}: {{err.status}}```",
+			"unknown": "An unknown error has occurred"
 		},
 		"yes": "Yes",
 		"no": "No",
 		"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}**.\nIs this correct?",
-		"confirmationCancelled": "Confirmation cancelled"
+		"confirmationCancelled": "Confirmation cancelled",
+		"promptTimedOut": "You did not respond to the prompt in time.",
+		"reportingTo": "Reporting to {{location}}"
 	},
 	"events": {
 		"interactions": {
@@ -59,7 +63,7 @@
 	},
 	"jobs": {
 		"alerts": {
-			"updateTag": "🔁 [UPDATE]",
+			"updateTag": "[UPDATE]",
 			"certaintyTitle": "Certainty",
 			"effectiveTitle": "Effective",
 			"expiresTitle": "Expires",
@@ -68,7 +72,7 @@
 			"referencesTitle": "References"
 		},
 		"forecasts": {
-			"embedTitle": "⛅ {{forecast.name}}'s Forecast for {{location.location}}",
+			"embedTitle": "{{forecast.name}}'s Forecast for {{location.location}}",
 			"atAGlanceTitle": "At a glance"
 		},
 		"radar": {

@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
-import { captureError } from '@lib/errors';
 import { locationService } from '@services/location';
+import { captureError, isDiscordJSError, isWeatherGoatError } from '@lib/errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -10,9 +10,11 @@ import {
 	ButtonBuilder,
 	ActionRowBuilder,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
+	DiscordjsErrorCodes
 } from 'discord.js';
 import type { ICommand } from '@commands';
+import type { HTTPRequestError } from '@lib/errors';
 import type { Message, CacheType, InteractionResponse, ChatInputCommandInteraction } from 'discord.js';
 
 interface IAlertsCommand extends ICommand {
@@ -80,27 +82,27 @@ export const alertsCommand: IAlertsCommand = ({
 
 		await interaction.deferReply();
 
-		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
-
-		const row = new ActionRowBuilder<ButtonBuilder>()
-			.addComponents(
-				new ButtonBuilder()
-					.setCustomId('confirm')
-					.setLabel('Yes')
-					.setStyle(ButtonStyle.Success),
-				new ButtonBuilder()
-					.setCustomId('deny')
-					.setLabel('No')
-					.setStyle(ButtonStyle.Danger)
-			);
-
-		const initialReply = await interaction.editReply({
-			content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
-			components: [row]
-		});
-
 		try {
-			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
+			const info = await locationService.getInfoFromCoordinates(latitude, longitude);
+
+			const row = new ActionRowBuilder<ButtonBuilder>()
+				.addComponents(
+					new ButtonBuilder()
+						.setCustomId('confirm')
+						.setLabel('Yes')
+						.setStyle(ButtonStyle.Success),
+					new ButtonBuilder()
+						.setCustomId('deny')
+						.setLabel('No')
+						.setStyle(ButtonStyle.Danger)
+				);
+
+			const initialReply = await interaction.editReply({
+				content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
+				components: [row]
+			});
+
+			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 15_000 });
 			if (customId === 'confirm') {
 				const destination = await db.alertDestination.create({
 					data: {
@@ -122,7 +124,13 @@ export const alertsCommand: IAlertsCommand = ({
 				return initialReply.delete();
 			}
 		} catch (err: unknown) {
-			return interaction.editReply({ content: _('common.confirmationCancelled'), components: [] });
+			if (isWeatherGoatError<HTTPRequestError>(err)) {
+				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
+				return interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+			}
+
+			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
 	},
 	async [kRemoveSubcommand](interaction) {
@@ -144,10 +152,7 @@ export const alertsCommand: IAlertsCommand = ({
 		}
 	},
 	async [kListSubcommand](interaction) {
-		const guildId = interaction.guildId;
-		if (!guildId) {
-			return interaction.reply(_('common.err.guildOnly'));
-		}
+		const guildId = interaction.guildId!;
 
 		await interaction.deferReply();
 
@@ -178,7 +183,7 @@ export const alertsCommand: IAlertsCommand = ({
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					`Reporting to ${channel}`,
+					_('common.reportingTo', { location: channel }),
 					codeBlock('json', JSON.stringify({ id, autoCleanup, pingOnSevere }, null, 4))
 				].join('\n')
 			});
@@ -191,10 +196,8 @@ export const alertsCommand: IAlertsCommand = ({
 		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
 		switch (subcommand) {
 			case 'add':
-				interaction.client.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
 				return this[kAddSubcommand](interaction);
 			case 'remove':
-				interaction.client.assertPermissions(interaction, PermissionFlagsBits.ManageGuild);
 				return this[kRemoveSubcommand](interaction);
 			case 'list':
 				return this[kListSubcommand](interaction);
