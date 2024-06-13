@@ -3,6 +3,7 @@ import { githubService } from '@services/github';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
 import type { ICommand } from '@commands';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
@@ -28,6 +29,10 @@ export const aboutCommand: IAboutCommand = ({
 		.setName('stats')
 		.setDescription('Lists some of my technical stats')
 	),
+
+	preconditions: [
+		cooldownPrecondition({ duration: '3s', global: true })
+	],
 
 	[kFormatter]: new DurationFormatter(),
 

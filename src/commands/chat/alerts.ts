@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { locationService } from '@services/location';
+import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
 import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	codeBlock,
@@ -51,6 +52,10 @@ export const alertsCommand: IAlertsCommand = ({
 		.setName('list')
 		.setDescription('Lists all alert reporting destinations in the server')
 	),
+
+	preconditions: [
+		cooldownPrecondition({ duration: '5s', global: true })
+	],
 
 	async [kAddSubcommand](interaction) {
 		const maxCount     = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;

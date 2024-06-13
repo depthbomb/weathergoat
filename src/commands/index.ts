@@ -1,3 +1,4 @@
+import type { Precondition } from '@preconditions';
 import type {
 	Awaitable,
 	AutocompleteInteraction,
@@ -8,6 +9,7 @@ import type {
 
 export interface ICommand {
 	data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
+	preconditions?: Precondition[];
 	handle(interaction: ChatInputCommandInteraction): Awaitable<unknown>;
 	handleAutocomplete?(interaction: AutocompleteInteraction): Awaitable<unknown>;
 }

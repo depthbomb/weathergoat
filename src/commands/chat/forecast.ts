@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { locationService } from '@services/location';
+import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
 import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	codeBlock,
@@ -50,6 +51,10 @@ export const forecastsCommand: IForecastsCommand = ({
 		.setName('list')
 		.setDescription('Lists all forecast reporting destinations in the server')
 	),
+
+	preconditions: [
+		cooldownPrecondition({ duration: '5s', global: true })
+	],
 
 	async [kAddSubcommand](interaction) {
 		const maxCount    = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;

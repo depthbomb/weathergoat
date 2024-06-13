@@ -2,6 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Duration } from '@sapphire/time-utilities';
 import { locationService } from '@services/location';
+import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	time,
@@ -41,6 +42,10 @@ export const radarCommand: IRadarChannelCommand = ({
 		.setDescription('The longitude of the area')
 		.setRequired(true)
 	),
+
+	preconditions: [
+		cooldownPrecondition({ duration: '5s', global: true })
+	],
 
 	async handle(interaction: ChatInputCommandInteraction<CacheType>) {
 		const maxCount  = process.env.MAX_RADAR_CHANNELS_PER_GUILD;

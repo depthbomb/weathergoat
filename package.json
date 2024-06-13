@@ -15,6 +15,7 @@
 		"@sapphire/discord.js-utilities": "^7.3.0",
 		"@sapphire/lexure": "^1.1.7",
 		"@sapphire/node-utilities": "^1.0.2",
+		"@sapphire/ratelimits": "^2.4.9",
 		"@sapphire/stopwatch": "^1.5.2",
 		"@sapphire/time-utilities": "^1.7.12",
 		"@sentry/bun": "^8.9.2",
