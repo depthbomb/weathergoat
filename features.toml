@@ -5,8 +5,4 @@ features = [
 	{ name = 'com.weathergoat.features.DisableMessageSweeping', fraction = 0.0 },
 	{ name = 'com.weathergoat.features.DisableRadarMessageUpdating', fraction = 0.0 },
 	{ name = 'com.weathergoat.features.DisableStatusUpdating', fraction = 0.0 },
-
-	# experiments
-	{ name = 'com.weathergoat.features.experiments.UseMessageSweeperQueue', fraction = 0.5 },
-	{ name = 'com.weathergoat.features.experiments.UseRadarMessageUpdateQueue', fraction = 0.5 },
 ]
