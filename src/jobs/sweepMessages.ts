@@ -1,20 +1,15 @@
 import { db } from '@db';
+import { BaseJob } from '@jobs';
 import { captureError } from '@lib/errors';
-import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
 
-interface ISweepMessagesJob extends IJob {}
+export default class SweepMessagesJob extends BaseJob {
+	public constructor() {
+		super({ name: 'com.weathergoat.jobs.SweepMessages', pattern: '* * * * *', runImmediately: true })
+	}
 
-export const sweepMessagesJob: ISweepMessagesJob = ({
-	name: 'com.weathergoat.jobs.SweepMessages',
-	pattern: '* * * * *',
-	runImmediately: true,
-
-	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableMessageSweeping', false)) return;
-
+	public async execute(client: WeatherGoat<true>) {
 		const messages = await db.volatileMessage.findMany({
 			select: {
 				id: true,
@@ -41,4 +36,4 @@ export const sweepMessagesJob: ISweepMessagesJob = ({
 			}
 		}
 	}
-});
+}

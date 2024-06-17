@@ -1,28 +1,13 @@
 import { Octokit } from 'octokit';
+import { Tokens } from '@container';
 import { logger } from '@lib/logger';
-import { cacheService } from './cache';
 import type { Maybe } from '#types';
 import type { IService } from '@services';
+import type { Container } from '@container';
 import type { Endpoints } from '@octokit/types';
+import type { CacheStore, ICacheService } from './cache';
 
-interface IGithubService extends IService {
-	/**
-	 * @internal
-	 */
-	[kCache]: ReturnType<typeof cacheService.createStore>;
-	/**
-	 * @internal
-	 */
-	[kRepoName]: Maybe<string>;
-	/**
-	 * @internal
-	 */
-	[kRepoOwner]: Maybe<string>;
-	/**
-	 * @internal
-	 */
-	[kOctokit]: Maybe<Octokit>;
-	[kGetCommits](): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']>;
+export interface IGithubService extends IService {
 	/**
 	 * Returns the SHA hash of the project's latest commit.
 	 * @param short Whether to return the hash in a shortened format.
@@ -35,49 +20,39 @@ interface IGithubService extends IService {
 	getCommits(count?: number): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']['data']>;
 }
 
-const kCache      = Symbol('cache');
-const kRepoName   = Symbol('repo-name');
-const kRepoOwner  = Symbol('repo-owner');
-const kOctokit    = Symbol('octokit');
-const kGetCommits = Symbol('get-commits-method');
+export default class GithubService implements IGithubService {
+	private _repoOwner: Maybe<string>;
+	private _repoName: Maybe<string>;
+	private _octokit: Maybe<Octokit>;
 
-export const githubService: IGithubService = ({
-	name: 'com.weathergoat.services.GitHub',
+	private readonly _cache: CacheStore;
 
-	[kCache]: cacheService.createStore('github', '10 minutes'),
-	[kRepoName]: undefined,
-	[kRepoOwner]: undefined,
-	[kOctokit]: undefined,
+	public constructor(container: Container) {
+		const cacheService = container.resolve<ICacheService>(Tokens.Cache);
 
-	async [kGetCommits]() {
-		return this[kOctokit]!.request('GET /repos/{owner}/{repo}/commits', {
-			owner: this[kRepoOwner]!,
-			repo: this[kRepoName]!
-		});
-	},
+		this._cache = cacheService.createStore('github', '10 minutes');
 
-	init() {
 		if (process.env.GITHUB_ACCESS_TOKEN) {
 			if (!process.env.GITHUB_REPO) {
 				throw new Error('Missing GITHUB_REPO environment variable');
 			}
 
-			const split      = process.env.GITHUB_REPO.split('/');
-			this[kRepoOwner] = split[0];
-			this[kRepoName]  = split[1];
-			this[kOctokit]   = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: 'depthbomb/weathergoat' });
+			const split = process.env.GITHUB_REPO.split('/');
+			this._repoOwner = split[0];
+			this._repoName = split[1];
+			this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: 'depthbomb/weathergoat' });
 		} else {
 			logger.warn('No GitHub access token has been configured; operations that use the GitHub API may not work.');
 		}
-	},
+	}
 
-	async getCurrentCommitHash(short = false) {
+	public async getCurrentCommitHash(short?: boolean) {
 		const cacheKey = 'commit-hash_' + short;
-		if (this[kCache].has(cacheKey)) {
-			return this[kCache].get<string>(cacheKey)!;
+		if (this._cache.has(cacheKey)) {
+			return this._cache.get<string>(cacheKey)!;
 		}
 
-		const res = await this[kGetCommits]();
+		const res = await this._getAllCommits();
 		if (!res) {
 			throw new Error('Could not retrieve project commits from GitHub API');
 		}
@@ -85,12 +60,13 @@ export const githubService: IGithubService = ({
 		const { sha } = res.data[0];
 		const hash    = short ? sha.slice(0, 7) : sha;
 
-		this[kCache].set(cacheKey, hash);
+		this._cache.set(cacheKey, hash);
 
 		return hash;
-	},
-	async getCommits(count?: number) {
-		const res = await this[kGetCommits]();
+	}
+
+	public async getCommits(count?: number) {
+		const res = await this._getAllCommits();
 		if (!res) {
 			throw new Error('Could not retrieve project commits from GitHub API');
 		}
@@ -101,4 +77,11 @@ export const githubService: IGithubService = ({
 
 		return res.data;
 	}
-});
+
+	private async _getAllCommits() {
+		return this._octokit!.request('GET /repos/{owner}/{repo}/commits', {
+			owner: this._repoOwner!,
+			repo: this._repoName!
+		});
+	}
+}

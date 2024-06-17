@@ -1,7 +1,9 @@
+import { Tokens } from '@container';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
-import { serviceManager } from '@services';
+import AlertsService from '@services/alerts';
 import { Partials, GatewayIntentBits } from 'discord.js';
+import type { IFeaturesService } from '@services/features';
 
 if (process.argv.length > 2) {
 	const { runCli } = await import('@cli');
@@ -17,15 +19,14 @@ if (process.argv.length > 2) {
 		init({ dsn: process.env.SENTRY_DSN });
 	}
 
-	const { WeatherGoat }     = await import('@lib/client');
-	const { alertsService }   = await import('@services/alerts');
-	const { cacheService }    = await import('@services/cache');
-	const { featuresService } = await import('@services/features');
-	const { forecastService } = await import('@services/forecast');
-	const { githubService }   = await import('@services/github');
-	const { httpService }     = await import('@services/http');
-	const { locationService } = await import('@services/location');
-	const { queueService }    = await import('@services/queue');
+	const { WeatherGoat }              = await import('@lib/client');
+	const { default: alertsService }   = await import('@services/alerts');
+	const { default: cacheService }    = await import('@services/cache');
+	const { default: featuresService } = await import('@services/features');
+	const { default: forecastService } = await import('@services/forecast');
+	const { default: githubService }   = await import('@services/github');
+	const { default: httpService }     = await import('@services/http');
+	const { default: locationService } = await import('@services/location');
 
 	const wg = new WeatherGoat<false>({
 		presence: {
@@ -35,22 +36,28 @@ if (process.argv.length > 2) {
 			GatewayIntentBits.Guilds,
 			GatewayIntentBits.GuildMembers,
 			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.GuildWebhooks,
-			GatewayIntentBits.MessageContent,
+			GatewayIntentBits.GuildWebhooks
 		],
 		partials: [Partials.Message, Partials.Channel]
 	});
 
-	await serviceManager
-		.registerService(alertsService)
-		.registerService(cacheService)
-		.registerService(featuresService)
-		.registerService(forecastService)
-		.registerService(githubService)
-		.registerService(httpService)
-		.registerService(locationService)
-		.registerService(queueService)
-		.initializeServices(wg);
+	wg.container
+		.registerValue(Tokens.Client, wg)
+		.register(Tokens.Alerts, alertsService)
+		.register(Tokens.Cache, cacheService)
+		.register(Tokens.Features, featuresService)
+		.register(Tokens.Forecast, forecastService)
+		.register(Tokens.GitHub, githubService)
+		.register(Tokens.HTTP, httpService)
+		.register(Tokens.Location, locationService);
+
+	const features = wg.container.resolve<IFeaturesService>(Tokens.Features);
+
+	features.set('com.weathergoat.features.DisableAlertReporting', 0.0, 'Alert reporting killswitch');
+	features.set('com.weathergoat.features.DisableForecastReporting', 0.0, 'Forecast reporting killswitch');
+	features.set('com.weathergoat.features.DisableMessageSweeping', 0.0, 'Message sweeping killswitch');
+	features.set('com.weathergoat.features.DisableRadarMessageUpdating', 0.0, 'Radar message updating killswitch');
+	features.set('com.weathergoat.features.DisableStatusUpdating', 0.0, 'Status updating killswitch');
 
 	await wg.login(process.env.BOT_TOKEN);
 

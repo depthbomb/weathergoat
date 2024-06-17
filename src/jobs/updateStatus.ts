@@ -1,29 +1,30 @@
 import { _ } from '@lib/i18n';
-import { githubService } from '@services/github';
-import { featuresService } from '@services/features';
+import { BaseJob } from '@jobs';
+import { Tokens } from '@container';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
-import type { IJob } from '@jobs';
+import type { Container } from '@container';
 import type { WeatherGoat } from '@lib/client';
+import type { IGithubService } from '@services/github';
 
-interface IUpdateStatusJob extends IJob {
-	[kFormatter]: DurationFormatter;
-}
+export default class UpdateStatusJob extends BaseJob {
+	private readonly _github: IGithubService;
+	private readonly _formatter: DurationFormatter;
 
-const kFormatter = Symbol('formatter');
+	public constructor(container: Container) {
+		super({
+			name: 'com.weathergoat.jobs.UpdateStatus',
+			pattern: '*/15 * * * *',
+			runImmediately: true
+		});
 
-export const updateStatusJob: IUpdateStatusJob = ({
-	name: 'com.weathergoat.jobs.UpdateStatus',
-	pattern: '*/15 * * * * *',
-	runImmediately: true,
+		this._github = container.resolve(Tokens.GitHub);
+		this._formatter = new DurationFormatter();
+	}
 
-	[kFormatter]: new DurationFormatter(),
-
-	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableStatusUpdating', false)) return;
-
-		const duration = this[kFormatter].format(client.uptime, 3);
-		const hash     = await githubService.getCurrentCommitHash(true);
+	public async execute(client: WeatherGoat<true>) {
+		const duration = this._formatter.format(client.uptime, 3);
+		const hash     = await this._github.getCurrentCommitHash(true);
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
@@ -34,4 +35,4 @@ export const updateStatusJob: IUpdateStatusJob = ({
 			]
 		});
 	}
-});
+}

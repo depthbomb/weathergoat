@@ -1,22 +1,19 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
+import { BaseJob } from '@jobs';
 import { logger } from '@lib/logger';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
-import { featuresService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { IJob } from '@jobs';
+import type Cron from 'croner';
+import type { WeatherGoat } from '@lib/client';
 
-interface IUpdateRadarMessagesJob extends IJob {}
+export default class UpdateRadarMessagesJob extends BaseJob {
+	public constructor() {
+		super({ name: 'com.weathergoat.jobs.UpdateRadarMessages', pattern: '*/5 * * * *', runImmediately: true });
+	}
 
-export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
-	name: 'com.weathergoat.jobs.UpdateRadarMessages',
-	pattern: '*/5 * * * *',
-	runImmediately: true,
-
-	async execute(client, self) {
-		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableRadarMessageUpdating', false)) return;
-
+	public async execute(client: WeatherGoat<true>, job: Cron): Promise<unknown> {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {
@@ -38,7 +35,7 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 						.setImage(`${radarImageUrl}?${client.generateId(32)}`)
 						.addFields(
 							{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-							{ name: _('jobs.radar.nextUpdateTitle'), value: time(self.nextRun()!, 'R'), inline: true },
+							{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
 						);
 				await message.edit({ embeds: [embed] })
 			} catch (err: unknown) {
@@ -56,4 +53,4 @@ export const updateRadarMessagesJob: IUpdateRadarMessagesJob = ({
 			}
 		}
 	}
-});
+}

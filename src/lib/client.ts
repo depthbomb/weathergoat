@@ -2,26 +2,28 @@ import { db } from '@db';
 import { Cron } from 'croner';
 import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
-import { serviceManager } from '@services';
+import { Container } from '@container';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { captureError, InvalidPermissionsError } from '@lib/errors';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import { isGuildBasedChannel, isGuildMember } from '@sapphire/discord.js-utilities';
-import type { IJob } from '@jobs';
-import type { IEvent } from '@events';
-import type { ICommand } from '@commands';
+import type { BaseJob } from '@jobs';
+import type { BaseEvent } from '@events';
+import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
 import type { TextChannel, ClientEvents, ClientOptions, PermissionResolvable, ChatInputCommandInteraction } from 'discord.js';
 
-type CommandModule = ICommand;
-type EventModule   = IEvent<keyof ClientEvents>;
-type JobModule     = IJob<boolean>;
+type BaseModule<T> = { default: new(container: Container) => T };
+type JobModule     = BaseModule<BaseJob>;
+type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Set<JobModule>;
-	public readonly events: Collection<string, EventModule>;
-	public readonly commands: Collection<string, CommandModule>;
+	public readonly jobs: Set<BaseJob>;
+	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
+	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
+	public readonly container: Container;
 	public readonly brandColor = '#5876aa';
 
 	private readonly _idGenerators: Collection<number, () => string>;
@@ -29,6 +31,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	public constructor(options: ClientOptions) {
 		super(options);
+
+		this.container = new Container();
 
 		this.jobs     = new Set();
 		this.events   = new Collection();
@@ -52,7 +56,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		await db.$disconnect();
 		await super.destroy();
-		await serviceManager.destroyServices();
+		await this.container.dispose();
 
 		if (!logger.closed) {
 			logger.close();
@@ -96,9 +100,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	public async registerJobs() {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
-			const module         = await import(file);
-			const [moduleObject] = Object.keys(module);
-			const job            = module[moduleObject] as JobModule;
+			const { default: mod }: JobModule = await import(file);
+
+			const job = new mod(this.container);
 
 			if (this.jobs.has(job)) continue;
 
@@ -107,7 +111,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
-			const j = Cron(pattern, async (self: Cron) => job.execute(this, self), {
+			const j = Cron(pattern, async (self: Cron) => await job.execute(this, self), {
 				name,
 				paused: true,
 				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
@@ -141,10 +145,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	public async registerEvents() {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
-			const module         = await import(file);
-			const [moduleObject] = Object.keys(module);
-			const event          = module[moduleObject] as EventModule;
+			const { default: mod }: EventModule = await import(file);
 
+			const event    = new mod(this.container);
 			const name     = event.name;
 			const once     = event.once ?? false;
 			const disabled = event.disabled ?? false;
@@ -165,14 +168,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	public async registerCommands() {
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this._moduleFilePattern)) {
-			const module         = await import(file);
-			const [moduleObject] = Object.keys(module);
-			const command        = module[moduleObject] as CommandModule;
-			const { name }       = command.data;
+			const { default: mod }: CommandModule = await import(file);
+			const command = new mod(this.container);
 
-			this.commands.set(name, command);
+			this.commands.set(command.name, command);
 
-			logger.info('Registered command', { name });
+			logger.info('Registered command', { name: command.name });
 		}
 	}
 }

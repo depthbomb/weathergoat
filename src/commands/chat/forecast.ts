@@ -1,7 +1,8 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
-import { locationService } from '@services/location';
-import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
+import { Tokens } from '@container';
+import { BaseCommand } from '@commands';
+import CooldownPrecondition from '@preconditions/cooldown';
 import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	codeBlock,
@@ -14,49 +15,59 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { ICommand } from '@commands';
+import type { Container } from '@container';
 import type { HTTPRequestError } from '@lib/errors';
-import type { Message, CacheType, InteractionResponse, ChatInputCommandInteraction } from 'discord.js';
+import type { ILocationService } from '@services/location';
+import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
-interface IForecastsCommand extends ICommand {
-	[kAddSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean> | InteractionResponse<boolean>>;
-	[kRemoveSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean>>;
-	[kListSubcommand](interaction: ChatInputCommandInteraction<CacheType>): Promise<Message<boolean> | InteractionResponse<boolean>>;
-}
+export default class ForecastCommand extends BaseCommand {
+	private readonly _location: ILocationService;
 
-const kAddSubcommand = Symbol('add-subcommand');
-const kRemoveSubcommand = Symbol('remove-subcommand');
-const kListSubcommand = Symbol('list-subcommand');
+	public constructor(container: Container) {
+		super({
+			data: new SlashCommandBuilder()
+			.setName('forecasts')
+			.setDescription('Forecasts super command')
+			.setDMPermission(false)
+			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+			.addSubcommand(sc => sc
+				.setName('add')
+				.setDescription('Designates a channel for posting hourly weather forecasts to')
+				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
+				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
+				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true))
+				.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
+			)
+			.addSubcommand(sc => sc
+				.setName('remove')
+				.setDescription('Removes a forecast reporting destination')
+				.addStringOption(o => o.setName('id').setDescription('The ID of the forecast destination to delete').setRequired(true))
+			)
+			.addSubcommand(sc => sc
+				.setName('list')
+				.setDescription('Lists all forecast reporting destinations in the server')
+			),
+			preconditions: [
+				new CooldownPrecondition({ duration: '5s', global: true })
+			]
+		});
 
-export const forecastsCommand: IForecastsCommand = ({
-	data: new SlashCommandBuilder()
-	.setName('forecasts')
-	.setDescription('Forecasts super command')
-	.setDMPermission(false)
-	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-	.addSubcommand(sc => sc
-		.setName('add')
-		.setDescription('Designates a channel for posting hourly weather forecasts to')
-		.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
-		.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
-		.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true))
-		.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
-	)
-	.addSubcommand(sc => sc
-		.setName('remove')
-		.setDescription('Removes a forecast reporting destination')
-		.addStringOption(o => o.setName('id').setDescription('The ID of the forecast destination to delete').setRequired(true))
-	)
-	.addSubcommand(sc => sc
-		.setName('list')
-		.setDescription('Lists all forecast reporting destinations in the server')
-	),
+		this._location = container.resolve(Tokens.Location);
+	}
 
-	preconditions: [
-		cooldownPrecondition({ duration: '5s', global: true })
-	],
+	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
+		switch (subcommand) {
+			case 'add':
+				return this._handleAddSubcommand(interaction);
+			case 'remove':
+				return this._handleRemoveSubcommand(interaction);
+			case 'list':
+				return this._handleListSubcommand(interaction);
+		}
+	}
 
-	async [kAddSubcommand](interaction) {
+	public async _handleAddSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const maxCount    = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
 		const guildId     = interaction.guildId;
 		const channelId   = interaction.channelId;
@@ -72,14 +83,14 @@ export const forecastsCommand: IForecastsCommand = ({
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of forecast destinations in this server.', { max: maxCount });
 
-		if (!locationService.isValidCoordinates(latitude, longitude)) {
+		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
 
 		try {
-			const info = await locationService.getInfoFromCoordinates(latitude, longitude);
+			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const row  = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -124,8 +135,9 @@ export const forecastsCommand: IForecastsCommand = ({
 
 			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
-	},
-	async [kRemoveSubcommand](interaction) {
+	}
+
+	public async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const id = interaction.options.getString('id', true);
 
 		await interaction.deferReply();
@@ -142,8 +154,9 @@ export const forecastsCommand: IForecastsCommand = ({
 			captureError('Failed to remove forecast destination', err, { id });
 			return interaction.editReply(_('commands.forecasts.err.couldNotRemoveDest'));
 		}
-	},
-	async [kListSubcommand](interaction) {
+	}
+
+	public async _handleListSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const guildId = interaction.guildId;
 		const channel = interaction.options.getChannel('channel', true);
 
@@ -174,7 +187,7 @@ export const forecastsCommand: IForecastsCommand = ({
 			.setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, channelId, autoCleanup } of destinations) {
-			const info    = await locationService.getInfoFromCoordinates(latitude, longitude);
+			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
@@ -186,17 +199,5 @@ export const forecastsCommand: IForecastsCommand = ({
 		}
 
 		return interaction.editReply({ embeds: [embed] });
-	},
-
-	async handle(interaction) {
-		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
-		switch (subcommand) {
-			case 'add':
-				return this[kAddSubcommand](interaction);
-			case 'remove':
-				return this[kRemoveSubcommand](interaction);
-			case 'list':
-				return this[kListSubcommand](interaction);
-		}
-	},
-});
+	}
+}

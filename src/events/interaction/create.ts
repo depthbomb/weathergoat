@@ -1,44 +1,33 @@
 import { _ } from '@lib/i18n';
+import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { captureError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
-import type { Maybe } from '#types';
-import type { IEvent } from '@events';
-import type { ICommand } from '@commands';
 import type { CacheType, Interaction } from 'discord.js';
+import type { BaseCommandWithAutocomplete } from '@commands';
 
-interface IInteractionCreateEvent extends IEvent<'interactionCreate'> {
-	[kGetCommandName](interaction: Interaction<CacheType>): Maybe<ICommand>;
-}
+export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
+	public constructor() {
+		super({ name: 'interactionCreate' });
+	}
 
-const kGetCommandName = Symbol('get-command-name-method');
-
-export const interactionCreateEvent: IInteractionCreateEvent = ({
-	name: 'interactionCreate',
-
-	[kGetCommandName](interaction: Interaction<CacheType>) {
-		if (!('commandName' in interaction)) return;
-
-		return interaction.client.commands.get(interaction.commandName);
-	},
-
-	async handle(interaction) {
-		const command = this[kGetCommandName](interaction);
+	public async handle(interaction: Interaction<CacheType>) {
+		const command = this._getCommand(interaction);
 		if (!command) return;
 
 		if (interaction.isChatInputCommand()) {
 			const sw = new Stopwatch();
 
 			try {
-				logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.data.name}`);
+				logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
 
 				await interaction.channel?.sendTyping();
 
 				if (command.preconditions) {
 					for (const precondition of command.preconditions) {
-						const result = await precondition(interaction);
+						const result = await precondition.check(interaction, interaction.client.container);
 						if (result.err) {
 							throw result.err;
 						}
@@ -65,10 +54,16 @@ export const interactionCreateEvent: IInteractionCreateEvent = ({
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {
-				await command.handleAutocomplete?.(interaction);
+				await (command as BaseCommandWithAutocomplete).handleAutocomplete?.(interaction);
 			} catch (err: unknown) {
 				captureError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
 			}
 		}
-	},
-});
+	}
+
+	private _getCommand(interaction: Interaction<CacheType>) {
+		if (!('commandName' in interaction)) return;
+
+		return interaction.client.commands.get(interaction.commandName);
+	}
+}

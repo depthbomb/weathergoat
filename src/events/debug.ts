@@ -1,12 +1,15 @@
+import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { IEvent } from '@events';
 
-interface IDebugEvent extends IEvent<'debug'> {}
+export default class DebugEvent extends BaseEvent<'debug'> {
+	public constructor() {
+		super({
+			name: 'debug',
+			disabled: process.env.MODE === 'production'
+		});
+	}
 
-export const debugEvent: IDebugEvent = ({
-	name: 'debug',
-	disabled: process.env.MODE === 'production',
-	handle(message) {
+	public async handle(message: string) {
 		logger.silly(message);
-	},
-});
+	}
+}

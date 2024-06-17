@@ -1,8 +1,9 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
+import { Tokens } from '@container';
+import { BaseCommand } from '@commands';
 import { Duration } from '@sapphire/time-utilities';
-import { locationService } from '@services/location';
-import { cooldownPrecondition } from '@preconditions/cooldownPrecondition';
+import CooldownPrecondition from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	time,
@@ -15,39 +16,45 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { ICommand } from '@commands';
+import type { Container } from '@container';
 import type { HTTPRequestError } from '@lib/errors';
+import type { ILocationService } from '@services/location';
 import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
 
-interface IRadarChannelCommand extends ICommand {}
+export default class RadarChannelCommand extends BaseCommand {
+	private readonly _location: ILocationService;
 
-export const radarCommand: IRadarChannelCommand = ({
-	data: new SlashCommandBuilder()
-	.setName('radar-channel')
-	.setDescription('Designates a channel to post auto-updating radar images for a region')
-	.setDMPermission(false)
-	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-	.addChannelOption(o => o
-		.setName('channel')
-		.setDescription('The channel')
-		.setRequired(true)
-	)
-	.addStringOption(o => o
-		.setName('latitude')
-		.setDescription('The latitude of the area')
-		.setRequired(true)
-	)
-	.addStringOption(o => o
-		.setName('longitude')
-		.setDescription('The longitude of the area')
-		.setRequired(true)
-	),
+	public constructor(container: Container) {
+		super({
+			data: new SlashCommandBuilder()
+			.setName('radar-channel')
+			.setDescription('Designates a channel to post auto-updating radar images for a region')
+			.setDMPermission(false)
+			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+			.addChannelOption(o => o
+				.setName('channel')
+				.setDescription('The channel')
+				.setRequired(true)
+			)
+			.addStringOption(o => o
+				.setName('latitude')
+				.setDescription('The latitude of the area')
+				.setRequired(true)
+			)
+			.addStringOption(o => o
+				.setName('longitude')
+				.setDescription('The longitude of the area')
+				.setRequired(true)
+			),
+			preconditions: [
+				new CooldownPrecondition({ duration: '5s', global: true })
+			]
+		});
 
-	preconditions: [
-		cooldownPrecondition({ duration: '5s', global: true })
-	],
+		this._location = container.resolve(Tokens.Location);
+	}
 
-	async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
 		const maxCount  = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
 		const guildId   = interaction.guildId;
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
@@ -61,13 +68,13 @@ export const radarCommand: IRadarChannelCommand = ({
 		const existingCount = await db.radarChannel.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of radar channels in this server.', { max: maxCount });
 
-		if (!locationService.isValidCoordinates(latitude, longitude)) {
+		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
 
-		const info = await locationService.getInfoFromCoordinates(latitude, longitude);
+		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 		const row = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()
@@ -127,4 +134,4 @@ export const radarCommand: IRadarChannelCommand = ({
 			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
 	}
-});
+}

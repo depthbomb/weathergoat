@@ -2,6 +2,7 @@ import type { WeatherGoat } from '@lib/client';
 
 export type Maybe<T> = T | undefined;
 export type Nullable<T> = T | null;
+export type BaseId<T extends string> = `com.weathergoat.${T}`;
 
 declare module 'bun' {
 	interface Env {

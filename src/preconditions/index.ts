@@ -1,6 +1,7 @@
 import { MakeErrorClass } from 'fejl';
 import type { Nullable } from '#types';
-import type { Awaitable, ChatInputCommandInteraction } from 'discord.js';
+import type { Container } from '@container';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export const enum CheckResult {
 	Success,
@@ -35,7 +36,9 @@ export class PreconditionResult {
 	}
 }
 
-export type Precondition = (interaction: ChatInputCommandInteraction) => Awaitable<PreconditionResult>
+export abstract class BasePrecondition {
+	public abstract check(interaction: ChatInputCommandInteraction, container: Container): Promise<PreconditionResult>;
+}
 
 export function isPreconditionError(err: unknown): err is PreconditionError {
 	return err instanceof PreconditionError;

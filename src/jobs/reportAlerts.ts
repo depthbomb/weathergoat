@@ -1,31 +1,27 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
+import { BaseJob } from '@jobs';
 import { withQuery } from 'ufo';
-import { alertsService } from '@services/alerts';
-import { featuresService } from '@services/features';
+import { Container, Tokens } from '@container';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
-import type { IJob } from '@jobs';
 import type { WeatherGoat } from '@lib/client';
+import type { IAlertsService } from '@services/alerts';
 
-interface IReportAlertsJob extends IJob {
-	[kWebhookName]: string;
-	[kWebhookReason]: string;
-}
+export default class ReportAlertsJob extends BaseJob {
+	private readonly _alerts: IAlertsService;
+	private readonly _username: string;
+	private readonly _reason: string;
 
-const kWebhookName   = Symbol('webhook-name');
-const kWebhookReason = Symbol('webhook-reason');
+	public constructor(container: Container) {
+		super({ name: 'com.weathergoat.jobs.ReportAlerts', pattern: '*/10 * * * * *' });
 
-export const reportAlertsJob: IReportAlertsJob = ({
-	name: 'com.weathergoat.jobs.ReportAlerts',
-	pattern: '*/10 * * * * *',
+		this._alerts = container.resolve(Tokens.Alerts);
+		this._username = 'WeatherGoat#Alerts';
+		this._reason = 'Required for weather alert reporting';
+	}
 
-	[kWebhookName]: 'WeatherGoat#Alerts',
-	[kWebhookReason]: 'Required for weather alert reporting',
-
-	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableAlertReporting', false)) return;
-
+	public async execute(client: WeatherGoat<true>) {
 		const destinations = await db.alertDestination.findMany({
 			select: {
 				zoneId: true,
@@ -42,7 +38,7 @@ export const reportAlertsJob: IReportAlertsJob = ({
 
 			if (!isTextChannel(channel)) continue;
 
-			const alerts  = await alertsService.getActiveAlertsForZone(zoneId, countyId);
+			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId, countyId);
 			for (const alert of alerts) {
 				const alreadyReported = await db.sentAlert.findFirst({
 					where: {
@@ -97,11 +93,14 @@ export const reportAlertsJob: IReportAlertsJob = ({
 					}
 				}
 
+				const username = this._username;
+				const reason   = this._reason;
+
 				const shouldPingEveryone = !!((alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere);
-				const webhook            = await client.getOrCreateWebhook(channel, this[kWebhookName], this[kWebhookReason]);
+				const webhook            = await client.getOrCreateWebhook(channel, username, reason);
 				const { id: messageId }  = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
-					username: this[kWebhookName],
+					username,
 					avatarURL: client.user.avatarURL({ forceStatic: false })!,
 					embeds: [embed]
 				});
@@ -130,4 +129,4 @@ export const reportAlertsJob: IReportAlertsJob = ({
 			}
 		}
 	}
-});
+}

@@ -1,11 +1,12 @@
+import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { IEvent } from '@events';
 
-interface IWarnEvent extends IEvent<'warn'> {}
+export default class WarnEvent extends BaseEvent<'warn'> {
+	public constructor() {
+		super({ name: 'warn' });
+	}
 
-export const warnEvent: IWarnEvent = ({
-	name: 'warn',
-	handle(message) {
-		logger.warn(message);
-	},
-});
+	public async handle(message: string) {
+		logger.silly(message);
+	}
+}

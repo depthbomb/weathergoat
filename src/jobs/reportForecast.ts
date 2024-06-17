@@ -1,32 +1,31 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
+import { BaseJob } from '@jobs';
+import { Tokens } from '@container';
 import { Duration } from '@sapphire/time-utilities';
-import { featuresService } from '@services/features';
-import { locationService } from '@services/location';
-import { forecastService } from '@services/forecast';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { IJob } from '@jobs';
+import type { Container } from '@container';
 import type { WeatherGoat } from '@lib/client';
+import type { ILocationService } from '@services/location';
+import type { IForecastService } from '@services/forecast';
 
-interface IReportForecastsJob extends IJob {
-	[kWebhookName]: string;
-	[kWebhookReason]: string;
-}
+export default class ReportForecastsJob extends BaseJob {
+	private readonly _username: string;
+	private readonly _reason: string;
+	private readonly _location: ILocationService;
+	private readonly _forecast: IForecastService;
 
-const kWebhookName   = Symbol('webhook-name');
-const kWebhookReason = Symbol('webhook-reason');
+	public constructor(container: Container) {
+		super({ name: 'com.weathergoat.jobs.ReportForecasts', pattern: '0 * * * *' });
 
-export const reportForecastsJob: IReportForecastsJob = ({
-	name: 'com.weathergoat.jobs.ReportForecasts',
-	pattern: '0 * * * *',
+		this._username = 'WeatherGoat#Forecast';
+		this._reason = 'Required for weather forecast reporting';
+		this._location = container.resolve(Tokens.Location);
+		this._forecast = container.resolve(Tokens.Forecast);
+	}
 
-	[kWebhookName]: 'WeatherGoat#Forecast',
-	[kWebhookReason]: 'Required for weather forecast reporting',
-
-	async execute(client: WeatherGoat<true>) {
-		if (featuresService.isFeatureEnabled('com.weathergoat.features.DisableForecastReporting', false)) return;
-
+	public async execute(client: WeatherGoat<true>) {
 		const destinations = await db.forecastDestination.findMany({
 			select: {
 				latitude: true,
@@ -42,8 +41,8 @@ export const reportForecastsJob: IReportForecastsJob = ({
 
 			if (!isTextChannel(channel)) continue;
 
-			const forecast = await forecastService.getForecastForCoordinates(latitude, longitude);
-			const location = await locationService.getInfoFromCoordinates(latitude, longitude);
+			const forecast = await this._forecast.getForecastForCoordinates(latitude, longitude);
+			const location = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
 				.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
 				.setColor(client.brandColor)
@@ -56,10 +55,10 @@ export const reportForecastsJob: IReportForecastsJob = ({
 				embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
 			}
 
-			const webhook = await client.getOrCreateWebhook(channel, this[kWebhookName], this[kWebhookReason]);
+			const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);
 
 			const { id: messageId } = await webhook.send({
-				username: this[kWebhookName],
+				username: this._username,
 				avatarURL: client.user!.avatarURL({ forceStatic: false })!,
 				embeds: [embed],
 				flags: MessageFlags.SuppressNotifications
@@ -77,4 +76,4 @@ export const reportForecastsJob: IReportForecastsJob = ({
 			}
 		}
 	}
-});
+}

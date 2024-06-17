@@ -1,9 +1,12 @@
-import { httpService } from './http';
+import { Tokens } from '@container';
 import { Point } from '@models/Point';
-import { cacheService } from './cache';
 import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
+import type { Maybe } from '#types';
 import type { IService } from '@services';
+import type { Container } from '@container';
+import type { HttpClient, IHttpService } from './http';
+import type { CacheStore, ICacheService } from './cache';
 
 type CoordinateInfo = {
 	latitude: string;
@@ -16,23 +19,7 @@ type CoordinateInfo = {
 	radarImageUrl: string;
 };
 
-interface ILocationService extends IService {
-	/**
-	 * @internal
-	 */
-	[kLocationCache]: ReturnType<typeof cacheService.getOrCreateStore>;
-	/**
-	 * @internal
-	 */
-	[kLocationHttpClient]: ReturnType<typeof httpService.getClient>;
-	/**
-	 * @internal
-	 */
-	[kCoordinatePattern]: RegExp;
-	/**
-	 * @internal
-	 */
-	[kCoordinatesPattern]: RegExp;
+export interface ILocationService extends IService {
 	/**
 	 * Whether the input coordinates are valid.
 	 * @param coordinates The latitude and longitude joined by a comma (for example `21.3271,-157.8793`).
@@ -58,20 +45,23 @@ interface ILocationService extends IService {
 	getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo>;
 }
 
-const kLocationCache      = Symbol('location-cache');
-const kLocationHttpClient = Symbol('http-client');
-const kCoordinatePattern  = Symbol('coordinate-pattern');
-const kCoordinatesPattern = Symbol('coordinates-pattern');
+export default class LocationService implements ILocationService {
+	private readonly _http: HttpClient;
+	private readonly _cache: CacheStore;
+	private readonly _coordinatePattern: RegExp;
+	private readonly _coordinatesPattern: RegExp;
 
-export const locationService: ILocationService = ({
-	name: 'com.weathergoat.services.Location',
+	public constructor(container: Container) {
+		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
+		const cacheService = container.resolve<ICacheService>(Tokens.Cache);
 
-	[kLocationCache]: cacheService.getOrCreateStore('locations', '1 week'),
-	[kLocationHttpClient]: httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true }),
-	[kCoordinatePattern]: /^(-?\d+(?:\.\d+)?)$/,
-	[kCoordinatesPattern]: /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/,
+		this._http = httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true });
+		this._cache = cacheService.createStore('locations');
+		this._coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
+		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
+	}
 
-	isValidCoordinates(combinedCoordinatesOrLatitude, longitude?) {
+	public isValidCoordinates(combinedCoordinatesOrLatitude: string, longitude?: Maybe<string>): boolean {
 		if (combinedCoordinatesOrLatitude.includes(',') || !longitude) {
 			const split = combinedCoordinatesOrLatitude.split(',');
 			const lat   = split[0].trim();
@@ -80,16 +70,17 @@ export const locationService: ILocationService = ({
 			return this.isValidCoordinates(lat, lon);
 		}
 
-		return this[kCoordinatePattern].test(combinedCoordinatesOrLatitude) && this[kCoordinatePattern].test(longitude as string);
-	},
-	async getInfoFromCoordinates(latitude, longitude) {
-		const res = await this[kLocationHttpClient].get(`/points/${latitude},${longitude}`);
+		return this._coordinatePattern.test(combinedCoordinatesOrLatitude) && this._coordinatePattern.test(longitude as string);
+	}
+
+	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
+		const res = await this._http.get(`/points/${latitude},${longitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const cacheKey = latitude + longitude;
-		if (this[kLocationCache].has(cacheKey)) {
-			return this[kLocationCache].get<CoordinateInfo>(cacheKey)!;
+		if (this._cache.has(cacheKey)) {
+			return this._cache.get<CoordinateInfo>(cacheKey)!;
 		}
 
 		const json = await res.json();
@@ -105,8 +96,8 @@ export const locationService: ILocationService = ({
 			radarImageUrl: data.radarImageUrl
 		};
 
-		this[kLocationCache].set(cacheKey, info);
+		this._cache.set(cacheKey, info);
 
 		return info;
-	},
-});
+	}
+}

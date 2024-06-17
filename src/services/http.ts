@@ -24,11 +24,7 @@ type CreateHttpClientOptions = HttpClientOptions;
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
-interface IHttpService extends IService {
-	/**
-	 * @internal
-	 */
-	[kClients]: Collection<string, HttpClient>;
+export interface IHttpService extends IService {
 	/**
 	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
 	 * @param name The name to identify the HTTP client.
@@ -37,9 +33,7 @@ interface IHttpService extends IService {
 	getClient(name: string, options: CreateHttpClientOptions): HttpClient;
 }
 
-const kClients = Symbol('http-clients');
-
-class HttpClient {
+export class HttpClient {
 	private readonly _retry:             boolean;
 	private readonly _baseUrl?:          string;
 	private readonly _retryPolicy:       RetryPolicy;
@@ -107,21 +101,23 @@ class HttpClient {
 	}
 }
 
-export const httpService: IHttpService = ({
-	name: 'com.weathergoat.services.HTTP',
+export default class HttpService implements IHttpService {
+	private readonly _clients: Collection<string, HttpClient>;
 
-	[kClients]: new Collection(),
+	public constructor() {
+		this._clients = new Collection();
+	}
 
-	getClient(name: string, options: CreateHttpClientOptions) {
-		if (this[kClients].has(name)) {
-			return this[kClients].get(name)!;
+	public getClient(name: string, options: CreateHttpClientOptions): HttpClient {
+		if (this._clients.has(name)) {
+			return this._clients.get(name)!;
 		}
 
 		const { baseUrl, retry } = options;
 		const client             = new HttpClient({ baseUrl, retry });
 
-		this[kClients].set(name, client);
+		this._clients.set(name, client);
 
 		return client;
 	}
-});
+}

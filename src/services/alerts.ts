@@ -1,33 +1,36 @@
-import { httpService } from './http';
+import { Tokens } from '@container';
 import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
 import type { IService } from '@services';
 import type { Alert } from '@models/Alert';
+import type { Container } from '@container';
+import type { HttpClient, IHttpService } from './http';
 
-interface IAlertsService extends IService {
-	[kHttpClient]: ReturnType<typeof httpService.getClient>;
+export interface IAlertsService extends IService {
 	/**
-	 * Retrieves all active alerts.
+	 * Retrieves all active weather alerts.
 	 */
 	getActiveAlerts(): Promise<Alert[]>;
 	/**
 	 * Retrieves weather alerts for a zone.
+	 *
 	 * @param zoneId The ID of the zone to retrieve alerts of.
 	 * @param countyId Optional county ID to retrieve alerts of.
 	 */
 	getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]>;
 }
 
-const kHttpClient = Symbol('http-client');
+export default class AlertsService implements IAlertsService {
+	private readonly _http: HttpClient;
 
-export const alertsService: IAlertsService = ({
-	name: 'com.weathergoat.services.Alerts',
+	public constructor(container: Container) {
+		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
+		this._http = httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' });
+	}
 
-	[kHttpClient]: httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' }),
-
-	async getActiveAlerts() {
-		const res = await this[kHttpClient].get('/alerts/active');
+	public async getActiveAlerts(): Promise<Alert[]> {
+		const res = await this._http.get('/alerts/active');
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
@@ -35,14 +38,15 @@ export const alertsService: IAlertsService = ({
 		const data = plainToClass(AlertCollection, json);
 
 		return data.alerts;
-	},
-	async getActiveAlertsForZone(zoneId: string, countyId?: string) {
+	}
+
+	public async getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]> {
 		const ids = [zoneId];
 		if (countyId) {
 			ids.push(countyId);
 		}
 
-		const res = await this[kHttpClient].get('/alerts/active', {
+		const res = await this._http.get('/alerts/active', {
 			query: {
 				'zone[]': ids
 			}
@@ -55,4 +59,4 @@ export const alertsService: IAlertsService = ({
 
 		return data.alerts;
 	}
-});
+}

@@ -1,13 +1,15 @@
+import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { IEvent } from '@events';
+import type { Client } from 'discord.js';
 
-interface IClientReadyEvent extends IEvent<'ready'> {}
+export default class ClientReadyEvent extends BaseEvent<'ready'> {
+	public constructor() {
+		super({ name: 'ready' });
+	}
 
-export const clientReadyEvent: IClientReadyEvent = ({
-	name: 'ready',
-	handle(client) {
+	public async handle(client: Client<true>) {
 		const { readyAt } = client;
 
 		logger.info('Logged in to Discord', { readyAt });
-	},
-});
+	}
+}

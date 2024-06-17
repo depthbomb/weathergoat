@@ -1,14 +1,10 @@
-import { Collection } from 'discord.js';
+import { Collection} from 'discord.js';
 import { Duration } from '@sapphire/time-utilities';
 import type { IService } from '@services';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
 
-interface ICacheService extends IService {
-	/**
-	 * @internal
-	 */
-	[kStores]: Collection<string, CacheStore>;
+export interface ICacheService extends IService {
 	/**
 	 * Creates a new cache store.
 	 * @param name The name of the cache store.
@@ -28,9 +24,7 @@ interface ICacheService extends IService {
 	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
 }
 
-const kStores = Symbol('stores');
-
-class CacheStore {
+export class CacheStore {
 	private readonly _ttl: string;
 	private readonly _cache: Map<string, CacheItem<unknown>>;
 
@@ -75,34 +69,39 @@ class CacheStore {
 	}
 }
 
-export const cacheService: ICacheService = ({
-	name: 'com.weathergoat.services.Cache',
+export default class CacheService implements ICacheService {
+	private readonly _stores: Collection<string, CacheStore>;
 
-	[kStores]: new Collection(),
+	public constructor() {
+		this._stores = new Collection();
+	}
 
-	createStore(name: string, defaultTtl?: string) {
-		if (this[kStores].has(name)) {
+	public createStore(name: string, defaultTtl?: string): CacheStore {
+		if (this._stores.has(name)) {
 			throw new Error(`Cache store "${name}" already exists`);
 		}
 
 		const store = new CacheStore(defaultTtl);
 
-		this[kStores].set(name, store);
+		this._stores.set(name, store);
 
 		return store;
-	},
-	getStore(name: string) {
-		if (!this[kStores].has(name)) {
+	}
+
+	public getStore(name: string): CacheStore {
+		if (!this._stores.has(name)) {
 			throw new Error(`Cache store "${name}" does not exist`);
 		}
 
-		return this[kStores].get(name)!;
-	},
-	getOrCreateStore(name: string, defaultTtl?: string) {
-		if (this[kStores].has(name)) {
-			return this[kStores].get(name)!;
+		return this._stores.get(name)!;
+	}
+
+	public getOrCreateStore(name: string, defaultTtl?: string): CacheStore {
+		if (this._stores.has(name)) {
+			return this._stores.get(name)!;
 		}
 
 		return this.createStore(name, defaultTtl);
 	}
-});
+
+}
