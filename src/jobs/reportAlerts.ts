@@ -96,7 +96,11 @@ export default class ReportAlertsJob extends BaseJob {
 				const username = this._username;
 				const reason   = this._reason;
 
-				const shouldPingEveryone = !!((alert.severity === 'Severe' || alert.severity === 'Extreme') && pingOnSevere);
+				const shouldPingEveryone = !!(
+					(alert.severity === 'Severe' || alert.severity === 'Extreme') &&
+					!alert.event.includes('Excessive Heat Warning') &&
+					pingOnSevere
+				);
 				const webhook            = await client.getOrCreateWebhook(channel, username, reason);
 				const { id: messageId }  = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
