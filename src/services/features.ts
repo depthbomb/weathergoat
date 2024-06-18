@@ -6,7 +6,7 @@ import type { Maybe, BaseId } from '#types';
 type FeatureId = `${BaseId<'features'>}.${string}`;
 
 export interface IFeaturesService extends IService {
-	set(name: FeatureId, fraction: number, description?: string): void;
+	set(name: FeatureId, fraction: number, description?: string): IFeaturesService;
 	get(name: FeatureId): Maybe<Feature>;
 	isFeatureEnabled(name: FeatureId, defaultValue?: boolean): boolean;
 	all(): Feature[];
@@ -28,17 +28,19 @@ export default class FeaturesService implements IFeaturesService {
 		this._features = new Collection();
 	}
 
-	public set(name: FeatureId, fraction: number, description?: string): void {
+	public set(name: FeatureId, fraction: number, description?: string) {
 		const obj = { name, fraction, description };
 
 		this._features.set(name, plainToInstance(Feature, obj));
+
+		return this;
 	}
 
-	public get(name: FeatureId): Maybe<Feature> {
+	public get(name: FeatureId) {
 		return this._features.get(name);
 	}
 
-	public isFeatureEnabled(name: FeatureId, defaultValue?: boolean): boolean {
+	public isFeatureEnabled(name: FeatureId, defaultValue?: boolean) {
 		const feature = this._features.find(f => f.name === name);
 		if (!feature) {
 			if (typeof defaultValue === 'undefined') {
@@ -51,7 +53,7 @@ export default class FeaturesService implements IFeaturesService {
 		return feature.check();
 	}
 
-	public all(): Feature[] {
+	public all() {
 		return Array.from(this._features.values());
 	}
 

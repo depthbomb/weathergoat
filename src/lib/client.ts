@@ -28,10 +28,19 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly _idGenerators: Collection<number, () => string>;
 	private readonly _moduleFilePattern: RegExp;
 
-	public constructor(options: ClientOptions) {
+	/**
+	 * Creates a new instance of {@link WeatherGoat}.
+	 *
+	 * @param options Options to pass to the {@link Client}.
+	 * @param dry Whether the service container should be "dry". This allows services and values to
+	 * be resolved whether they are registered or not and will return `null`. This is useful if you
+	 * need to work with services that have other services injected into them in which they are not
+	 * actually needed, such as when pushing command data to Discord.
+	 */
+	public constructor(options: ClientOptions, dry = false) {
 		super(options);
 
-		this.container = new Container();
+		this.container = new Container(dry);
 
 		this.jobs     = new Set();
 		this.events   = new Collection();

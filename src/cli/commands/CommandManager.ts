@@ -21,8 +21,9 @@ export class CommandManagerCommand extends Command<BaseContext> {
 
 		switch (this.action) {
 			case 'create':
-				const bot = new WeatherGoat({ intents: [] });
+				const bot = new WeatherGoat({ intents: [] }, true);
 				await bot.registerCommands();
+
 				const body = [...bot.commands].map(([,command]) => command.data.toJSON());
 				if (global) {
 					await rest.put(Routes.applicationCommands(botId), { body });
@@ -59,7 +60,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				break;
 		}
 
-		logger.info('Operation finished', { elapsed: sw.stop().toString() })
+		logger.info('Operation finished', { elapsed: sw.stop().toString() });
 
 		return exitCode;
 	}

@@ -5,9 +5,14 @@ export * from './tokens';
 type ServiceModule = new(container: Container) => IService;
 
 export class Container {
+	private readonly _dry: boolean;
 	private readonly _values = new Map<string, unknown>();
 	private readonly _modules = new Map<string, ServiceModule>();
 	private readonly _services = new Map<string, IService>();
+
+	public constructor(dry: boolean) {
+		this._dry = dry;
+	}
 
 	public get services() {
 		return this._services;
@@ -44,6 +49,10 @@ export class Container {
 
 		const mod = this._modules.get(token);
 		if (!mod) {
+			if (this._dry) {
+				return null as T;
+			}
+
 			throw new Error(`Service not registered: ${token}`);
 		}
 
