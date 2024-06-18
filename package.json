@@ -11,7 +11,7 @@
 	"dependencies": {
 		"@abraham/reflection": "^0.12.0",
 		"@paralleldrive/cuid2": "^2.2.2",
-		"@prisma/client": "^5.15.0",
+		"@prisma/client": "^5.15.1",
 		"@sapphire/discord.js-utilities": "^7.3.0",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.9",
@@ -36,7 +36,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
-		"prisma": "^5.15.0",
+		"prisma": "^5.15.1",
 		"typescript": "beta"
 	},
 	"trustedDependencies": [
