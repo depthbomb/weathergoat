@@ -9,6 +9,18 @@ export class Container {
 	private readonly _modules = new Map<string, ServiceModule>();
 	private readonly _services = new Map<string, IService>();
 
+	public get services() {
+		return this._services;
+	}
+
+	public get modules() {
+		return this._modules;
+	}
+
+	public get values() {
+		return this._values;
+	}
+
 	public register<T>(token: string, serviceModule: T) {
 		this._modules.set(token, serviceModule as ServiceModule);
 
