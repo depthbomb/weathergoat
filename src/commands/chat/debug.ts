@@ -1,6 +1,7 @@
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
+import { InvalidPermissionsError } from '@lib/errors';
 import { codeBlock, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
 import type { IFeaturesService } from '@services/features';
@@ -40,6 +41,8 @@ export default class DebugCommand extends BaseCommand {
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+		InvalidPermissionsError.assert(interaction.user.id === interaction.client.application.owner?.id);
+
 		await this.handleSubcommand(interaction);
 	}
 
