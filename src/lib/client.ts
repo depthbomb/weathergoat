@@ -19,7 +19,7 @@ type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Array<[BaseJob, Cron]>;
+	public readonly jobs: Array<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
@@ -62,8 +62,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async destroy() {
 		logger.info('Shutting down', { date: new Date() });
 
-		for (const [,job] of this.jobs) {
-			job.stop();
+		for (const { cron } of this.jobs) {
+			if (cron.isRunning()) {
+				cron.stop();
+			}
 		}
 
 		await db.$disconnect();
@@ -109,27 +111,27 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
-			const j = Cron(pattern, async (self: Cron) => await job.execute(this, self), {
+			const cron = Cron(pattern, async (self: Cron) => await job.execute(this, self), {
 				name,
 				paused: true,
 				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
-				catch: (err: any) => captureError('Job error', err, { name })
+				catch: (err) => captureError('Job error', err, { name })
 			});
 
-			this.jobs.push([job, j]);
+			this.jobs.push({ job, cron });
 
 			if (runImmediately) {
 				if (waitUntilReady) {
 					this.once('ready', async () => {
-						await job.execute(this, j);
-						j.resume();
+						await job.execute(this, cron);
+						cron.resume();
 					});
 				} else {
-					await job.execute(this, j);
-					j.resume();
+					await job.execute(this, cron);
+					cron.resume();
 				}
 			} else {
-				this.once('ready', () => void j.resume());
+				this.once('ready', () => void cron.resume());
 			}
 
 			logger.info('Registered job', {

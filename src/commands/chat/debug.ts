@@ -56,7 +56,15 @@ export default class DebugCommand extends BaseCommand {
 			case 'jobs':
 				const jobs = Array.from(interaction.client.jobs.values());
 				json = JSON.stringify(
-					jobs.map(([j]) => ({ name: j.name, pattern: j.pattern, runImmediately: j.runImmediately, waitUntilReady: j.waitUntilReady })),
+					jobs.map(({ job, cron }) => ({
+						name: job.name,
+						pattern: job.pattern,
+						runImmediately: job.runImmediately,
+						waitUntilReady: job.waitUntilReady,
+						previousRun: cron.previousRun(),
+						nextRuns: cron.nextRuns(10),
+						msToNextRun: cron.msToNext(),
+					})),
 					null,
 					4
 				);
