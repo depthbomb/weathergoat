@@ -15,6 +15,9 @@ type SubcommandMap<T extends string = string> = Record<T, {
 }>;
 
 type CommandOptions = {
+	/**
+	 * Command data, usually defined via {@link SlashCommandBuilder}.
+	 */
 	data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 	/**
 	 * Instances of {@link BasePrecondition|preconditions} whose {@link BasePrecondition.check|check}
@@ -30,14 +33,14 @@ type CommandOptions = {
 export abstract class BaseCommand {
 	public readonly name: string;
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
-	public readonly preconditions: Set<BasePrecondition>;
+	public readonly preconditions: BasePrecondition[];
 
 	private _subcommandMap?: SubcommandMap;
 
 	public constructor(options: CommandOptions) {
 		this.name          = options.data.name;
 		this.data          = options.data;
-		this.preconditions = new Set(options.preconditions ?? []);
+		this.preconditions = options.preconditions ?? [];
 	}
 
 	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;

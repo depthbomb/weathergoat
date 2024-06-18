@@ -19,7 +19,7 @@ type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Set<[BaseJob, Cron]>;
+	public readonly jobs: Array<[BaseJob, Cron]>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
@@ -42,7 +42,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		this.container = new Container(dry);
 
-		this.jobs     = new Set();
+		this.jobs     = [];
 		this.events   = new Collection();
 		this.commands = new Collection();
 
@@ -116,7 +116,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				catch: (err: any) => captureError('Job error', err, { name })
 			});
 
-			this.jobs.add([job, j]);
+			this.jobs.push([job, j]);
 
 			if (runImmediately) {
 				if (waitUntilReady) {
