@@ -12,7 +12,7 @@ type CooldownPreconditionOptions = {
 	global?: boolean;
 };
 
-export default class CooldownPrecondition extends BasePrecondition {
+export class CooldownPrecondition extends BasePrecondition {
 	private readonly _global: boolean;
 	private readonly _manager: RateLimitManager<string>;
 

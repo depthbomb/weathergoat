@@ -1,14 +1,29 @@
+import { InvalidPermissionsError } from '@lib/errors';
+import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { BasePrecondition } from '@preconditions';
 import type {
-	Awaitable,
+	PermissionResolvable,
 	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
 
+type SubcommandMap<T extends string = string> = Record<T, {
+	handler: (interaction: ChatInputCommandInteraction) => Promise<unknown>;
+	preconditions?: BasePrecondition[];
+}>;
+
 type CommandOptions = {
 	data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
+	/**
+	 * Instances of {@link BasePrecondition|preconditions} whose {@link BasePrecondition.check|check}
+	 * method is called before the command's {@link BaseCommand.handle|handler} method.
+	 *
+	 * These preconditions will be checked command-wide so if you need to have different
+	 * preconditions for subcommands then you should manually call the check where the subcommands
+	 * are handled.
+	 */
 	preconditions?: BasePrecondition[];
 };
 
@@ -17,6 +32,8 @@ export abstract class BaseCommand {
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 	public readonly preconditions: Set<BasePrecondition>;
 
+	private _subcommandMap?: SubcommandMap;
+
 	public constructor(options: CommandOptions) {
 		this.name          = options.data.name;
 		this.data          = options.data;
@@ -24,6 +41,38 @@ export abstract class BaseCommand {
 	}
 
 	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;
+
+	public async handleSubcommand(interaction: ChatInputCommandInteraction) {
+		if (!this._subcommandMap) {
+			throw new Error(`No subcommand map for command "${this.name}".`);
+		}
+
+		const subcommandName = interaction.options.getSubcommand(true);
+		const { handler, preconditions } = this._subcommandMap[subcommandName];
+
+		if (preconditions) {
+			for (const precondition of preconditions) {
+				await precondition.checkAndThrow(interaction);
+			}
+		}
+
+		await handler.bind(this)(interaction);
+	}
+
+	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
+		const { channel, member } = interaction;
+
+		message ??= 'You do not shave permission to use this command.';
+
+		return InvalidPermissionsError.assert(
+			isGuildBasedChannel(channel) && isGuildMember(member) && member.permissions.has(permissions),
+			message
+		);
+	}
+
+	public createSubcommandMap<T extends string>(map: SubcommandMap<T>) {
+		this._subcommandMap = map;
+	}
 }
 
 export abstract class BaseCommandWithAutocomplete extends BaseCommand {

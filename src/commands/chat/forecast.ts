@@ -2,7 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
-import CooldownPrecondition from '@preconditions/cooldown';
+import { CooldownPrecondition } from '@preconditions/cooldown';
 import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	codeBlock,
@@ -53,18 +53,16 @@ export default class ForecastCommand extends BaseCommand {
 		});
 
 		this._location = container.resolve(Tokens.Location);
+
+		this.createSubcommandMap<'add' | 'remove' | 'list'>({
+			add: { handler: this._handleAddSubcommand },
+			remove: { handler: this._handleRemoveSubcommand },
+			list: { handler: this._handleListSubcommand },
+		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
-		const subcommand = interaction.options.getSubcommand(true) as 'add' | 'remove' | 'list';
-		switch (subcommand) {
-			case 'add':
-				return this._handleAddSubcommand(interaction);
-			case 'remove':
-				return this._handleRemoveSubcommand(interaction);
-			case 'list':
-				return this._handleListSubcommand(interaction);
-		}
+		await this.handleSubcommand(interaction);
 	}
 
 	public async _handleAddSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {

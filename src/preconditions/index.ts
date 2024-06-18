@@ -37,7 +37,28 @@ export class PreconditionResult {
 }
 
 export abstract class BasePrecondition {
+	/**
+	 * Runs logic on a command interaction and returns a result describing whether the precondition
+	 * failed or succeeded.
+	 *
+	 * @param interaction The {@link ChatInputCommandInteraction|interaction} of the command to run
+	 * the check on.
+	 * @param container The {@link Container|service container instance}.
+	 */
 	public abstract check(interaction: ChatInputCommandInteraction, container: Container): Promise<PreconditionResult>;
+
+	/**
+	 * Runs logic on a command interaction and throws a {@link PreconditionError} if the check fails.
+	 *
+	 * @param interaction The {@link ChatInputCommandInteraction|interaction} of the command to run
+	 * the check on.
+	 */
+	public async checkAndThrow(interaction: ChatInputCommandInteraction): Promise<void> {
+		const res = await this.check(interaction, interaction.client.container);
+		if (res.err) {
+			throw res.err;
+		}
+	}
 }
 
 export function isPreconditionError(err: unknown): err is PreconditionError {

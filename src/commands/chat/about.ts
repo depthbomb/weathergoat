@@ -1,8 +1,8 @@
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
-import CooldownPrecondition from '@preconditions/cooldown';
 import { DurationFormatter } from '@sapphire/time-utilities';
+import { CooldownPrecondition } from '@preconditions/cooldown';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
@@ -25,26 +25,27 @@ export default class AboutCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('stats')
 				.setDescription('Lists some of my technical stats')
-			),
-			preconditions: [
-				new CooldownPrecondition({ duration: '3s', global: true })
-			]
+			)
 		});
 
 		this._github = container.resolve(Tokens.GitHub);
 		this._formatter = new DurationFormatter();
+
+		this.createSubcommandMap<'changelog' | 'stats'>({
+			changelog: {
+				handler: this._handleChangelogSubcommand,
+				preconditions: [
+					new CooldownPrecondition({ duration: '3s', global: true })
+				]
+			},
+			stats: {
+				handler: this._handleStatsSubcommand
+			}
+		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
-		const subcommand = interaction.options.getSubcommand(true) as 'changelog' | 'stats';
-			switch (subcommand) {
-				case 'changelog':
-					await this._handleChangelogSubcommand(interaction);
-					break;
-				case 'stats':
-					await this._handleStatsSubcommand(interaction);
-					break;
-			}
+		await this.handleSubcommand(interaction);
 	}
 
 	private async _handleChangelogSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {

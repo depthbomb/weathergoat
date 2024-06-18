@@ -3,16 +3,15 @@ import { Cron } from 'croner';
 import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { Container } from '@container';
+import { captureError } from '@lib/errors';
 import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
-import { captureError, InvalidPermissionsError } from '@lib/errors';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
-import { isGuildBasedChannel, isGuildMember } from '@sapphire/discord.js-utilities';
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
-import type { TextChannel, ClientEvents, ClientOptions, PermissionResolvable, ChatInputCommandInteraction } from 'discord.js';
+import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
 
 type BaseModule<T> = { default: new(container: Container) => T };
 type JobModule     = BaseModule<BaseJob>;
@@ -73,17 +72,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 
 		return ourWebhook;
-	}
-
-	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
-		const { channel, member } = interaction;
-
-		message ??= 'You do not shave permission to use this command.';
-
-		return InvalidPermissionsError.assert(
-			isGuildBasedChannel(channel) && isGuildMember(member) && member.permissions.has(permissions),
-			message
-		);
 	}
 
 	public generateId(length: number) {

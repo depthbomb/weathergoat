@@ -3,7 +3,7 @@ import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { Duration } from '@sapphire/time-utilities';
-import CooldownPrecondition from '@preconditions/cooldown';
+import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
 import {
 	time,
