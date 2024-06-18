@@ -19,7 +19,7 @@ type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Set<BaseJob>;
+	public readonly jobs: Set<[BaseJob, Cron]>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
@@ -62,6 +62,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async destroy() {
 		logger.info('Shutting down', { date: new Date() });
 
+		for (const [,job] of this.jobs) {
+			job.stop();
+		}
+
 		await db.$disconnect();
 		await super.destroy();
 		await this.container.dispose();
@@ -99,10 +103,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: JobModule = await import(file);
 
-			const job = new mod(this.container);
-
-			if (this.jobs.has(job)) continue;
-
+			const job            = new mod(this.container);
 			const name           = job.name;
 			const pattern        = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
@@ -115,7 +116,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				catch: (err: any) => captureError('Job error', err, { name })
 			});
 
-			this.jobs.add(job);
+			this.jobs.add([job, j]);
 
 			if (runImmediately) {
 				if (waitUntilReady) {
