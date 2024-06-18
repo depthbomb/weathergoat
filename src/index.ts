@@ -1,3 +1,5 @@
+if (!process.versions.bun) throw new Error('WeatherGoat must be ran through Bun.');
+
 import { Tokens } from '@container';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
