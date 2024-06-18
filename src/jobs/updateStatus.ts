@@ -14,7 +14,7 @@ export default class UpdateStatusJob extends BaseJob {
 	public constructor(container: Container) {
 		super({
 			name: 'com.weathergoat.jobs.UpdateStatus',
-			pattern: '*/15 * * * *',
+			pattern: '*/15 * * * * *',
 			runImmediately: true
 		});
 
