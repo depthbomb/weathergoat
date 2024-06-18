@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 export default Prisma.defineExtension({
-	name: 'forecastDestination-countByGuild-extension',
+	name: 'forecast-destination-count-by-guild-extension',
 	model: {
 		forecastDestination: {
 			async countByGuild<T>(this: T, guildId: string): Promise<number> {

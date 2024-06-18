@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 export default Prisma.defineExtension({
-	name: 'radarChannel-countByGuild-extension',
+	name: 'radar-channel-count-by-guild-extension',
 	model: {
 		radarChannel: {
 			async countByGuild<T>(this: T, guildId: string): Promise<number> {

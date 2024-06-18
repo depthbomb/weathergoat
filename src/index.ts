@@ -58,6 +58,7 @@ features.set('com.weathergoat.features.DisableForecastReporting', 0.0, 'Forecast
 features.set('com.weathergoat.features.DisableMessageSweeping', 0.0, 'Message sweeping killswitch');
 features.set('com.weathergoat.features.DisableRadarMessageUpdating', 0.0, 'Radar message updating killswitch');
 features.set('com.weathergoat.features.DisableStatusUpdating', 0.0, 'Status updating killswitch');
+features.set('com.weathergoat.features.experiments.AIAlertSummarizing', 0.0, 'Summarizes weather alerts using AI');
 
 if (process.argv.length > 2) {
 	const cli = wg.container.resolve<ICliService>(Tokens.CLI);
