@@ -1,11 +1,13 @@
+import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
+import { DATABASE_PATH } from '@constants';
 import { InvalidPermissionsError } from '@lib/errors';
-import { codeBlock, SlashCommandBuilder } from 'discord.js';
+import { AttachmentBuilder, codeBlock, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
 import type { IFeaturesService } from '@services/features';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class DebugCommand extends BaseCommand {
 	private readonly _features: IFeaturesService;
@@ -29,24 +31,27 @@ export default class DebugCommand extends BaseCommand {
 					.setRequired(true)
 				)
 			)
+			.addSubcommand(sc => sc
+				.setName('dump-db')
+				.setDescription('Dumps all of the data in my database to a JSON file')
+			)
 		});
 
 		this._features = container.resolve(Tokens.Features);
 
-		this.createSubcommandMap<'print'>({
-			print: {
-				handler: this._handlePrintSubcommand,
-			}
+		this.createSubcommandMap<'print' | 'dump-db'>({
+			print: { handler: this._handlePrintSubcommand },
+			'dump-db': { handler: this._handleDumpDbSubcommand }
 		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+	public async handle(interaction: ChatInputCommandInteraction) {
 		InvalidPermissionsError.assert(interaction.user.id === interaction.client.application.owner?.id);
 
 		await this.handleSubcommand(interaction);
 	}
 
-	private async _handlePrintSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handlePrintSubcommand(interaction: ChatInputCommandInteraction) {
 		const domain = interaction.options.getString('domain', true) as 'services' | 'jobs' | 'features';
 		let json: string = '';
 		switch (domain) {
@@ -71,5 +76,35 @@ export default class DebugCommand extends BaseCommand {
 		}
 
 		await interaction.reply(codeBlock('json', json));
+	}
+
+	private async _handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
+		const date = new Date();
+		const path = DATABASE_PATH;
+
+		await interaction.deferReply();
+
+		const alertDestinations = await db.alertDestination.findMany();
+		const forecastDestinations = await db.forecastDestination.findMany();
+		const radarChannels = await db.radarChannel.findMany();
+		const sentAlerts = await db.sentAlert.findMany();
+		const volatileMessages = await db.volatileMessage.findMany();
+
+		const json = JSON.stringify({
+			date,
+			path,
+			alertDestinations,
+			forecastDestinations,
+			radarChannels,
+			sentAlerts,
+			volatileMessages
+		}, null, 4);
+		const buf = Buffer.from(json, 'utf8');
+		const attachment = new AttachmentBuilder(buf, {
+			name: 'dump.json',
+			description: `A dump of my database taken at ${date}.`
+		});
+
+		await interaction.editReply({ files: [attachment] })
 	}
 }
