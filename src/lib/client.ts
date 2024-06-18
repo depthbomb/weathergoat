@@ -56,7 +56,11 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await this.registerEvents();
 		await this.registerCommands();
 
-		return super.login(token);
+		const res = await super.login(token);
+
+		await this.application?.fetch();
+
+		return res;
 	}
 
 	public async destroy() {
