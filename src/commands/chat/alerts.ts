@@ -66,7 +66,7 @@ export default class AlertsCommand extends BaseCommand {
 		await this.handleSubcommand(interaction);
 	}
 
-	public async _handleAddSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const maxCount     = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
 		const guildId      = interaction.guildId;
 		const channelId    = interaction.channelId;
@@ -147,7 +147,7 @@ export default class AlertsCommand extends BaseCommand {
 		}
 	}
 
-	public async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const id = interaction.options.getString('id', true);
 
 		await interaction.deferReply();
@@ -166,7 +166,7 @@ export default class AlertsCommand extends BaseCommand {
 		}
 	}
 
-	public async _handleListSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleListSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
 		const guildId = interaction.guildId!;
 
 		await interaction.deferReply();
