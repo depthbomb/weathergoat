@@ -17,8 +17,6 @@ The project is specifically written for Bun and thus does not have any sort of b
 MODE=production # set to "development" to enable debug features
 BOT_ID=1234
 BOT_TOKEN=abcdef
-OWNER_ID=1234 # required for legacy commands (see section)
-LEGACY_COMMAND_PREFIX=! # required for legacy commands (see section)
 DATABASE_URL=file:path/to/sqlite/database # example: file:../.data/weathergoat.db
 SENTRY_DSN=https://abcdef # Optional Sentry error reporting
 GITHUB_REPO=depthbomb/weathergoat # Optional, required if the value below is set
@@ -35,14 +33,6 @@ MAX_FORECAST_DESTINATIONS_PER_GUILD=5
     - Globally by running `bun start mc create`
     - In specific guilds by running `bun start mc create <guild-id1> <guild-id2> ...`
 7. Start the bot with `bun start`
-
-### Legacy Commands
-
-WeatherGoat utilizes "legacy commands", commands that are executed by parsing message content, to handle _owner-only_ commands. These commands are primarily used for debug purposes.
-
-### Feature flags
-
-TODO
 
 ## Using the bot
 
