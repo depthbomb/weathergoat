@@ -42,31 +42,7 @@ WeatherGoat utilizes "legacy commands", commands that are executed by parsing me
 
 ### Feature flags
 
-WeatherGoat implements a type of feature flag system that allows you to adjust the probability of a feature being enabled or toggling a feature outright without restarting it. This is achieved by editing the **features.toml** file located in the project root. When changes to it are made, WeatherGoat will parse it and reload the features.
-
-If you are developing new features to test then you can add them:
-
-```toml
-features = [
-	{ name = "com.my.cool.Feature", fraction = 0.5 },
-]
-```
-and check if they should be enabled with:
-```ts
-const isEnabled = featuresService.get('com.my.cool.Feature');
-if (isEnabled()) {
-	// ...
-}
-
-// or with graceful degredation by providing a default value
-const isEnabled = featuresService.isFeatureEnabled('com.my.cool.Feature', false);
-if (isEnabled) {
-	// `isEnabled` will be `false` if "com.my.cool.Feature" does not exist.
-	// Not providing a default value will throw if the feature does not exist.
-}
-```
-
-Currently this system is used as a sort of killswitch to quickly toggle features such as forecast and alert reporting in the case of an emergency.
+TODO
 
 ## Using the bot
 

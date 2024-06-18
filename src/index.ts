@@ -1,7 +1,6 @@
 import { Tokens } from '@container';
 import { logger } from '@lib/logger';
 import { captureError } from '@lib/errors';
-import AlertsService from '@services/alerts';
 import { Partials, GatewayIntentBits } from 'discord.js';
 import type { IFeaturesService } from '@services/features';
 

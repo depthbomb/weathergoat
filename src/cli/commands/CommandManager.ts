@@ -23,7 +23,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 			case 'create':
 				const bot = new WeatherGoat({ intents: [] });
 				await bot.registerCommands();
-				const body = [...bot.commands].map(([, command]) => command.data.toJSON());
+				const body = [...bot.commands].map(([,command]) => command.data.toJSON());
 				if (global) {
 					await rest.put(Routes.applicationCommands(botId), { body });
 
