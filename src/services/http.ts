@@ -23,7 +23,7 @@ type HttpClientOptions = {
 	 */
 	retry?: boolean;
 };
-type CreateHttpClientOptions = HttpClientOptions;
+type CreateHttpClientOptions = Omit<HttpClientOptions, 'name'>;
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
