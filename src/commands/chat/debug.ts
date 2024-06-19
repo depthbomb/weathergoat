@@ -3,8 +3,8 @@ import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { DATABASE_PATH } from '@constants';
-import { InvalidPermissionsError } from '@lib/errors';
-import { AttachmentBuilder, codeBlock, SlashCommandBuilder } from 'discord.js';
+import { OwnerPrecondition } from '@preconditions/owner';
+import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
 import type { IFeaturesService } from '@services/features';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -34,7 +34,10 @@ export default class DebugCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('dump-db')
 				.setDescription('Dumps all of the data in my database to a JSON file')
-			)
+			),
+			preconditions: [
+				new OwnerPrecondition()
+			]
 		});
 
 		this._features = container.resolve(Tokens.Features);
@@ -46,8 +49,6 @@ export default class DebugCommand extends BaseCommand {
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		InvalidPermissionsError.assert(interaction.user.id === interaction.client.application.owner?.id);
-
 		await this.handleSubcommand(interaction);
 	}
 
