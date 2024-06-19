@@ -21,7 +21,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 
 		switch (this.action) {
 			case 'create':
-				const bot = new WeatherGoat({ intents: [] }, true);
+				const bot = new WeatherGoat({ intents: [], dry: true });
 				await bot.registerCommands();
 
 				const body = [...bot.commands].map(([,command]) => command.data.toJSON());

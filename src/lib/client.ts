@@ -18,6 +18,16 @@ type JobModule     = BaseModule<BaseJob>;
 type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
+type WeatherGoatOptions = ClientOptions & {
+	/**
+	 * Whether the service container should be "dry". This allows services and values to
+	 * be resolved whether they are registered or not and will return `null`. This is useful if you
+	 * need to work with services that have other services injected into them in which they are not
+	 * actually needed, such as when pushing command data to Discord.
+	 */
+	dry?: boolean;
+}
+
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Array<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
@@ -28,19 +38,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly _idGenerators: Collection<number, () => string>;
 	private readonly _moduleFilePattern: RegExp;
 
-	/**
-	 * Creates a new instance of {@link WeatherGoat}.
-	 *
-	 * @param options Options to pass to the {@link Client}.
-	 * @param dry Whether the service container should be "dry". This allows services and values to
-	 * be resolved whether they are registered or not and will return `null`. This is useful if you
-	 * need to work with services that have other services injected into them in which they are not
-	 * actually needed, such as when pushing command data to Discord.
-	 */
-	public constructor(options: ClientOptions, dry = false) {
+	public constructor(options: WeatherGoatOptions) {
 		super(options);
 
-		this.container = new Container(dry);
+		this.container = new Container(!!options.dry);
 
 		this.jobs     = [];
 		this.events   = new Collection();
