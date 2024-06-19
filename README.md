@@ -4,36 +4,6 @@
 
 A Discord bot for reporting weather alerts and hourly forecasts to channels. Built with [Bun](https://bun.sh/), [Discord.js](https://discord.js.org/), [Prisma](https://www.prisma.io/), and the [National Weather Service API](https://www.weather.gov/documentation/services-web-api).
 
-## Self-Hosting
-
-### Installing
-
-The project is specifically written for Bun and thus does not have any sort of build step. Running via Node.js is not supported and may not be supported in the future.
-
-1. Clone the repository
-2. Install dependencies with `bun install`
-3. Create a `.env` file in the root directory with the following contents:
-```env
-MODE=production # set to "development" to enable debug features
-BOT_ID=1234
-BOT_TOKEN=abcdef
-DATABASE_URL=file:path/to/sqlite/database # example: file:../.data/weathergoat.db
-SENTRY_DSN=https://abcdef # Optional Sentry error reporting
-GITHUB_REPO=depthbomb/weathergoat # Optional, required if the value below is set
-GITHUB_ACCESS_TOKEN=ghp_12345abdef # Optional, ignore unless you are self-hosting *your own fork* of the project
-# Max destinations per guild
-MAX_RADAR_CHANNELS_PER_GUILD=5
-MAX_ALERT_DESTINATIONS_PER_GUILD=5
-MAX_FORECAST_DESTINATIONS_PER_GUILD=5
-```
-4. Generate the Prisma client with `bun generate-client`
-5. Run database production migrations with `bun migrate:p`
-    - This can be ran whenever as it won't do anything if there are no pending migrations
-6. Register the bot's commands by one of two ways:
-    - Globally by running `bun start mc create`
-    - In specific guilds by running `bun start mc create <guild-id1> <guild-id2> ...`
-7. Start the bot with `bun start`
-
 ## Using the bot
 
 WeatherGoat's main purpose, reporting, works by checking "destinations" that you create via slash commands. There are two types of destinations:
