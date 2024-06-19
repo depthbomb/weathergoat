@@ -1,6 +1,7 @@
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
+import { isDiscordAPIErrorCode } from '@lib/errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { arch, uptime, version, platform, hostname } from 'node:os';
@@ -56,7 +57,15 @@ export default class AboutCommand extends BaseCommand {
 			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) by [${msg.commit.author?.name}](${msg.author?.html_url})`
 		).join('\n');
 
-		await interaction.editReply(response);
+		try {
+			await interaction.editReply(response);
+		} catch (err) {
+			if (isDiscordAPIErrorCode(err, 50035)) {
+				await interaction.editReply(`A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/depthbomb/weathergoat/commits).`);
+			} else {
+				throw err;
+			}
+		}
 	}
 
 	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
