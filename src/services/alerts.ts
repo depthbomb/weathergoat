@@ -16,9 +16,8 @@ export interface IAlertsService extends IService {
 	 * Retrieves weather alerts for a zone.
 	 *
 	 * @param zoneId The ID of the zone to retrieve alerts of.
-	 * @param countyId Optional county ID to retrieve alerts of.
 	 */
-	getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]>;
+	getActiveAlertsForZone(zoneId: string): Promise<Alert[]>;
 }
 
 export default class AlertsService implements IAlertsService {
@@ -40,17 +39,8 @@ export default class AlertsService implements IAlertsService {
 		return data.alerts;
 	}
 
-	public async getActiveAlertsForZone(zoneId: string, countyId?: string): Promise<Alert[]> {
-		const ids = [zoneId];
-		if (countyId) {
-			ids.push(countyId);
-		}
-
-		const res = await this._http.get('/alerts/active', {
-			query: {
-				'zone[]': ids
-			}
-		});
+	public async getActiveAlertsForZone(zoneId: string): Promise<Alert[]> {
+		const res = await this._http.get(`/alerts/active/zone/${zoneId}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

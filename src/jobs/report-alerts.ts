@@ -33,12 +33,12 @@ export default class ReportAlertsJob extends BaseJob {
 				pingOnSevere: true,
 			}
 		});
-		for (const { zoneId, countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
+		for (const { zoneId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 
 			if (!isTextChannel(channel)) continue;
 
-			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId, countyId);
+			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId);
 			for (const alert of alerts) {
 				const alreadyReported = await db.sentAlert.findFirst({
 					where: {
