@@ -46,7 +46,7 @@ export default class GithubService implements IGithubService {
 		}
 
 		const { sha } = res.data[0];
-		const hash    = short ? sha.slice(0, 7) : sha;
+		const hash = short ? sha.slice(0, 7) : sha;
 
 		this._cache.set(cacheKey, hash);
 

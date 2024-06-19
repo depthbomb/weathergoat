@@ -5,7 +5,7 @@ import { withQuery } from 'ufo';
 import { v7 as uuidv7 } from 'uuid';
 import { Tokens, Container } from '@container';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
+import { time, codeBlock, messageLink, EmbedBuilder } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 import type { IAlertsService } from '@services/alerts';
 
@@ -15,7 +15,10 @@ export default class ReportAlertsJob extends BaseJob {
 	private readonly _reason: string;
 
 	public constructor(container: Container) {
-		super({ name: 'com.weathergoat.jobs.ReportAlerts', pattern: '*/30 * * * * *' });
+		super({
+			name: 'com.weathergoat.jobs.ReportAlerts',
+			pattern: '*/30 * * * * *'
+		});
 
 		this._alerts = container.resolve(Tokens.Alerts);
 		this._username = 'WeatherGoat#Alerts';

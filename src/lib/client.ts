@@ -13,8 +13,8 @@ import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
 import type { TextChannel, ClientEvents, ClientOptions, ColorResolvable } from 'discord.js';
 
 type BaseModule<T> = { default: new(container: Container) => T };
-type JobModule     = BaseModule<BaseJob>;
-type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
+type JobModule = BaseModule<BaseJob>;
+type EventModule = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
 
 type WeatherGoatOptions = ClientOptions & {
@@ -39,10 +39,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public constructor(options: WeatherGoatOptions) {
 		super(options);
 
-		this.jobs       = [];
-		this.events     = new Collection();
-		this.commands   = new Collection();
-		this.container  = new Container(!!options.dry);
+		this.jobs = [];
+		this.events = new Collection();
+		this.commands = new Collection();
+		this.container = new Container(!!options.dry);
 		this.brandColor = '#5876aa';
 
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
@@ -95,9 +95,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: JobModule = await import(file);
 
-			const job            = new mod(this.container);
-			const name           = job.name;
-			const pattern        = job.pattern;
+			const job = new mod(this.container);
+			const name = job.name;
+			const pattern = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
@@ -137,9 +137,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: EventModule = await import(file);
 
-			const event    = new mod(this.container);
-			const name     = event.name;
-			const once     = event.once ?? false;
+			const event = new mod(this.container);
+			const name = event.name;
+			const once = event.once ?? false;
 			const disabled = event.disabled ?? false;
 
 			if (disabled) continue;

@@ -38,8 +38,8 @@ export abstract class BaseCommand {
 	private _subcommandMap?: SubcommandMap;
 
 	public constructor(options: CommandOptions) {
-		this.name          = options.data.name;
-		this.data          = options.data;
+		this.name = options.data.name;
+		this.data = options.data;
 		this.preconditions = options.preconditions ?? [];
 	}
 

@@ -11,14 +11,18 @@ import type { WeatherGoat } from '@lib/client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	public constructor() {
-		super({ name: 'com.weathergoat.jobs.UpdateRadarMessages', pattern: '*/2 * * * *', runImmediately: true });
+		super({
+			name: 'com.weathergoat.jobs.UpdateRadarMessages',
+			pattern: '*/2 * * * *',
+			runImmediately: true
+		});
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron): Promise<unknown> {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {
-				const guild   = await client.guilds.fetch(guildId);
+				const guild = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 
 				if (!isTextChannel(channel)) {

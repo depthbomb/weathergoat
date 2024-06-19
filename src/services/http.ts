@@ -37,10 +37,10 @@ export interface IHttpService extends IService {
 }
 
 export class HttpClient {
-	private readonly _name:              string;
-	private readonly _retry:             boolean;
-	private readonly _baseUrl?:          string;
-	private readonly _retryPolicy:       RetryPolicy;
+	private readonly _name: string;
+	private readonly _retry: boolean;
+	private readonly _baseUrl?: string;
+	private readonly _retryPolicy: RetryPolicy;
 	private readonly _durationFormatter: DurationFormatter;
 
 	private _requestNum = 0;
@@ -124,7 +124,7 @@ export default class HttpService implements IHttpService {
 		}
 
 		const { baseUrl, retry } = options;
-		const client             = new HttpClient({ name, baseUrl, retry });
+		const client = new HttpClient({ name, baseUrl, retry });
 
 		this._clients.set(name, client);
 

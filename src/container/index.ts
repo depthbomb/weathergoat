@@ -6,12 +6,15 @@ type ServiceModule = new(container: Container) => IService;
 
 export class Container {
 	private readonly _dry: boolean;
-	private readonly _values = new Map<string, unknown>();
-	private readonly _modules = new Map<string, ServiceModule>();
-	private readonly _services = new Map<string, IService>();
+	private readonly _values: Map<string, unknown>;
+	private readonly _modules: Map<string, ServiceModule>;
+	private readonly _services: Map<string, IService>;
 
 	public constructor(dry: boolean) {
 		this._dry = dry;
+		this._values = new Map();
+		this._modules = new Map();
+		this._services = new Map();
 	}
 
 	public get services() {

@@ -38,8 +38,8 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	public readonly runImmediately: boolean;
 
 	public constructor(options: JobOptions<WaitsUntilReady>) {
-		this.name           = options.name;
-		this.pattern        = options.pattern;
+		this.name = options.name;
+		this.pattern = options.pattern;
 		this.waitUntilReady = options.waitUntilReady ?? true;
 		this.runImmediately = options.runImmediately ?? false;
 	}

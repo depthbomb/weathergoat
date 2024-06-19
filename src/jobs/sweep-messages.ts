@@ -6,7 +6,11 @@ import type { WeatherGoat } from '@lib/client';
 
 export default class SweepMessagesJob extends BaseJob {
 	public constructor() {
-		super({ name: 'com.weathergoat.jobs.SweepMessages', pattern: '* * * * *', runImmediately: true })
+		super({
+			name: 'com.weathergoat.jobs.SweepMessages',
+			pattern: '* * * * *',
+			runImmediately: true
+		});
 	}
 
 	public async execute(client: WeatherGoat<true>) {

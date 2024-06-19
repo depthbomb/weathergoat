@@ -26,8 +26,8 @@ export abstract class BaseEvent<T extends keyof ClientEvents> {
 	public readonly disabled: boolean;
 
 	public constructor(options: EventOptions<T>) {
-		this.name     = options.name;
-		this.once     = options.once ?? false;
+		this.name = options.name;
+		this.once = options.once ?? false;
 		this.disabled = options.disabled ?? false;
 	}
 

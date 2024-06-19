@@ -2,8 +2,8 @@ import { main } from 'bun';
 import { join, dirname } from 'node:path';
 
 export const REPO_OWNER = 'depthbomb' as const;
-export const REPO_NAME = 'weathergoat' as const;
-export const REPO = `${REPO_OWNER}/${REPO_NAME}` as const;
+export const REPO_NAME  = 'weathergoat' as const;
+export const REPO       = `${REPO_OWNER}/${REPO_NAME}` as const;
 
 export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 

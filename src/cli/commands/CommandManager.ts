@@ -14,10 +14,10 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public async execute(): Promise<number> {
 		let exitCode = 0;
 
-		const sw     = new Stopwatch();
+		const sw = new Stopwatch();
 		const global = this.guilds.length === 0;
-		const rest   = new REST().setToken(process.env.BOT_TOKEN);
-		const botId  = process.env.BOT_ID;
+		const rest = new REST().setToken(process.env.BOT_TOKEN);
+		const botId = process.env.BOT_ID;
 
 		switch (this.action) {
 			case 'create':

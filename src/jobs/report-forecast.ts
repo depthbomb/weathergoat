@@ -18,7 +18,10 @@ export default class ReportForecastsJob extends BaseJob {
 	private readonly _forecast: IForecastService;
 
 	public constructor(container: Container) {
-		super({ name: 'com.weathergoat.jobs.ReportForecasts', pattern: '0 * * * *' });
+		super({
+			name: 'com.weathergoat.jobs.ReportForecasts',
+			pattern: '0 * * * *'
+		});
 
 		this._username = 'WeatherGoat#Forecast';
 		this._reason = 'Required for weather forecast reporting';

@@ -55,10 +55,10 @@ export default class RadarChannelCommand extends BaseCommand {
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		const maxCount  = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
-		const guildId   = interaction.guildId;
-		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
-		const latitude  = interaction.options.getString('latitude', true).trim();
+		const maxCount = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
+		const guildId = interaction.guildId;
+		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const latitude = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
 
 		if (!guildId) {

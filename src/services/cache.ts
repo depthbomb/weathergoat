@@ -29,7 +29,7 @@ export class CacheStore {
 	private readonly _cache: Map<string, CacheItem<unknown>>;
 
 	public constructor(ttl: string = '1 year') {
-		this._ttl   = ttl;
+		this._ttl = ttl;
 		this._cache = new Map();
 	}
 
@@ -61,7 +61,7 @@ export class CacheStore {
 	private _tryExpireItem(key: string): void {
 		if (!this._cache.has(key)) return;
 
-		const now  = new Date();
+		const now = new Date();
 		const item = this._cache.get(key)!;
 		if (item.ttl.fromNow <= now) {
 			this._cache.delete(key);

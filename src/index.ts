@@ -17,14 +17,14 @@ if (process.env.SENTRY_DSN) {
 	init({ dsn: process.env.SENTRY_DSN });
 }
 
-const { WeatherGoat }              = await import('@lib/client');
-const { default: alertsService }   = await import('@services/alerts');
-const { default: cacheService }    = await import('@services/cache');
-const { default: cliService }      = await import('@services/cli');
+const { WeatherGoat } = await import('@lib/client');
+const { default: alertsService } = await import('@services/alerts');
+const { default: cacheService } = await import('@services/cache');
+const { default: cliService } = await import('@services/cli');
 const { default: featuresService } = await import('@services/features');
 const { default: forecastService } = await import('@services/forecast');
-const { default: githubService }   = await import('@services/github');
-const { default: httpService }     = await import('@services/http');
+const { default: githubService } = await import('@services/github');
+const { default: httpService } = await import('@services/http');
 const { default: locationService } = await import('@services/location');
 
 const wg = new WeatherGoat<false>({
