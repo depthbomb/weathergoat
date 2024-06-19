@@ -4,14 +4,13 @@ import initI18n from '@lib/i18n';
 import { logger } from '@lib/logger';
 import { Container } from '@container';
 import { captureError } from '@lib/errors';
-import { init } from '@paralleldrive/cuid2';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
-import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
+import type { TextChannel, ClientEvents, ClientOptions, ColorResolvable } from 'discord.js';
 
 type BaseModule<T> = { default: new(container: Container) => T };
 type JobModule     = BaseModule<BaseJob>;
@@ -33,21 +32,19 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
-	public readonly brandColor = '#5876aa';
+	public readonly brandColor: ColorResolvable;
 
-	private readonly _idGenerators: Collection<number, () => string>;
 	private readonly _moduleFilePattern: RegExp;
 
 	public constructor(options: WeatherGoatOptions) {
 		super(options);
 
-		this.container = new Container(!!options.dry);
+		this.jobs       = [];
+		this.events     = new Collection();
+		this.commands   = new Collection();
+		this.container  = new Container(!!options.dry);
+		this.brandColor = '#5876aa';
 
-		this.jobs     = [];
-		this.events   = new Collection();
-		this.commands = new Collection();
-
-		this._idGenerators      = new Collection();
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
@@ -92,18 +89,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 
 		return ourWebhook;
-	}
-
-	public generateId(length: number) {
-		let generateFunc: () => string;
-		if (!this._idGenerators.has(length)) {
-			generateFunc = init({ length });
-			this._idGenerators.set(length, generateFunc);
-		} else {
-			generateFunc = this._idGenerators.get(length)!;
-		}
-
-		return generateFunc();
 	}
 
 	public async registerJobs() {

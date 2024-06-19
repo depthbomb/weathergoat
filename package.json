@@ -10,7 +10,6 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.12.0",
-		"@paralleldrive/cuid2": "^2.2.2",
 		"@prisma/client": "^5.15.1",
 		"@sapphire/discord.js-utilities": "^7.3.0",
 		"@sapphire/node-utilities": "^1.0.2",
@@ -30,12 +29,14 @@
 		"octokit": "^4.0.2",
 		"ufo": "^1.5.3",
 		"utf-8-validate": "^6.0.4",
+		"uuid": "^10.0.0",
 		"winston": "^3.13.0",
 		"winston-daily-rotate-file": "^5.0.0",
 		"zlib-sync": "^0.1.9"
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
+		"@types/uuid": "^9.0.8",
 		"prisma": "^5.15.1",
 		"typescript": "beta"
 	},
@@ -47,5 +48,8 @@
 		"prisma",
 		"utf-8-validate",
 		"zlib-sync"
-	]
+	],
+	"patchedDependencies": {
+		"@types/uuid@9.0.8": "patches/@types%2Fuuid@9.0.8.patch"
+	}
 }

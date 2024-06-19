@@ -2,6 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
 import { Tokens } from '@container';
+import { v7 as uuidv7 } from 'uuid';
 import { Duration } from '@sapphire/time-utilities';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -52,7 +53,7 @@ export default class ReportForecastsJob extends BaseJob {
 				.setTimestamp();
 
 			if (radarImageUrl) {
-				embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
+				embed.setImage(radarImageUrl + `?${uuidv7()}`);
 			}
 
 			const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);

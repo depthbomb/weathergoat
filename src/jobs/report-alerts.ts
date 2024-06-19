@@ -2,6 +2,7 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
 import { withQuery } from 'ufo';
+import { v7 as uuidv7 } from 'uuid';
 import { Tokens, Container } from '@container';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, EmbedBuilder, messageLink } from 'discord.js';
@@ -72,7 +73,7 @@ export default class ReportAlertsJob extends BaseJob {
 				}
 
 				if (radarImageUrl) {
-					embed.setImage(radarImageUrl + `?${client.generateId(16)}`);
+					embed.setImage(radarImageUrl + `?${uuidv7()}`);
 				}
 
 				if (alert.references.length) {

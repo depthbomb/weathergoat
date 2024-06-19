@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
+import { v7 as uuidv7 } from 'uuid';
 import { logger } from '@lib/logger';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
@@ -10,7 +11,7 @@ import type { WeatherGoat } from '@lib/client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	public constructor() {
-		super({ name: 'com.weathergoat.jobs.UpdateRadarMessages', pattern: '*/5 * * * *', runImmediately: true });
+		super({ name: 'com.weathergoat.jobs.UpdateRadarMessages', pattern: '*/2 * * * *', runImmediately: true });
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron): Promise<unknown> {
@@ -32,7 +33,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 						.setColor(client.brandColor)
 						.setTitle(_('jobs.radar.embedTitle', { location }))
 						.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
-						.setImage(`${radarImageUrl}?${client.generateId(32)}`)
+						.setImage(`${radarImageUrl}?${uuidv7()}`)
 						.addFields(
 							{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
 							{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
