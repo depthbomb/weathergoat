@@ -2,7 +2,6 @@ import { logger } from '@lib/logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
-import { init } from '@paralleldrive/cuid2';
 import { BOT_USER_AGENT } from '@constants';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
@@ -11,6 +10,10 @@ import type { IService } from '@services';
 import type { RetryPolicy } from 'cockatiel';
 
 type HttpClientOptions = {
+	/**
+	 * The name of this HTTP client.
+	 */
+	name: string;
 	/**
 	 * The base URL of requests the client makes.
 	 */
@@ -34,17 +37,22 @@ export interface IHttpService extends IService {
 }
 
 export class HttpClient {
+	private readonly _name:              string;
 	private readonly _retry:             boolean;
 	private readonly _baseUrl?:          string;
 	private readonly _retryPolicy:       RetryPolicy;
-	private readonly _generateId:        () => string;
 	private readonly _durationFormatter: DurationFormatter;
 
-	public constructor(options?: HttpClientOptions) {
+	private _requestNum = 0;
+
+	public constructor(options: HttpClientOptions) {
+		this._name = options?.name;
 		this._retry = !!options?.retry;
 		this._baseUrl = options?.baseUrl;
-		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), { maxAttempts: 10, backoff: new ConstantBackoff(500) });
-		this._generateId = init({ length: 6 });
+		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), {
+			maxAttempts: 10,
+			backoff: new ConstantBackoff(1_000)
+		});
 		this._durationFormatter = new DurationFormatter();
 	}
 
@@ -71,7 +79,7 @@ export class HttpClient {
 			requestUrl = withQuery(requestUrl, init.query);
 		}
 
-		const id = this._generateId();
+		const id = `${this._name}-${this._requestNum}`;
 
 		logger.http('Making HTTP request', {
 			id,
@@ -97,6 +105,8 @@ export class HttpClient {
 			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
 		});
 
+		this._requestNum++;
+
 		return res;
 	}
 }
@@ -114,7 +124,7 @@ export default class HttpService implements IHttpService {
 		}
 
 		const { baseUrl, retry } = options;
-		const client             = new HttpClient({ baseUrl, retry });
+		const client             = new HttpClient({ name, baseUrl, retry });
 
 		this._clients.set(name, client);
 
