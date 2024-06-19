@@ -56,7 +56,7 @@ export default class LocationService implements ILocationService {
 		const cacheService = container.resolve<ICacheService>(Tokens.Cache);
 
 		this._http = httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true });
-		this._cache = cacheService.createStore('locations');
+		this._cache = cacheService.createStore('locations', '1 day');
 		this._coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
 		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}

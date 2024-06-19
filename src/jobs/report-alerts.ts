@@ -14,7 +14,7 @@ export default class ReportAlertsJob extends BaseJob {
 	private readonly _reason: string;
 
 	public constructor(container: Container) {
-		super({ name: 'com.weathergoat.jobs.ReportAlerts', pattern: '*/10 * * * * *' });
+		super({ name: 'com.weathergoat.jobs.ReportAlerts', pattern: '*/30 * * * * *' });
 
 		this._alerts = container.resolve(Tokens.Alerts);
 		this._username = 'WeatherGoat#Alerts';
