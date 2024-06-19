@@ -5,7 +5,7 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { captureError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
-import type { CacheType, Interaction } from 'discord.js';
+import type { Interaction } from 'discord.js';
 import type { BaseCommandWithAutocomplete } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
@@ -13,7 +13,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		super({ name: 'interactionCreate' });
 	}
 
-	public async handle(interaction: Interaction<CacheType>) {
+	public async handle(interaction: Interaction) {
 		const command = this._getCommand(interaction);
 		if (!command) return;
 
@@ -61,7 +61,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		}
 	}
 
-	private _getCommand(interaction: Interaction<CacheType>) {
+	private _getCommand(interaction: Interaction) {
 		if (!('commandName' in interaction)) return;
 
 		return interaction.client.commands.get(interaction.commandName);

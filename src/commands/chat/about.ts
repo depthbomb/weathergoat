@@ -7,7 +7,7 @@ import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
 import type { IGithubService } from '@services/github';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends BaseCommand {
 	private readonly _github: IGithubService;
@@ -44,11 +44,11 @@ export default class AboutCommand extends BaseCommand {
 		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+	public async handle(interaction: ChatInputCommandInteraction) {
 		await this.handleSubcommand(interaction);
 	}
 
-	private async _handleChangelogSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleChangelogSubcommand(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
 		const messages = await this._github.getCommits(10);
@@ -59,7 +59,7 @@ export default class AboutCommand extends BaseCommand {
 		await interaction.editReply(response);
 	}
 
-	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
 		.setTitle('My Stats')
 		.setColor(interaction.client.brandColor)

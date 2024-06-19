@@ -19,7 +19,7 @@ import {
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@lib/errors';
 import type { ILocationService } from '@services/location';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarChannelCommand extends BaseCommand {
 	private readonly _location: ILocationService;
@@ -54,7 +54,7 @@ export default class RadarChannelCommand extends BaseCommand {
 		this._location = container.resolve(Tokens.Location);
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+	public async handle(interaction: ChatInputCommandInteraction) {
 		const maxCount  = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
 		const guildId   = interaction.guildId;
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);

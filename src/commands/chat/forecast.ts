@@ -18,7 +18,7 @@ import {
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@lib/errors';
 import type { ILocationService } from '@services/location';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastCommand extends BaseCommand {
 	private readonly _location: ILocationService;
@@ -61,11 +61,11 @@ export default class ForecastCommand extends BaseCommand {
 		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction<CacheType>) {
+	public async handle(interaction: ChatInputCommandInteraction) {
 		await this.handleSubcommand(interaction);
 	}
 
-	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount    = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
 		const guildId     = interaction.guildId;
 		const channelId   = interaction.channelId;
@@ -135,7 +135,7 @@ export default class ForecastCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
 		const id = interaction.options.getString('id', true);
 
 		await interaction.deferReply();
@@ -154,7 +154,7 @@ export default class ForecastCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleListSubcommand(interaction: ChatInputCommandInteraction<CacheType>) {
+	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
 		const guildId = interaction.guildId;
 		const channel = interaction.options.getChannel('channel', true);
 

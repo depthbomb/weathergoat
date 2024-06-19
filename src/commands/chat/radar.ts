@@ -2,7 +2,7 @@ import { _ } from '@lib/i18n';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseCommandWithAutocomplete } from '@commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { CacheType, AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
+import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends BaseCommandWithAutocomplete {
 	private readonly _radars: Collection<string, string>;
@@ -199,7 +199,7 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 		]);
 	}
 
-	public handle(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {
+	public handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
 		if (!this._radars.find(v => v === station)) {
 			return interaction.reply(_('commands.radar.err.invalidStation', { station }));
@@ -214,7 +214,7 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 		return interaction.reply({ embeds: [embed] });
 	}
 
-	public async handleAutocomplete(interaction: AutocompleteInteraction<CacheType>): Promise<unknown> {
+	public async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
 		const value = interaction.options.getFocused().trim().toLowerCase();
 
 		if (value.length === 0) return;

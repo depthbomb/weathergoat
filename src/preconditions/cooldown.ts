@@ -4,7 +4,7 @@ import { Duration } from '@sapphire/time-utilities';
 import { PreconditionResult } from '@preconditions';
 import { RateLimitManager } from '@sapphire/ratelimits';
 import { isGuildBasedChannel } from '@sapphire/discord.js-utilities';
-import type { CacheType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 type CooldownPreconditionOptions = {
 	duration: string;
@@ -31,7 +31,7 @@ export class CooldownPrecondition extends BasePrecondition {
 		this._manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
 	}
 
-	public async check(interaction: ChatInputCommandInteraction<CacheType>): Promise<PreconditionResult> {
+	public async check(interaction: ChatInputCommandInteraction): Promise<PreconditionResult> {
 		let id = interaction.user.id;
 		if (this._global) {
 			const { channel } = interaction;
