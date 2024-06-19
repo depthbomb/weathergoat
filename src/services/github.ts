@@ -1,7 +1,6 @@
 import { Octokit } from 'octokit';
 import { Tokens } from '@container';
-import { logger } from '@lib/logger';
-import type { Maybe } from '#types';
+import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
 import type { IService } from '@services';
 import type { Container } from '@container';
 import type { Endpoints } from '@octokit/types';
@@ -21,29 +20,18 @@ export interface IGithubService extends IService {
 }
 
 export default class GithubService implements IGithubService {
-	private _repoOwner: Maybe<string>;
-	private _repoName: Maybe<string>;
-	private _octokit: Maybe<Octokit>;
-
+	private readonly _octokit: Octokit;
 	private readonly _cache: CacheStore;
 
 	public constructor(container: Container) {
+		if (!process.env.GITHUB_ACCESS_TOKEN) {
+			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
+		}
+
 		const cacheService = container.resolve<ICacheService>(Tokens.Cache);
 
 		this._cache = cacheService.createStore('github', '10 minutes');
-
-		if (process.env.GITHUB_ACCESS_TOKEN) {
-			if (!process.env.GITHUB_REPO) {
-				throw new Error('Missing GITHUB_REPO environment variable');
-			}
-
-			const split = process.env.GITHUB_REPO.split('/');
-			this._repoOwner = split[0];
-			this._repoName = split[1];
-			this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: 'depthbomb/weathergoat' });
-		} else {
-			logger.warn('No GitHub access token has been configured; operations that use the GitHub API may not work.');
-		}
+		this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 
 	public async getCurrentCommitHash(short?: boolean) {
@@ -72,7 +60,7 @@ export default class GithubService implements IGithubService {
 		}
 
 		if (count) {
-			return res.data.slice(0, count)
+			return res.data.slice(0, count);
 		}
 
 		return res.data;
@@ -80,8 +68,8 @@ export default class GithubService implements IGithubService {
 
 	private async _getAllCommits() {
 		return this._octokit!.request('GET /repos/{owner}/{repo}/commits', {
-			owner: this._repoOwner!,
-			repo: this._repoName!
+			owner: REPO_OWNER,
+			repo: REPO_NAME
 		});
 	}
 }
