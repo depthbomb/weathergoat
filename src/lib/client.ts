@@ -32,7 +32,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
-	public readonly brandColor: ColorResolvable;
 
 	private readonly _moduleFilePattern: RegExp;
 
@@ -43,7 +42,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.events = new Collection();
 		this.commands = new Collection();
 		this.container = new Container(!!options.dry);
-		this.brandColor = '#5876aa';
 
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}

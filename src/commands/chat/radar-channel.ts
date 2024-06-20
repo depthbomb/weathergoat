@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
+import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { Duration } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -96,7 +97,7 @@ export default class RadarChannelCommand extends BaseCommand {
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
 				const embed = new EmbedBuilder()
-					.setColor(interaction.client.brandColor)
+					.setColor(Colors.Primary)
 					.setTitle(_('jobs.radar.embedTitle', { info }))
 					.setFooter({ text: _('jobs.radar.embedFooter') })
 					.setImage(info.radarImageUrl)

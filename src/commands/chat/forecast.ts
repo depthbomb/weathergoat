@@ -1,6 +1,7 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
+import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
@@ -181,7 +182,7 @@ export default class ForecastCommand extends BaseCommand {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(interaction.client.brandColor)
+			.setColor(Colors.Primary)
 			.setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
 
 		for (const { id, latitude, longitude, channelId, autoCleanup } of destinations) {

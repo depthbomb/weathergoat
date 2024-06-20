@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import { Geocode } from '@models/Geocode';
 import { AlertReference } from '@models/AlertReference';
-import type { ColorResolvable } from 'discord.js';
 
 export class Alert {
 	public id!: string;
@@ -31,20 +30,4 @@ export class Alert {
 	public instruction?: string;
 	public response!: 'Shelter' | 'Evacuate' | 'Prepare' | 'Execute' | 'Avoid' | 'Monitor' | 'Assess' | 'AllClear' | 'None';
 	public parameters!: { [key: string]: string[] };
-
-	public get severityColor(): ColorResolvable {
-		switch (this.severity) {
-			default:
-			case 'Unknown':
-				return '#9ca3af';
-			case 'Minor':
-				return '#fbbf24';
-			case 'Moderate':
-				return '#f97316';
-			case 'Severe':
-				return '#dc2626';
-			case 'Extreme':
-				return '#7f1d1d';
-		}
-	}
 }

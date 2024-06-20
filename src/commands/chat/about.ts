@@ -1,5 +1,6 @@
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
+import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { isDiscordAPIErrorCode } from '@lib/errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
@@ -71,7 +72,7 @@ export default class AboutCommand extends BaseCommand {
 	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
 		.setTitle('My Stats')
-		.setColor(interaction.client.brandColor)
+		.setColor(Colors.Primary)
 		.addFields(
 			{
 				name: 'Uptime',

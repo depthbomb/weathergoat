@@ -16,3 +16,16 @@ export const LOCALES_PATH  = join(PROJECT_ROOT, 'locales');
 export const COMMANDS_DIR  = join(ROOT_DIR, 'commands');
 export const EVENTS_DIR    = join(ROOT_DIR, 'events');
 export const JOBS_DIR      = join(ROOT_DIR, 'jobs');
+
+export const enum Colors {
+	Primary          = 0x5876aa,
+	Info             = 0x0ea5e9,
+	Success          = 0x84cc16,
+	Warning          = 0xeab308,
+	Danger           = 0xdc2626,
+	SeverityUnknown  = 0x9ca3af,
+	SeverityMinor    = 0xfbbf24,
+	SeverityModerate = 0xf97316,
+	SeveritySevere   = 0xdc2626,
+	SeverityExtreme  = 0x7f1d1d
+}

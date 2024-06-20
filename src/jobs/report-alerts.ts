@@ -2,10 +2,12 @@ import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
 import { withQuery } from 'ufo';
+import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { Tokens, Container } from '@container';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, codeBlock, messageLink, EmbedBuilder } from 'discord.js';
+import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@lib/client';
 import type { IAlertsService } from '@services/alerts';
 
@@ -42,7 +44,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 			if (!isTextChannel(channel)) continue;
 
-			const alerts  = await this._alerts.getActiveAlertsForZone(zoneId);
+			const alerts = await this._alerts.getActiveAlertsForZone(zoneId);
 			for (const alert of alerts) {
 				const alreadyReported = await db.sentAlert.findFirst({
 					where: {
@@ -59,7 +61,7 @@ export default class ReportAlertsJob extends BaseJob {
 				const embed = new EmbedBuilder()
 					.setTitle(`${isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 					.setDescription(codeBlock('md', alert.description))
-					.setColor(alert.severityColor)
+					.setColor(this._getAlertSeverityColor(alert))
 					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
 					.setFooter({ text: alert.event })
@@ -102,8 +104,8 @@ export default class ReportAlertsJob extends BaseJob {
 					(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
 					pingOnSevere
 				);
-				const webhook            = await client.getOrCreateWebhook(channel, this._username, this._reason);
-				const { id: messageId }  = await webhook.send({
+				const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);
+				const { id: messageId } = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
 					username: this._username,
 					avatarURL: client.user.avatarURL({ forceStatic: false })!,
@@ -132,6 +134,21 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 				});
 			}
+		}
+	}
+
+	private _getAlertSeverityColor(alert: Alert) {
+		switch (alert.severity) {
+			case 'Unknown':
+				return Colors.SeverityUnknown;
+			case 'Minor':
+				return Colors.SeverityMinor;
+			case 'Moderate':
+				return Colors.SeverityModerate;
+			case 'Severe':
+				return Colors.SeveritySevere;
+			case 'Extreme':
+				return Colors.SeverityExtreme;
 		}
 	}
 }
