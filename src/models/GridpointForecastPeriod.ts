@@ -1,4 +1,5 @@
 import { Type } from 'class-transformer';
+import { API_BASE_ENDPOINT } from '@constants';
 
 export class GridpointForecastPeriod {
 	public number!: number;
@@ -11,4 +12,13 @@ export class GridpointForecastPeriod {
 	public icon!: string;
 	public shortForecast!: string;
 	public detailedForecast!: string;
+
+	public getIcon(size: 'small' | 'medium' | 'large'): string {
+		let icon = this.icon;
+		if (size !== 'medium') {
+			icon = this.icon.replace('medium', size);
+		}
+
+		return API_BASE_ENDPOINT + icon;
+	}
 }

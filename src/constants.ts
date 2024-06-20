@@ -5,6 +5,8 @@ export const REPO_OWNER = 'depthbomb' as const;
 export const REPO_NAME  = 'weathergoat' as const;
 export const REPO       = `${REPO_OWNER}/${REPO_NAME}` as const;
 
+export const API_BASE_ENDPOINT = 'https://api.weather.gov' as const;
+
 export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 
 export const ROOT_DIR      = dirname(main);

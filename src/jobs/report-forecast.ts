@@ -21,7 +21,8 @@ export default class ReportForecastsJob extends BaseJob {
 	public constructor(container: Container) {
 		super({
 			name: 'com.weathergoat.jobs.ReportForecasts',
-			pattern: '0 * * * *'
+			pattern: '0 * * * *',
+			runImmediately: true
 		});
 
 		this._username = 'WeatherGoat#Forecast';
@@ -51,7 +52,7 @@ export default class ReportForecastsJob extends BaseJob {
 			const embed = new EmbedBuilder()
 				.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
 				.setColor(Colors.Primary)
-				.setThumbnail(forecast.icon.replace('medium', 'large'))
+				.setThumbnail(forecast.getIcon('large'))
 				.setDescription(forecast.detailedForecast)
 				.addFields({ name: _('jobs.forecasts.atAGlanceTitle'), value: forecast.shortForecast })
 				.setTimestamp();
