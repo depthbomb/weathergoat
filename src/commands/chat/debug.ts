@@ -103,7 +103,7 @@ export default class DebugCommand extends BaseCommand {
 		const buf = Buffer.from(json, 'utf8');
 		const attachment = new AttachmentBuilder(buf, {
 			name: 'dump.json',
-			description: `A dump of my database taken at ${date}.`
+			description: _('commands.debug.dumpDescription', { date })
 		});
 
 		await interaction.editReply({ files: [attachment] })

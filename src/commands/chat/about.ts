@@ -1,7 +1,7 @@
 import { _ } from '@lib/i18n';
 import { Tokens } from '@container';
-import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
+import { REPO, Colors } from '@constants';
 import { isDiscordAPIErrorCode } from '@lib/errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -55,14 +55,14 @@ export default class AboutCommand extends BaseCommand {
 
 		const messages = await this._github.getCommits(10);
 		const response = messages.map(
-			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) by [${msg.commit.author?.name}](${msg.author?.html_url})`
+			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) - [${msg.commit.author?.name}](${msg.author?.html_url})`
 		).join('\n');
 
 		try {
 			await interaction.editReply(response);
 		} catch (err) {
 			if (isDiscordAPIErrorCode(err, 50035)) {
-				await interaction.editReply(`A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/depthbomb/weathergoat/commits).`);
+				await interaction.editReply(_('commands.about.responseTooLong', { repo: REPO }));
 			} else {
 				throw err;
 			}
@@ -71,23 +71,23 @@ export default class AboutCommand extends BaseCommand {
 
 	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
-		.setTitle('My Stats')
+		.setTitle(_('commands.about.myStatsTitle'))
 		.setColor(Colors.Primary)
 		.addFields(
 			{
-				name: 'Uptime',
-				value: `Application: ${this._formatter.format(interaction.client.uptime ?? 0)}\nSystem: ${this._formatter.format(uptime() * 1_000)}`
+				name: _('commands.about.uptimeTitle'),
+				value: `${_('commands.about.applicationPrefix')} ${this._formatter.format(interaction.client.uptime ?? 0)}\n${_('commands.about.systemPrefix')} ${this._formatter.format(uptime() * 1_000)}`
 			},
 			{
-				name: 'Runtime',
+				name: _('commands.about.runtimeTitle'),
 				value: `Bun ${Bun.version} (${Bun.revision.slice(0, 7)})`
 			},
 			{
-				name: 'System',
+				name: _('commands.about.systemTitle'),
 				value: `${version()} (${platform()}) ${arch()}`
 			},
 			{
-				name: 'Host Name',
+				name: _('commands.about.hostNameTitle'),
 				value: hostname()
 			}
 		);

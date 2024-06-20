@@ -23,6 +23,16 @@
 		}
 	},
 	"commands": {
+		"about": {
+			"myStatsTitle": "My Stats",
+			"uptimeTitle": "Uptime",
+			"applicationPrefix": "Application:",
+			"systemPrefix": "System:",
+			"runtimeTitle": "Runtime",
+			"systemTitle": "System",
+			"hostNameTitle": "Host Name",
+			"responseTooLong": "A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/{{repo}}/commits)."
+		},
 		"alerts": {
 			"err": {
 				"destExists": "This channel is already designated as an alert destination.",
@@ -36,6 +46,9 @@
 			"destRemoved": "Alert reporting destination has been successfully removed.",
 
 			"listEmbedTitle": "Alert reporting destinations in this server"
+		},
+		"debug": {
+			"dumpDescription": "A dump of my database taken at {{date}}."
 		},
 		"forecasts": {
 			"err": {
