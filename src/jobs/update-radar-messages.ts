@@ -44,7 +44,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 							{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
 						);
 				await message.edit({ embeds: [embed] })
-			} catch (err: unknown) {
+			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
 					if ([10003, 10004, 10008].includes(code as number)) {
@@ -54,7 +54,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 						await db.radarChannel.delete({ where: { id } });
 					}
 				} else {
-					logger.error('An error occurred while updating a radar channel message', { err });
+					throw err;
 				}
 			}
 		}

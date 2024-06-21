@@ -10,7 +10,7 @@ import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
-import type { TextChannel, ClientEvents, ClientOptions, ColorResolvable } from 'discord.js';
+import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
 
 type BaseModule<T> = { default: new(container: Container) => T };
 type JobModule = BaseModule<BaseJob>;
@@ -99,7 +99,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
-			const cron = Cron(pattern, async (self: Cron) => await job.execute(this, self), {
+			const cron = new Cron(pattern, (self: Cron) => job.execute(this, self), {
 				name,
 				paused: true,
 				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
@@ -108,18 +108,13 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.jobs.push({ job, cron });
 
-			if (runImmediately) {
-				if (waitUntilReady) {
-					this.once('ready', async () => {
-						await job.execute(this, cron);
-						cron.resume();
-					});
-				} else {
+			try {
+				if (runImmediately && !waitUntilReady) {
 					await job.execute(this, cron);
 					cron.resume();
 				}
-			} else {
-				this.once('ready', () => void cron.resume());
+			} catch (err) {
+				captureError('Error executing `runImmediately` job', err, { name });
 			}
 
 			logger.info('Registered job', {
