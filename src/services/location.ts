@@ -1,6 +1,7 @@
 import { Tokens } from '@container';
 import { Point } from '@models/Point';
 import { HTTPRequestError } from '@lib/errors';
+import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import type { Maybe } from '#types';
 import type { IService } from '@services';
@@ -55,7 +56,7 @@ export default class LocationService implements ILocationService {
 		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
 		const cacheService = container.resolve<ICacheService>(Tokens.Cache);
 
-		this._http = httpService.getClient('location', { baseUrl: 'https://api.weather.gov', retry: true });
+		this._http = httpService.getClient('location', { baseUrl: API_BASE_ENDPOINT, retry: true });
 		this._cache = cacheService.createStore('locations', '1 day');
 		this._coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
 		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;

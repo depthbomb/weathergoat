@@ -1,5 +1,6 @@
 import { Tokens } from '@container';
 import { HTTPRequestError } from '@lib/errors';
+import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
 import type { IService } from '@services';
@@ -25,7 +26,7 @@ export default class AlertsService implements IAlertsService {
 
 	public constructor(container: Container) {
 		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
-		this._http = httpService.getClient('alerts', { baseUrl: 'https://api.weather.gov' });
+		this._http = httpService.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
 	public async getActiveAlerts(): Promise<Alert[]> {
