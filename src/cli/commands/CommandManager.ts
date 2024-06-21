@@ -11,7 +11,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public action = Option.String<'create' | 'delete'>({ required: true });
 	public guilds = Option.Rest();
 
-	public async execute(): Promise<number> {
+	public async execute() {
 		let exitCode = 0;
 
 		const sw = new Stopwatch();

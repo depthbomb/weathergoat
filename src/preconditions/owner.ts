@@ -7,7 +7,7 @@ export class OwnerPrecondition extends BasePrecondition {
 		super();
 	}
 
-	public async check(interaction: ChatInputCommandInteraction): Promise<PreconditionResult> {
+	public async check(interaction: ChatInputCommandInteraction) {
 		if (!interaction.client.application.owner) {
 			await interaction.client.application.fetch();
 		}

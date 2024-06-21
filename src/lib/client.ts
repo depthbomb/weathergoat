@@ -46,7 +46,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
-	public async login(token?: string | undefined): Promise<string> {
+	public async login(token?: string | undefined) {
 		await initI18n();
 		await this.registerJobs();
 		await this.registerEvents();

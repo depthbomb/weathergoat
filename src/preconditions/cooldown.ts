@@ -31,7 +31,7 @@ export class CooldownPrecondition extends BasePrecondition {
 		this._manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
 	}
 
-	public async check(interaction: ChatInputCommandInteraction): Promise<PreconditionResult> {
+	public async check(interaction: ChatInputCommandInteraction) {
 		let id = interaction.user.id;
 		if (this._global) {
 			const { channel } = interaction;
