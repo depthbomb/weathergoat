@@ -99,7 +99,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
-			const cron = new Cron(pattern, (self: Cron) => job.execute(this, self), {
+			const cron = new Cron(pattern, self => job.execute(this, self), {
 				name,
 				paused: true,
 				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
