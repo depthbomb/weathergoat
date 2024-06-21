@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import { Geocode } from '@models/Geocode';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
+import type { Nullable } from '#types';
 
 export class Alert {
 	public id!: string;
@@ -35,5 +36,22 @@ export class Alert {
 
 	public get url() {
 		return withQuery(ALERTS_SEARCH_BASE_URL, { id: this.id });
+	}
+
+	public get expiredReferences(): Nullable<Array<{ sender: string; alertId: string; date: Date; }>> {
+		if (Object.hasOwn(this.parameters, 'expiredReferences')) {
+			const expiredReferences = this.parameters['expiredReferences'];
+
+			return expiredReferences.map(ref => {
+				const parts = ref.split(',');
+				const sender = parts[0];
+				const alertId = parts[1];
+				const date = new Date(parts[0]);
+
+				return { sender, alertId, date };
+			});
+		}
+
+		return null;
 	}
 }

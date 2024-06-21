@@ -136,6 +136,28 @@ export default class ReportAlertsJob extends BaseJob {
 						json: JSON.stringify(alert)
 					}
 				});
+
+				// Enqueue expired alert messages to be deleted immediately
+				if (alert.expiredReferences) {
+					for (const expiredReference of alert.expiredReferences) {
+						const expiredSentAlert = await db.sentAlert.findFirst({
+							where: {
+								alertId: expiredReference.alertId
+							}
+						});
+
+						if (!expiredSentAlert) continue;
+
+						await db.volatileMessage.create({
+							data: {
+								guildId: expiredSentAlert.guildId,
+								channelId: expiredSentAlert.channelId,
+								messageId: expiredSentAlert.messageId,
+								expiresAt: new Date()
+							}
+						});
+					}
+				}
 			}
 		}
 	}
