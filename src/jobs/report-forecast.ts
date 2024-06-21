@@ -21,8 +21,7 @@ export default class ReportForecastsJob extends BaseJob {
 	public constructor(container: Container) {
 		super({
 			name: 'com.weathergoat.jobs.ReportForecasts',
-			pattern: '0 * * * *',
-			runImmediately: true
+			pattern: '0 * * * *'
 		});
 
 		this._username = 'WeatherGoat#Forecast';
