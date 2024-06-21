@@ -1,5 +1,7 @@
+import { withQuery } from 'ufo';
 import { Type } from 'class-transformer';
 import { Geocode } from '@models/Geocode';
+import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
 
 export class Alert {
@@ -30,4 +32,8 @@ export class Alert {
 	public instruction?: string;
 	public response!: 'Shelter' | 'Evacuate' | 'Prepare' | 'Execute' | 'Avoid' | 'Monitor' | 'Assess' | 'AllClear' | 'None';
 	public parameters!: { [key: string]: string[] };
+
+	public get url() {
+		return withQuery(ALERTS_SEARCH_BASE_URL, { id: this.id });
+	}
 }

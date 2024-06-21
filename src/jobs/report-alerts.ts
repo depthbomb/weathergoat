@@ -1,12 +1,11 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
-import { withQuery } from 'ufo';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { Tokens, Container } from '@container';
+import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, codeBlock, messageLink, EmbedBuilder } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@lib/client';
 import type { IAlertsService } from '@services/alerts';
@@ -63,7 +62,7 @@ export default class ReportAlertsJob extends BaseJob {
 					.setDescription(codeBlock('md', alert.description))
 					.setColor(this._getAlertSeverityColor(alert))
 					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
-					.setURL(withQuery('https://alerts.weather.gov/search', { id: alert.id }))
+					.setURL(alert.url)
 					.setFooter({ text: alert.event })
 					.addFields(
 						{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
@@ -82,21 +81,25 @@ export default class ReportAlertsJob extends BaseJob {
 				}
 
 				if (alert.references.length) {
-					const messageLinks = [] as string[];
-					for (const { identifier } of alert.references) {
-						const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: identifier } });
-						if (!referencedSentAlert) {
-							continue;
+					const alertUrls = [] as string[];
+					for (const reference of alert.references) {
+						const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
+						if (referencedSentAlert) {
+							// Enqueue parent alert messages to be deleted immediately
+							await db.volatileMessage.create({
+								data: {
+									guildId: referencedSentAlert.guildId,
+									channelId: referencedSentAlert.channelId,
+									messageId: referencedSentAlert.messageId,
+									expiresAt: new Date()
+								}
+							});
 						}
 
-						messageLinks.push(
-							messageLink(channelId, referencedSentAlert.messageId, guildId)
-						);
+						alertUrls.push(reference.url);
 					}
 
-					if (messageLinks.length) {
-						embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: messageLinks.join('\n') });
-					}
+					embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: alertUrls.join('\n') })
 				}
 
 				const shouldPingEveryone = !!(
