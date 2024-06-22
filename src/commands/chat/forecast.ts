@@ -170,11 +170,12 @@ export default class ForecastCommand extends BaseCommand {
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
 		const guildId = interaction.guildId;
-		const channel = interaction.options.getChannel('channel', true);
 
 		if (!guildId) {
 			return interaction.reply(_('common.err.guildOnly'));
 		}
+
+		const channel = interaction.channel;
 
 		await interaction.deferReply();
 
