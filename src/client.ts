@@ -44,7 +44,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.commands = new Collection();
 		this.container = new Container(!!options.dry);
 
-		this._logger = logger.child({ name: tokens.client });
+		this._logger = logger.child({ logger: tokens.client });
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 

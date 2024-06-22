@@ -21,7 +21,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger = logger.child({ name: this.name });
+		this._logger = logger.child({ jobName: this.name });
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {

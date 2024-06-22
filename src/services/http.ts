@@ -57,7 +57,7 @@ export class HttpClient {
 			backoff: new ConstantBackoff(1_000)
 		});
 		this._durationFormatter = new DurationFormatter();
-		this._logger = logger.child({ name: `com.weathergoat.httpclients.${this._name}` });
+		this._logger = logger.child({ httpClient: this._name });
 	}
 
 	public async get(url: string | URL, options?: GETOptions): Promise<Response> {

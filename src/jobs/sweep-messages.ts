@@ -16,7 +16,7 @@ export default class SweepMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger = logger.child({ name: this.name });
+		this._logger = logger.child({ jobName: this.name });
 		this._sweeper = container.resolve(tokens.sweeper);
 	}
 

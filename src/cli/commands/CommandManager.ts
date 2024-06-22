@@ -17,7 +17,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public constructor() {
 		super();
 
-		this._logger = logger.child({ name: 'CLI' });
+		this._logger = logger.child({ cliCommand: CommandManagerCommand.paths.join(',') });
 	}
 
 	public async execute() {
