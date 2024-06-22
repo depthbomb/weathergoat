@@ -123,11 +123,16 @@ export default class RadarChannelCommand extends BaseCommand {
 					}
 				});
 
-				await interaction.editReply({ content: _('commands.radarChannel.destCreated'), components: [] });
+				await interaction.editReply({
+					content: _('commands.radarChannel.destCreated', {
+						mention: channel.toString()
+					}),
+					components: []
+				});
 			} else {
 				return initialReply.delete();
 			}
-		} catch (err: unknown) {
+		} catch (err) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
 				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {

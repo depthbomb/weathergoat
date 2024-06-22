@@ -129,10 +129,16 @@ export default class AlertsCommand extends BaseCommand {
 						pingOnSevere,
 						radarImageUrl: info.radarImageUrl
 					},
-					select: { id: true }
+					select: { uuid: true }
 				});
 
-				return interaction.editReply({ content: _('commands.alerts.destCreated', { channel, destination }), components: [] });
+				return interaction.editReply({
+					content: _('commands.alerts.destCreated', {
+						mention: channel.toString(),
+						destination
+					}),
+					components: []
+				});
 			} else {
 				return initialReply.delete();
 			}

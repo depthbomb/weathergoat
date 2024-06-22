@@ -41,7 +41,7 @@
 				"couldNotRemoveDest": "The alert destination could not be removed. Please try again later.",
 				"noDestInChannel": "{{channel}} does not have any alert reporting assigned to it."
 			},
-			"destCreated": "Alert reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the UUID `{{destination.uuid}}`.",
+			"destCreated": "Alert reporting created in {{mention}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the UUID `{{destination.uuid}}`.",
 			"destRemoved": "Alert reporting destination has been successfully removed.",
 			"listEmbedTitle": "Alert reporting destinations in this server"
 		},
@@ -54,13 +54,13 @@
 				"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
 				"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it."
 			},
-			"destCreated": "Hourly forecast reporting created in {{channel}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the UUID `{{destination.uuid}}`.",
+			"destCreated": "Hourly forecast reporting created in {{mention}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the UUID `{{destination.uuid}}`.",
 			"destRemoved": "Forecast destination has been successfully removed.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},
 		"radarChannel": {
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}** with the radar image below.\nIs this correct?\n{{info.radarImageUrl}}",
-			"destCreated": "Radar channel destination successfully set to {{channel}}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
+			"destCreated": "Radar channel destination successfully set to {{mention}}!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
 		},
 		"radar": {
 			"err": {

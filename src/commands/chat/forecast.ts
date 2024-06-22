@@ -121,10 +121,16 @@ export default class ForecastCommand extends BaseCommand {
 						autoCleanup,
 						radarImageUrl: info.radarImageUrl
 					},
-					select: { id: true }
+					select: { uuid: true }
 				});
 
-				return interaction.editReply({ content: _('commands.forecasts.destCreated', { channel, destination }), components: [] });
+				return interaction.editReply({
+					content: _('commands.forecasts.destCreated', {
+						mention: channel.toString(),
+						destination
+					}),
+					components: []
+				});
 			} else {
 				return initialReply.delete();
 			}
