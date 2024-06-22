@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { t, use } from 'i18next';
 import { LOCALES_PATH } from '@constants';
 import fsBackend from 'i18next-fs-backend';
-import type enUS from '../../locales/en-US.json';
+import type enUS from '../locales/en-US.json';
 
 declare module 'i18next' {
 	interface CustomTypeOptions {

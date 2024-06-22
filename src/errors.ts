@@ -1,4 +1,4 @@
-import { logger } from '@lib/logger';
+import { logger } from '@logger';
 import { MakeErrorClass } from 'fejl';
 import { captureException } from '@sentry/bun';
 import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';

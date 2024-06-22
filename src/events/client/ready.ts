@@ -1,7 +1,7 @@
+import { logger } from '@logger';
 import { BaseEvent } from '@events';
-import { logger } from '@lib/logger';
-import { captureError } from '@lib/errors';
-import type { WeatherGoat } from '@lib/client';
+import { captureError } from '@errors';
+import type { WeatherGoat } from '@client';
 
 export default class ClientReadyEvent extends BaseEvent<'ready'> {
 	public constructor() {

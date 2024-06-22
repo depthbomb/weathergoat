@@ -1,10 +1,10 @@
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Tokens } from '@container';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
+import type { WeatherGoat } from '@client';
 import type { Container } from '@container';
-import type { WeatherGoat } from '@lib/client';
 import type { IGithubService } from '@services/github';
 
 export default class UpdateStatusJob extends BaseJob {

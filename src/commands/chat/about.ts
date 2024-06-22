@@ -1,8 +1,8 @@
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { REPO, Colors } from '@constants';
-import { isDiscordAPIErrorCode } from '@lib/errors';
+import { isDiscordAPIErrorCode } from '@errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { arch, uptime, version, platform, hostname } from 'node:os';

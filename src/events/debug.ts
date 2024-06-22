@@ -1,5 +1,5 @@
+import { logger } from '@logger';
 import { BaseEvent } from '@events';
-import { logger } from '@lib/logger';
 
 export default class DebugEvent extends BaseEvent<'debug'> {
 	public constructor() {

@@ -1,6 +1,6 @@
 import { BaseJob } from '@jobs';
+import { logger } from '@logger';
 import { Tokens } from '@container';
-import { logger } from '@lib/logger';
 import type { Container } from '@container';
 import type { ISweeperService } from '@services/sweeper';
 

@@ -1,6 +1,6 @@
 import { Tokens } from '@container';
 import { Point } from '@models/Point';
-import { HTTPRequestError } from '@lib/errors';
+import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import type { Maybe } from '#types';

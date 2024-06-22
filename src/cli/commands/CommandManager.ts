@@ -1,5 +1,5 @@
-import { logger } from '@lib/logger';
-import { WeatherGoat } from '@lib/client';
+import { logger } from '@logger';
+import { WeatherGoat } from '@client';
 import { REST, Routes } from 'discord.js';
 import { Option, Command } from 'clipanion';
 import { Stopwatch } from '@sapphire/stopwatch';

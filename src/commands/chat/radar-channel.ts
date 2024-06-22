@@ -1,11 +1,11 @@
 import { db } from '@db';
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { Tokens } from '@container';
 import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { Duration } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
 	time,
 	ChannelType,
@@ -18,7 +18,7 @@ import {
 	DiscordjsErrorCodes
 } from 'discord.js';
 import type { Container } from '@container';
-import type { HTTPRequestError } from '@lib/errors';
+import type { HTTPRequestError } from '@errors';
 import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
 

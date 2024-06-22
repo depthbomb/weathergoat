@@ -1,12 +1,12 @@
 if (!process.versions.bun) throw new Error('WeatherGoat must be ran through Bun.');
 
+import { logger } from '@logger';
 import { Tokens } from '@container';
-import { logger } from '@lib/logger';
+import { WeatherGoat } from '@client';
+import { captureError } from '@errors';
 import cliService from '@services/cli';
 import httpService from '@services/http';
-import { WeatherGoat } from '@lib/client';
 import cacheService from '@services/cache';
-import { captureError } from '@lib/errors';
 import alertsService from '@services/alerts';
 import githubService from '@services/github';
 import sweeperService from '@services/sweeper';

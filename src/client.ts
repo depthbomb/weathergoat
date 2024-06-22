@@ -1,9 +1,9 @@
 import { db } from '@db';
+import initI18n from '@i18n';
 import { Cron } from 'croner';
-import initI18n from '@lib/i18n';
-import { logger } from '@lib/logger';
+import { logger } from '@logger';
 import { Container } from '@container';
-import { captureError } from '@lib/errors';
+import { captureError } from '@errors';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';

@@ -1,4 +1,4 @@
-import { logger } from '@lib/logger';
+import { logger } from '@logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';

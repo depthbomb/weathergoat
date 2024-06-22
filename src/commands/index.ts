@@ -1,4 +1,4 @@
-import { InvalidPermissionsError } from '@lib/errors';
+import { InvalidPermissionsError } from '@errors';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { BasePrecondition } from '@preconditions';
 import type {

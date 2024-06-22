@@ -1,5 +1,5 @@
 import { Tokens } from '@container';
-import { HTTPRequestError } from '@lib/errors';
+import { HTTPRequestError } from '@errors';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { IService } from '@services';

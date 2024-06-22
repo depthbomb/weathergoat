@@ -1,5 +1,5 @@
 import { db } from '@db';
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { Tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { DATABASE_PATH } from '@constants';

@@ -1,13 +1,13 @@
 import { db } from '@db';
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Tokens } from '@container';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import type { WeatherGoat } from '@client';
 import type { Container } from '@container';
-import type { WeatherGoat } from '@lib/client';
 import type { ISweeperService } from '@services/sweeper';
 import type { ILocationService } from '@services/location';
 import type { IForecastService } from '@services/forecast';

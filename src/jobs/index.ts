@@ -1,6 +1,6 @@
 import type Cron from 'croner';
 import type { BaseId } from '#types';
-import type { WeatherGoat } from '@lib/client';
+import type { WeatherGoat } from '@client';
 
 type JobId = `${BaseId<'jobs'>}.${string}`;
 type JobOptions<WaitsUntilReady extends boolean = boolean> = {

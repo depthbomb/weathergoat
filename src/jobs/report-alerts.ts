@@ -1,5 +1,5 @@
 import { db } from '@db';
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
@@ -7,7 +7,7 @@ import { Tokens, Container } from '@container';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Alert } from '@models/Alert';
-import type { WeatherGoat } from '@lib/client';
+import type { WeatherGoat } from '@client';
 import type { IAlertsService } from '@services/alerts';
 import type { ISweeperService } from '@services/sweeper';
 

@@ -1,4 +1,4 @@
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseCommandWithAutocomplete } from '@commands';

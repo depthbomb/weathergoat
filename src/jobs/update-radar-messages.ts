@@ -1,14 +1,14 @@
 import { db } from '@db';
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
+import { logger } from '@logger';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
-import { logger } from '@lib/logger';
-import { isDiscordAPIError } from '@lib/errors';
+import { isDiscordAPIError } from '@errors';
 import { time, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type Cron from 'croner';
-import type { WeatherGoat } from '@lib/client';
+import type { WeatherGoat } from '@client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	public constructor() {

@@ -1,5 +1,5 @@
 import { Tokens } from '@container';
-import { HTTPRequestError } from '@lib/errors';
+import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';

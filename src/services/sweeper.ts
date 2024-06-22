@@ -1,17 +1,17 @@
 import { db } from '@db';
 import { Tokens } from '@container';
-import { captureError } from '@lib/errors';
+import { captureError } from '@errors';
 import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Prisma } from '@db';
 import type { Message } from 'discord.js';
 import type { IService } from '@services';
+import type { WeatherGoat } from '@client';
 import type { Container } from '@container';
-import type { WeatherGoat } from '@lib/client';
 
 export interface ISweeperService extends IService {
 	/**
-	 * Returns all message records that should be sweeped at the time of calling this method.
+	 * Returns all message records that should be sweeped at the current date.
 	 */
 	getDueMessages(): Promise<Prisma.PromiseReturnType<typeof db.volatileMessage.findMany>>;
 	/**
@@ -34,7 +34,7 @@ export interface ISweeperService extends IService {
 	enqueueMessage(message: Message<boolean>, expires: string | Date): Promise<void>;
 	/**
 	 * Iterates and deletes volatile messages and their corresponding database record if they should
-	 * be sweeped at the time of calling.
+	 * be sweeped at the current date.
 	 *
 	 * @returns An array with the following structure: `[sweepCount, errorCount]`.
 	 *

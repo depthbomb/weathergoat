@@ -1,10 +1,10 @@
-import { _ } from '@lib/i18n';
+import { _ } from '@i18n';
+import { logger } from '@logger';
 import { BaseEvent } from '@events';
-import { logger } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { captureError, isWeatherGoatError, MaxDestinationError } from '@lib/errors';
+import { captureError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import type { Interaction } from 'discord.js';
 import type { BaseCommandWithAutocomplete } from '@commands';
 
