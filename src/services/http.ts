@@ -115,7 +115,7 @@ export default class HttpService implements IHttpService {
 	private readonly _clients: Collection<string, HttpClient>;
 
 	public constructor() {
-		this._logger = logger.child({ service: tokens.http });
+		this._logger = logger.child({ service: tokens.http.description });
 		this._clients = new Collection();
 	}
 
