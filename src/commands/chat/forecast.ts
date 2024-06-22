@@ -69,12 +69,11 @@ export default class ForecastCommand extends BaseCommand {
 	}
 
 	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
-		const maxCount    = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
-		const guildId     = interaction.guildId;
-		const channelId   = interaction.channelId;
-		const latitude    = interaction.options.getString('latitude', true);
-		const longitude   = interaction.options.getString('longitude', true);
-		const channel     = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const maxCount = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
+		const guildId = interaction.guildId;
+		const latitude = interaction.options.getString('latitude', true);
+		const longitude = interaction.options.getString('longitude', true);
+		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
 
 		if (!guildId) {
@@ -117,7 +116,7 @@ export default class ForecastCommand extends BaseCommand {
 						latitude,
 						longitude,
 						guildId,
-						channelId,
+						channelId: channel.id,
 						autoCleanup,
 						radarImageUrl: info.radarImageUrl
 					},
