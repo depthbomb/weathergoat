@@ -2,7 +2,16 @@ if (!process.versions.bun) throw new Error('WeatherGoat must be ran through Bun.
 
 import { Tokens } from '@container';
 import { logger } from '@lib/logger';
+import cliService from '@services/cli';
+import httpService from '@services/http';
+import { WeatherGoat } from '@lib/client';
+import cacheService from '@services/cache';
 import { captureError } from '@lib/errors';
+import alertsService from '@services/alerts';
+import githubService from '@services/github';
+import featuresService from '@services/features';
+import locationService from '@services/location';
+import forecastService from '@services/forecast';
 import { Partials, GatewayIntentBits } from 'discord.js';
 import type { ICliService } from '@services/cli';
 import type { IFeaturesService } from '@services/features';
@@ -16,16 +25,6 @@ if (process.env.SENTRY_DSN) {
 
 	init({ dsn: process.env.SENTRY_DSN });
 }
-
-const { WeatherGoat } = await import('@lib/client');
-const { default: alertsService } = await import('@services/alerts');
-const { default: cacheService } = await import('@services/cache');
-const { default: cliService } = await import('@services/cli');
-const { default: featuresService } = await import('@services/features');
-const { default: forecastService } = await import('@services/forecast');
-const { default: githubService } = await import('@services/github');
-const { default: httpService } = await import('@services/http');
-const { default: locationService } = await import('@services/location');
 
 const wg = new WeatherGoat<false>({
 	presence: {

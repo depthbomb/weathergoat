@@ -56,5 +56,4 @@ export default class FeaturesService implements IFeaturesService {
 	public all() {
 		return Array.from(this._features.values());
 	}
-
 }

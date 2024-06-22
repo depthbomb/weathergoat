@@ -103,5 +103,4 @@ export default class CacheService implements ICacheService {
 
 		return this.createStore(name, defaultTtl);
 	}
-
 }

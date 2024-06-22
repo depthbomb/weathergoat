@@ -39,5 +39,4 @@ export default class ForecastService implements IForecastService {
 
 		return data.periods[0];
 	}
-
 }
