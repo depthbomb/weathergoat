@@ -1,6 +1,6 @@
 import { db } from '@db';
-import { Tokens } from '@container';
-import { captureError } from '@errors';
+import { tokens } from '@container';
+import { reportError } from '@logger';
 import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Prisma } from '@db';
@@ -49,7 +49,7 @@ export default class SweeperService implements ISweeperService {
 	private readonly _client: WeatherGoat<true>;
 
 	public constructor(container: Container) {
-		this._client = container.resolve(Tokens.Client);
+		this._client = container.resolve(tokens.client);
 	}
 
 	public async getDueMessages() {
@@ -101,7 +101,7 @@ export default class SweeperService implements ISweeperService {
 		const messages = await this.getDueMessages();
 		for (const { id, channelId, messageId } of messages) {
 			try {
-				const channel = await this._client.channels.fetch(channelId);
+				const channel = await this._client.channels?.fetch(channelId);
 				if (isTextChannel(channel)) {
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
@@ -111,7 +111,7 @@ export default class SweeperService implements ISweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				captureError('Error while deleting volatile message', err, { channelId, messageId });
+				reportError('Error while deleting volatile message', err, { channelId, messageId });
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}

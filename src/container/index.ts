@@ -6,9 +6,9 @@ type ServiceModule = new(container: Container) => IService;
 
 export class Container {
 	private readonly _dry: boolean;
-	private readonly _values: Map<string, unknown>;
-	private readonly _modules: Map<string, ServiceModule>;
-	private readonly _services: Map<string, IService>;
+	private readonly _values: Map<symbol, unknown>;
+	private readonly _modules: Map<symbol, ServiceModule>;
+	private readonly _services: Map<symbol, IService>;
 
 	public constructor(dry: boolean) {
 		this._dry = dry;
@@ -29,19 +29,19 @@ export class Container {
 		return this._values;
 	}
 
-	public register<T>(token: string, serviceModule: T) {
+	public register<T>(token: symbol, serviceModule: T) {
 		this._modules.set(token, serviceModule as ServiceModule);
 
 		return this;
 	}
 
-	public registerValue<T>(token: string, value: T) {
+	public registerValue<T>(token: symbol, value: T) {
 		this._values.set(token, value);
 
 		return this;
 	}
 
-	public resolve<T>(token: string): T {
+	public resolve<T>(token: symbol): T {
 		if (this._values.has(token)) {
 			return this._values as T;
 		}
@@ -56,7 +56,7 @@ export class Container {
 				return null as T;
 			}
 
-			throw new Error(`Service not registered: ${token}`);
+			throw new Error(`Service not registered: ${token.toString()}`);
 		}
 
 		const service = new mod(this);
@@ -64,6 +64,12 @@ export class Container {
 		this._services.set(token, service);
 
 		return service as T;
+	}
+
+	public async init() {
+		for (const [_, service] of this._services) {
+			await service.init?.(this);
+		}
 	}
 
 	public async dispose() {

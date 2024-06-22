@@ -3,7 +3,7 @@ import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
-import { Tokens, Container } from '@container';
+import { tokens, Container } from '@container';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Alert } from '@models/Alert';
@@ -19,14 +19,14 @@ export default class ReportAlertsJob extends BaseJob {
 
 	public constructor(container: Container) {
 		super({
-			name: 'com.weathergoat.jobs.ReportAlerts',
+			name: 'report_alerts',
 			pattern: '*/30 * * * * *'
 		});
 
 		this._username = 'WeatherGoat#Alerts';
 		this._reason = 'Required for weather alert reporting';
-		this._alerts = container.resolve(Tokens.Alerts);
-		this._sweeper = container.resolve(Tokens.Sweeper);
+		this._alerts = container.resolve(tokens.alerts);
+		this._sweeper = container.resolve(tokens.sweeper);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

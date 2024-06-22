@@ -3,13 +3,22 @@ import { WeatherGoat } from '@client';
 import { REST, Routes } from 'discord.js';
 import { Option, Command } from 'clipanion';
 import { Stopwatch } from '@sapphire/stopwatch';
+import type { Logger } from 'winston';
 import type { BaseContext } from 'clipanion';
 
 export class CommandManagerCommand extends Command<BaseContext> {
+	private readonly _logger: Logger;
+
 	public static override paths = [['manage-commands'], ['mc']];
 
 	public action = Option.String<'create' | 'delete'>({ required: true });
 	public guilds = Option.Rest();
+
+	public constructor() {
+		super();
+
+		this._logger = logger.child({ name: 'CLI' });
+	}
 
 	public async execute() {
 		let exitCode = 0;
@@ -28,39 +37,39 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				if (global) {
 					await rest.put(Routes.applicationCommands(botId), { body });
 
-					logger.info('Registered commands globally');
+					this._logger.info('Registered commands globally');
 				} else {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body });
 
-						logger.info('Registered commands in guild', { guildId });
+						this._logger.info('Registered commands in guild', { guildId });
 					}
 
-					logger.info(`Finished Registering commands in guilds`, { guildCount: this.guilds.length });
+					this._logger.info(`Finished Registering commands in guilds`, { guildCount: this.guilds.length });
 				}
 				break;
 			case 'delete':
 				if (global) {
 					await rest.put(Routes.applicationCommands(botId), { body: [] });
 
-					logger.info('Deleted commands globally');
+					this._logger.info('Deleted commands globally');
 				} else {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body: [] });
 
-						logger.info('Deleted command in guild', { guildId });
+						this._logger.info('Deleted command in guild', { guildId });
 					}
 
-					logger.info('Finished deleting commands in guilds', { guildCount: this.guilds.length });
+					this._logger.info('Finished deleting commands in guilds', { guildCount: this.guilds.length });
 				}
 				break;
 			default:
-				logger.error('Invalid action', this.action);
+				this._logger.error('Invalid action', this.action);
 				exitCode = 1;
 				break;
 		}
 
-		logger.info('Operation finished', { elapsed: sw.stop().toString() });
+		this._logger.info('Operation finished', { elapsed: sw.stop().toString() });
 
 		return exitCode;
 	}

@@ -1,7 +1,8 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { Colors } from '@constants';
+import { v7 as uuidv7 } from 'uuid';
 import { BaseCommand } from '@commands';
 import { Duration } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -52,7 +53,7 @@ export default class RadarChannelCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve(Tokens.Location);
+		this._location = container.resolve(tokens.location);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
@@ -112,6 +113,7 @@ export default class RadarChannelCommand extends BaseCommand {
 
 				await db.radarChannel.create({
 					data: {
+						uuid: uuidv7(),
 						guildId,
 						channelId,
 						messageId: firstMessage.id,

@@ -1,16 +1,21 @@
 import { _ } from '@i18n';
-import { logger } from '@logger';
 import { BaseEvent } from '@events';
+import { logger, reportError } from '@logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { captureError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isWeatherGoatError, MaxDestinationError } from '@errors';
+import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';
 import type { BaseCommandWithAutocomplete } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
+	private readonly _logger: Logger;
+
 	public constructor() {
 		super({ name: 'interactionCreate' });
+
+		this._logger = logger.child({ discordEvent: this.name });
 	}
 
 	public async handle(interaction: Interaction) {
@@ -21,7 +26,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 			const sw = new Stopwatch();
 
 			try {
-				logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
+				this._logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
 
 				await interaction.channel?.sendTyping();
 
@@ -45,18 +50,18 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				} else if (isPreconditionError(err)) {
 					await tryToRespond(interaction, err.message);
 				} else {
-					captureError('Error in interaction handler', err, { interaction: interaction.commandName });
+					reportError('Error in interaction handler', err, { interaction: interaction.commandName });
 
 					await tryToRespond(interaction, _('events.interactions.err.commandError'));
 				}
 			} finally {
-				logger.info(`Interaction completed in ${sw.toString()}`);
+				this._logger.info(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {
 				await (command as BaseCommandWithAutocomplete).handleAutocomplete?.(interaction);
 			} catch (err: unknown) {
-				captureError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
+				reportError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
 			}
 		}
 	}

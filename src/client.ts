@@ -1,13 +1,13 @@
 import { db } from '@db';
 import initI18n from '@i18n';
 import { Cron } from 'croner';
-import { logger } from '@logger';
-import { Container } from '@container';
-import { captureError } from '@errors';
+import { logger, reportError } from '@logger';
+import { tokens, Container } from '@container';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
+import type { Logger } from 'winston';
 import type { BaseEvent } from '@events';
 import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
 import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
@@ -33,6 +33,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
 	public readonly container: Container;
 
+	private readonly _logger: Logger;
 	private readonly _moduleFilePattern: RegExp;
 
 	public constructor(options: WeatherGoatOptions) {
@@ -43,6 +44,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.commands = new Collection();
 		this.container = new Container(!!options.dry);
 
+		this._logger = logger.child({ name: tokens.client });
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
@@ -60,7 +62,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async destroy() {
-		logger.info('Shutting down', { date: new Date() });
+		this._logger.info('Shutting down', { date: new Date() });
 
 		for (const { cron } of this.jobs) {
 			if (cron.isRunning()) {
@@ -83,7 +85,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name, reason });
 
-			logger.info('Created webhook', { name, channel: channel.name } );
+			this._logger.info('Created webhook', { name, channel: channel.name } );
 		}
 
 		return ourWebhook;
@@ -99,11 +101,11 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
 
-			const cron = new Cron(pattern, self => job.execute(this, self), {
+			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
 				paused: true,
-				protect: (job) => logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
-				catch: (err) => captureError('Job error', err, { name })
+				protect: (job) => this._logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
+				catch: (err) => reportError('Job error', err, { name })
 			});
 
 			this.jobs.push({ job, cron });
@@ -114,10 +116,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 					cron.resume();
 				}
 			} catch (err) {
-				captureError('Error executing `runImmediately` job', err, { name });
+				reportError('Error executing `runImmediately` job', err, { name });
 			}
 
-			logger.info('Registered job', {
+			this._logger.info('Registered job', {
 				name,
 				pattern,
 				waitUntilReady,
@@ -145,7 +147,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.events.set(name, event);
 
-			logger.info('Registered event', { name, once });
+			this._logger.info('Registered event', { name, once });
 		}
 	}
 
@@ -156,7 +158,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.commands.set(command.name, command);
 
-			logger.info('Registered command', { name: command.name });
+			this._logger.info('Registered command', { name: command.name });
 		}
 	}
 }

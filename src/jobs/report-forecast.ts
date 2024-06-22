@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
@@ -21,15 +21,15 @@ export default class ReportForecastsJob extends BaseJob {
 
 	public constructor(container: Container) {
 		super({
-			name: 'com.weathergoat.jobs.ReportForecasts',
+			name: 'report_forecasts',
 			pattern: '0 * * * *'
 		});
 
 		this._username = 'WeatherGoat#Forecast';
 		this._reason = 'Required for weather forecast reporting';
-		this._location = container.resolve(Tokens.Location);
-		this._forecast = container.resolve(Tokens.Forecast);
-		this._sweeper = container.resolve(Tokens.Sweeper);
+		this._location = container.resolve(tokens.location);
+		this._forecast = container.resolve(tokens.forecast);
+		this._sweeper = container.resolve(tokens.sweeper);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

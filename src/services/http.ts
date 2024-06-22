@@ -1,10 +1,12 @@
 import { logger } from '@logger';
+import { tokens } from '@container';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
 import { BOT_USER_AGENT } from '@constants';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
+import type { Logger } from 'winston';
 import type { QueryObject } from 'ufo';
 import type { IService } from '@services';
 import type { RetryPolicy } from 'cockatiel';
@@ -42,6 +44,7 @@ export class HttpClient {
 	private readonly _baseUrl?: string;
 	private readonly _retryPolicy: RetryPolicy;
 	private readonly _durationFormatter: DurationFormatter;
+	private readonly _logger: Logger;
 
 	private _requestNum = 0;
 
@@ -54,6 +57,7 @@ export class HttpClient {
 			backoff: new ConstantBackoff(1_000)
 		});
 		this._durationFormatter = new DurationFormatter();
+		this._logger = logger.child({ name: `com.weathergoat.httpclients.${this._name}` });
 	}
 
 	public async get(url: string | URL, options?: GETOptions): Promise<Response> {
@@ -81,12 +85,7 @@ export class HttpClient {
 
 		const id = `${this._name}-${this._requestNum}`;
 
-		logger.http('Making HTTP request', {
-			id,
-			method: init?.method,
-			url: requestUrl,
-			retry: this._retry
-		});
+		this._logger.silly('Making HTTP request', { id, method: init?.method, url: requestUrl, retry: this._retry });
 
 		const startTime = hrtime.bigint();
 
@@ -99,7 +98,7 @@ export class HttpClient {
 
 		const endTime = hrtime.bigint();
 
-		logger.http('Finished HTTP request', {
+		this._logger.silly('Finished HTTP request', {
 			id,
 			status: `${res.status} - ${res.statusText}`,
 			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
@@ -112,9 +111,11 @@ export class HttpClient {
 }
 
 export default class HttpService implements IHttpService {
+	private readonly _logger: Logger;
 	private readonly _clients: Collection<string, HttpClient>;
 
 	public constructor() {
+		this._logger = logger.child({ name: tokens.http });
 		this._clients = new Collection();
 	}
 
@@ -127,6 +128,8 @@ export default class HttpService implements IHttpService {
 		const client = new HttpClient({ name, baseUrl, retry });
 
 		this._clients.set(name, client);
+
+		this._logger.info('Created HTTP client', { name, ...options });
 
 		return client;
 	}

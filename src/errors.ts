@@ -1,6 +1,4 @@
-import { logger } from '@logger';
 import { MakeErrorClass } from 'fejl';
-import { captureException } from '@sentry/bun';
 import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';
 
 export type WeatherGoatError = InvalidPermissionsError | HTTPRequestError | MaxDestinationError;
@@ -11,13 +9,6 @@ export class MaxDestinationError extends MakeErrorClass<{ max: number; }>('You h
 
 export function isWeatherGoatError<T extends WeatherGoatError>(err: unknown): err is T {
 	return err instanceof InvalidPermissionsError || err instanceof HTTPRequestError || err instanceof MaxDestinationError;
-}
-
-export function captureError(message: string, err: unknown, context?: object) {
-	const { message: errorMessage, stack } = err as Error;
-
-	logger.error(message, { ...context, errorMessage, stack });
-	captureException(err);
 }
 
 export function isDiscordAPIError(err: unknown): err is DiscordAPIError {

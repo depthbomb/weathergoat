@@ -1,6 +1,7 @@
 import 'winston-daily-rotate-file';
 import { join } from 'node:path';
 import { LOGS_DIR } from '@constants';
+import { captureException } from '@sentry/bun';
 import { format, transports, createLogger } from 'winston';
 
 // error   0
@@ -15,14 +16,22 @@ const consoleTransportFormat = format.combine(
 	format.colorize(),
 	format.timestamp(),
 	format.padLevels(),
-	format.printf(({ level, message, timestamp, ...meta }) => `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`)
+	format.printf(({ level, message, timestamp, ...meta }) => {
+		if (Object.keys(meta).length) return `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`;
+
+		return `${timestamp} [${level}] ${message}`;
+	})
 );
-const consoleTransport = new transports.Console({ level: process.env.MODE === 'development' ? 'silly' : 'http', format: consoleTransportFormat });
+
+const consoleTransport = new transports.Console({
+	level: process.env.MODE === 'development' ? 'silly' : 'info',
+	format: consoleTransportFormat
+});
 
 const fileTransportFormat = format.combine(
 	format.timestamp(),
-	format.printf(({ level, message, timestamp, ...meta }) => `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`)
-)
+	format.printf((obj) => JSON.stringify(obj))
+);
 
 export const logger = createLogger({
 	transports: [
@@ -53,3 +62,8 @@ export const logger = createLogger({
 		}),
 	]
 });
+
+export function reportError(message: string, err: unknown, ...args: unknown[]) {
+	logger.error(message, err, ...args);
+	captureException(err);
+}

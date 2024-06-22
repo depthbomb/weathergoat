@@ -1,8 +1,8 @@
 import type { WeatherGoat } from '@client';
+import type idGenerator from '@utils/reverseDns';
 
 export type Maybe<T> = T | undefined;
 export type Nullable<T> = T | null;
-export type BaseId<T extends string> = `com.weathergoat.${T}`;
 
 declare module 'bun' {
 	interface Env {

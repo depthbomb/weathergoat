@@ -1,6 +1,6 @@
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@client';
@@ -13,12 +13,12 @@ export default class UpdateStatusJob extends BaseJob {
 
 	public constructor(container: Container) {
 		super({
-			name: 'com.weathergoat.jobs.UpdateStatus',
+			name: 'update_status',
 			pattern: '*/15 * * * * *',
 			runImmediately: true
 		});
 
-		this._github = container.resolve(Tokens.GitHub);
+		this._github = container.resolve(tokens.github);
 		this._formatter = new DurationFormatter();
 	}
 

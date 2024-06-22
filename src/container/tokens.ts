@@ -1,15 +1,13 @@
-export const enum Tokens {
-	// Values
-	Client = 'com.weathergoat.Client',
-	// Services
-	Alerts = 'com.weathergoat.services.Alerts',
-	API = 'com.weathergoat.services.API',
-	Cache = 'com.weathergoat.services.Cache',
-	CLI = 'com.weathergoat.services.CLI',
-	Features = 'com.weathergoat.services.Features',
-	Forecast = 'com.weathergoat.services.Forecast',
-	GitHub = 'com.weathergoat.services.GitHub',
-	HTTP = 'com.weathergoat.services.HTTP',
-	Location = 'com.weathergoat.services.Location',
-	Sweeper = 'com.weathergoat.services.Sweeper',
-}
+export const tokens = {
+	client:   Symbol('Client'),
+	alerts:   Symbol('AlertsService'),
+	api:      Symbol('APIService'),
+	cache:    Symbol('CacheService'),
+	cli:      Symbol('CLIService'),
+	features: Symbol('FeaturesService'),
+	forecast: Symbol('ForecastService'),
+	github:   Symbol('GitHubService'),
+	http:     Symbol('HTTPService'),
+	location: Symbol('LocationService'),
+	sweeper:  Symbol('SweeperService'),
+};

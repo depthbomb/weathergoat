@@ -1,26 +1,29 @@
 import { BaseJob } from '@jobs';
 import { logger } from '@logger';
-import { Tokens } from '@container';
+import { tokens } from '@container';
+import type { Logger } from 'winston';
 import type { Container } from '@container';
 import type { ISweeperService } from '@services/sweeper';
 
 export default class SweepMessagesJob extends BaseJob {
+	private readonly _logger: Logger;
 	private readonly _sweeper: ISweeperService;
 
 	public constructor(container: Container) {
 		super({
-			name: 'com.weathergoat.jobs.SweepMessages',
+			name: 'sweep_messages',
 			pattern: '* * * * *',
 			runImmediately: true
 		});
 
-		this._sweeper = container.resolve(Tokens.Sweeper);
+		this._logger = logger.child({ name: this.name });
+		this._sweeper = container.resolve(tokens.sweeper);
 	}
 
 	public async execute() {
 		const [sweepCount, errorCount] = await this._sweeper.sweepMessages();
 		if (sweepCount || errorCount) {
-			logger.info('Finished sweeping messages', { sweepCount, errorCount });
+			this._logger.info('Finished sweeping messages', { sweepCount, errorCount });
 		}
 	}
 }

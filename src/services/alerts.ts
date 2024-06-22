@@ -1,4 +1,4 @@
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
@@ -25,11 +25,11 @@ export default class AlertsService implements IAlertsService {
 	private readonly _http: HttpClient;
 
 	public constructor(container: Container) {
-		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
+		const httpService = container.resolve<IHttpService>(tokens.http);
 		this._http = httpService.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
-	public async getActiveAlerts(): Promise<Alert[]> {
+	public async getActiveAlerts() {
 		const res = await this._http.get('/alerts/active');
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
@@ -40,7 +40,7 @@ export default class AlertsService implements IAlertsService {
 		return data.alerts;
 	}
 
-	public async getActiveAlertsForZone(zoneId: string): Promise<Alert[]> {
+	public async getActiveAlertsForZone(zoneId: string) {
 		const res = await this._http.get(`/alerts/active/zone/${zoneId}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });

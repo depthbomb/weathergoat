@@ -1,10 +1,12 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { Colors } from '@constants';
+import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
+import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -43,7 +45,7 @@ export default class AlertsCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('remove')
 				.setDescription('Removes an alert reporting destination')
-				.addStringOption(o => o.setName('id').setDescription('The ID of the alert destination to delete').setRequired(true))
+				.addStringOption(o => o.setName('uuid').setDescription('The UUID of the alert destination to delete').setRequired(true))
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
@@ -54,7 +56,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve(Tokens.Location);
+		this._location = container.resolve(tokens.location);
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },
@@ -77,18 +79,14 @@ export default class AlertsCommand extends BaseCommand {
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
-		if (!guildId) {
-			return interaction.reply(_('common.err.guildOnly'));
-		}
+		if (!guildId) return interaction.reply(_('common.err.guildOnly'));
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of alert destinations in this server.', {
 			max: maxCount
 		});
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply(_('common.err.invalidLatOrLon'));
-		}
+		if (!this._location.isValidCoordinates(latitude, longitude)) return interaction.reply(_('common.err.invalidLatOrLon'));
 
 		await interaction.deferReply();
 
@@ -120,6 +118,7 @@ export default class AlertsCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const destination = await db.alertDestination.create({
 					data: {
+						uuid: uuidv7(),
 						latitude,
 						longitude,
 						zoneId: info.zoneId,
@@ -149,20 +148,24 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const id = interaction.options.getString('id', true);
+		const uuid = interaction.options.getString('uuid', true);
+
+		if (!isUuidValid(uuid)) {
+			return interaction.reply(_('common.err.invalidUuid', { uuid }));
+		}
 
 		await interaction.deferReply();
 
-		const exists = await db.alertDestination.exists({ id });
+		const exists = await db.alertDestination.exists({ uuid });
 		if (!exists) {
-			return interaction.editReply(_('commands.alerts.err.noDestById', { id }));
+			return interaction.editReply(_('commands.alerts.err.noDestByUuid', { uuid }));
 		}
 
 		try {
-			await db.alertDestination.delete({ where: { id } });
+			await db.alertDestination.delete({ where: { uuid } });
 			return interaction.editReply(_('commands.alerts.destRemoved'));
 		} catch (err: unknown) {
-			captureError('Failed to remove alert destination', err, { id });
+			reportError('Failed to remove alert destination', err, { uuid });
 			return interaction.editReply(_('commands.alerts.err.couldNotRemoveDest'));
 		}
 	}

@@ -1,4 +1,4 @@
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { HTTPRequestError } from '@errors';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
@@ -22,10 +22,10 @@ export default class ForecastService implements IForecastService {
 	private readonly _location: ILocationService;
 
 	public constructor(container: Container) {
-		const httpService = container.resolve<IHttpService>(Tokens.HTTP);
+		const httpService = container.resolve<IHttpService>(tokens.http);
 
 		this._http = httpService.getClient('forecasts', { retry: true });
-		this._location = container.resolve(Tokens.Location);
+		this._location = container.resolve(tokens.location);
 	}
 
 	public async getForecastForCoordinates(latitude: string, longitude: string): Promise<GridpointForecastPeriod> {

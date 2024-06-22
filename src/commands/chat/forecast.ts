@@ -1,10 +1,12 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { Colors } from '@constants';
+import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
+import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { captureError, isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -42,7 +44,7 @@ export default class ForecastCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('remove')
 				.setDescription('Removes a forecast reporting destination')
-				.addStringOption(o => o.setName('id').setDescription('The ID of the forecast destination to delete').setRequired(true))
+				.addStringOption(o => o.setName('uuid').setDescription('The UUID of the forecast destination to delete').setRequired(true))
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
@@ -53,7 +55,7 @@ export default class ForecastCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve(Tokens.Location);
+		this._location = container.resolve(tokens.location);
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },
@@ -111,6 +113,7 @@ export default class ForecastCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const destination = await db.forecastDestination.create({
 					data: {
+						uuid: uuidv7(),
 						latitude,
 						longitude,
 						guildId,
@@ -137,20 +140,24 @@ export default class ForecastCommand extends BaseCommand {
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const id = interaction.options.getString('id', true);
+		const uuid = interaction.options.getString('uuid', true);
+
+		if (!isUuidValid(uuid)) {
+			return interaction.reply(_('common.err.invalidUuid', { uuid }));
+		}
 
 		await interaction.deferReply();
 
-		const exists = await db.forecastDestination.exists({ id });
+		const exists = await db.forecastDestination.exists({ uuid });
 		if (!exists) {
-			return interaction.editReply(_('commands.forecasts.err.noDestById', { id }));
+			return interaction.editReply(_('commands.forecasts.err.noDestByUuid', { uuid }));
 		}
 
 		try {
-			await db.forecastDestination.delete({ where: { id } });
+			await db.forecastDestination.delete({ where: { uuid } });
 			return interaction.editReply(_('commands.forecasts.destRemoved'));
 		} catch (err: unknown) {
-			captureError('Failed to remove forecast destination', err, { id });
+			reportError('Failed to remove forecast destination', err, { uuid });
 			return interaction.editReply(_('commands.forecasts.err.couldNotRemoveDest'));
 		}
 	}

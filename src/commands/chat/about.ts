@@ -1,5 +1,5 @@
 import { _ } from '@i18n';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { REPO, Colors } from '@constants';
 import { isDiscordAPIErrorCode } from '@errors';
@@ -30,7 +30,7 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this._github = container.resolve(Tokens.GitHub);
+		this._github = container.resolve(tokens.github);
 		this._formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({

@@ -1,6 +1,6 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { DATABASE_PATH } from '@constants';
 import { OwnerPrecondition } from '@preconditions/owner';
@@ -40,7 +40,7 @@ export default class DebugCommand extends BaseCommand {
 			]
 		});
 
-		this._features = container.resolve(Tokens.Features);
+		this._features = container.resolve(tokens.features);
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },

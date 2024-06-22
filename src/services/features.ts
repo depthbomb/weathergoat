@@ -1,14 +1,15 @@
+import { logger } from '@logger';
+import { tokens } from '@container';
 import { Collection } from 'discord.js';
 import { plainToInstance } from 'class-transformer';
+import type { Maybe } from '#types';
+import type { Logger } from 'winston';
 import type { IService } from '@services';
-import type { Maybe, BaseId } from '#types';
-
-type FeatureId = `${BaseId<'features'>}.${string}`;
 
 export interface IFeaturesService extends IService {
-	set(name: FeatureId, fraction: number, description?: string): IFeaturesService;
-	get(name: FeatureId): Maybe<Feature>;
-	isFeatureEnabled(name: FeatureId, defaultValue?: boolean): boolean;
+	set(name: string, fraction: number, description?: string): IFeaturesService;
+	get(name: string): Maybe<Feature>;
+	isFeatureEnabled(name: string, defaultValue?: boolean): boolean;
 	all(): Feature[];
 }
 
@@ -22,25 +23,29 @@ class Feature {
 }
 
 export default class FeaturesService implements IFeaturesService {
-	private readonly _features: Collection<FeatureId, Feature>;
+	private readonly _logger: Logger;
+	private readonly _features: Collection<string, Feature>;
 
 	public constructor() {
+		this._logger = logger.child({ name: tokens.features });
 		this._features = new Collection();
 	}
 
-	public set(name: FeatureId, fraction: number, description?: string) {
+	public set(name: string, fraction: number, description?: string) {
 		const obj = { name, fraction, description };
 
 		this._features.set(name, plainToInstance(Feature, obj));
 
+		this._logger.info('Created feature flag', { name, fraction, description });
+
 		return this;
 	}
 
-	public get(name: FeatureId) {
+	public get(name: string) {
 		return this._features.get(name);
 	}
 
-	public isFeatureEnabled(name: FeatureId, defaultValue?: boolean) {
+	public isFeatureEnabled(name: string, defaultValue?: boolean) {
 		const feature = this._features.find(f => f.name === name);
 		if (!feature) {
 			if (typeof defaultValue === 'undefined') {

@@ -17,8 +17,7 @@ type EventOptions<T> = {
 	 * `false` by default.
 	 */
 	disabled?: boolean;
-}
-
+};
 
 export abstract class BaseEvent<T extends keyof ClientEvents> {
 	public readonly name: T;

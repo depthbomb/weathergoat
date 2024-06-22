@@ -1,13 +1,11 @@
 import type Cron from 'croner';
-import type { BaseId } from '#types';
 import type { WeatherGoat } from '@client';
 
-type JobId = `${BaseId<'jobs'>}.${string}`;
 type JobOptions<WaitsUntilReady extends boolean = boolean> = {
 	/**
 	 * The unique name of the job.
 	 */
-	name: JobId;
+	name: string;
 	/**
 	 * The cron pattern of the job.
 	 */
@@ -32,12 +30,13 @@ type JobOptions<WaitsUntilReady extends boolean = boolean> = {
 }
 
 export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
-	public readonly name: JobId;
+	public readonly name: string;
 	public readonly pattern: string;
 	public readonly waitUntilReady: boolean;
 	public readonly runImmediately: boolean;
 
 	public constructor(options: JobOptions<WaitsUntilReady>) {
+
 		this.name = options.name;
 		this.pattern = options.pattern;
 		this.waitUntilReady = options.waitUntilReady ?? true;

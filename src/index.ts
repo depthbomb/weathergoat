@@ -1,9 +1,12 @@
 if (!process.versions.bun) throw new Error('WeatherGoat must be ran through Bun.');
 
-import { logger } from '@logger';
-import { Tokens } from '@container';
+import { tokens } from '@container';
 import { WeatherGoat } from '@client';
-import { captureError } from '@errors';
+import { logger, reportError } from '@logger';
+import { Partials, GatewayIntentBits } from 'discord.js';
+import type { ICliService } from '@services/cli';
+import type { IFeaturesService } from '@services/features';
+
 import cliService from '@services/cli';
 import httpService from '@services/http';
 import cacheService from '@services/cache';
@@ -13,16 +16,11 @@ import sweeperService from '@services/sweeper';
 import featuresService from '@services/features';
 import locationService from '@services/location';
 import forecastService from '@services/forecast';
-import { Partials, GatewayIntentBits } from 'discord.js';
-import type { ICliService } from '@services/cli';
-import type { IFeaturesService } from '@services/features';
 
-logger.info('Booting up', { mode: process.env.MODE });
+logger.info('Booting', { date: new Date() });
 
 if (process.env.SENTRY_DSN) {
 	const { init } = await import('@sentry/bun');
-
-	logger.info('Initializing Sentry');
 
 	init({ dsn: process.env.SENTRY_DSN });
 }
@@ -40,29 +38,30 @@ const wg = new WeatherGoat<false>({
 	partials: [Partials.Message, Partials.Channel]
 });
 
-wg.container
-	.registerValue(Tokens.Client, wg)
-	.register(Tokens.Alerts, alertsService)
-	.register(Tokens.Cache, cacheService)
-	.register(Tokens.CLI, cliService)
-	.register(Tokens.Features, featuresService)
-	.register(Tokens.Forecast, forecastService)
-	.register(Tokens.GitHub, githubService)
-	.register(Tokens.HTTP, httpService)
-	.register(Tokens.Location, locationService)
-	.register(Tokens.Sweeper, sweeperService);
+await wg.container
+	.registerValue(tokens.client, wg)
+	.register(tokens.alerts, alertsService)
+	.register(tokens.cache, cacheService)
+	.register(tokens.cli, cliService)
+	.register(tokens.features, featuresService)
+	.register(tokens.forecast, forecastService)
+	.register(tokens.github, githubService)
+	.register(tokens.http, httpService)
+	.register(tokens.location, locationService)
+	.register(tokens.sweeper, sweeperService)
+	.init();
 
-const features = wg.container.resolve<IFeaturesService>(Tokens.Features);
+const features = wg.container.resolve<IFeaturesService>(tokens.features);
 
-features.set('com.weathergoat.features.DisableAlertReporting', 0.0, 'Alert reporting killswitch');
-features.set('com.weathergoat.features.DisableForecastReporting', 0.0, 'Forecast reporting killswitch');
-features.set('com.weathergoat.features.DisableMessageSweeping', 0.0, 'Message sweeping killswitch');
-features.set('com.weathergoat.features.DisableRadarMessageUpdating', 0.0, 'Radar message updating killswitch');
-features.set('com.weathergoat.features.DisableStatusUpdating', 0.0, 'Status updating killswitch');
-features.set('com.weathergoat.features.experiments.AIAlertSummarizing', 0.0, 'Summarizes weather alerts using AI');
+features.set('disable_alert_reporting', 0.0, 'Alert reporting killswitch');
+features.set('disable_forecast_reporting', 0.0, 'Forecast reporting killswitch');
+features.set('disable_message_sweeping', 0.0, 'Message sweeping killswitch');
+features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
+features.set('disable_status_updating', 0.0, 'Status updating killswitch');
+features.set('EXPERIMENTAL_ai_alert_summaries', 0.0, 'Summarizes weather alerts using AI');
 
 if (process.argv.length > 2) {
-	const cli = wg.container.resolve<ICliService>(Tokens.CLI);
+	const cli = wg.container.resolve<ICliService>(tokens.cli);
 	await cli.run(process.argv.slice(2));
 } else {
 	await wg.login(process.env.BOT_TOKEN);
@@ -71,7 +70,7 @@ if (process.argv.length > 2) {
 for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => await wg.destroy());
 for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
 	if (err.code !== 'ABORT_ERR') {
-		captureError('Unhandled error', err);
+		reportError('Unhandled error', err);
 		await wg.destroy();
 	}
 

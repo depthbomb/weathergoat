@@ -1,5 +1,6 @@
 model ForecastDestination {
-  id            String  @id @default(cuid())
+  id            Int     @id @default(autoincrement())
+  uuid          String  @unique
   latitude      String
   longitude     String
   guildId       String
