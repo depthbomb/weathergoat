@@ -181,7 +181,7 @@ export default class ForecastCommand extends BaseCommand {
 
 		const destinations = await db.forecastDestination.findMany({
 			select: {
-				id: true,
+				uuid: true,
 				latitude: true,
 				longitude: true,
 				channelId: true,
@@ -199,14 +199,14 @@ export default class ForecastCommand extends BaseCommand {
 			.setColor(Colors.Primary)
 			.setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
 
-		for (const { id, latitude, longitude, channelId, autoCleanup } of destinations) {
+		for (const { uuid, latitude, longitude, channelId, autoCleanup } of destinations) {
 			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					_('common.reportingTo', { location: channel }),
-					codeBlock('json', JSON.stringify({ id, autoCleanup }, null, 4))
+					codeBlock('json', JSON.stringify({ uuid, autoCleanup }, null, 4))
 				].join('\n')
 			});
 		}

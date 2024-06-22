@@ -183,7 +183,7 @@ export default class AlertsCommand extends BaseCommand {
 
 		const destinations = await db.alertDestination.findMany({
 			select: {
-				id: true,
+				uuid: true,
 				latitude: true,
 				longitude: true,
 				channelId: true,
@@ -202,14 +202,14 @@ export default class AlertsCommand extends BaseCommand {
 			.setColor(Colors.Primary)
 			.setTitle(_('commands.alerts.listEmbedTitle'));
 
-		for (const { id, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
+		for (const { uuid, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					_('common.reportingTo', { location: channel }),
-					codeBlock('json', JSON.stringify({ id, autoCleanup, pingOnSevere }, null, 4))
+					codeBlock('json', JSON.stringify({ uuid, autoCleanup, pingOnSevere }, null, 4))
 				].join('\n')
 			});
 		}
