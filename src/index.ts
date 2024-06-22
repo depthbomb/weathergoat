@@ -67,7 +67,10 @@ if (process.argv.length > 2) {
 	await wg.login(process.env.BOT_TOKEN);
 }
 
-for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => await wg.destroy());
+for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
+	await wg.destroy();
+	process.exit(0);
+});
 for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
 	if (err.code !== 'ABORT_ERR') {
 		reportError('Unhandled error', err);
