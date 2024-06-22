@@ -1,43 +1,26 @@
-import { db } from '@db';
 import { BaseJob } from '@jobs';
-import { captureError } from '@lib/errors';
-import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { WeatherGoat } from '@lib/client';
+import { Tokens } from '@container';
+import { logger } from '@lib/logger';
+import type { Container } from '@container';
+import type { ISweeperService } from '@services/sweeper';
 
 export default class SweepMessagesJob extends BaseJob {
-	public constructor() {
+	private readonly _sweeper: ISweeperService;
+
+	public constructor(container: Container) {
 		super({
 			name: 'com.weathergoat.jobs.SweepMessages',
 			pattern: '* * * * *',
 			runImmediately: true
 		});
+
+		this._sweeper = container.resolve(Tokens.Sweeper);
 	}
 
-	public async execute(client: WeatherGoat<true>) {
-		const messages = await db.volatileMessage.findMany({
-			select: {
-				id: true,
-				channelId: true,
-				messageId: true
-			},
-			where: {
-				expiresAt: { lte: new Date() }
-			}
-		});
-		for (const { id, channelId, messageId } of messages) {
-			try {
-				const channel = await client.channels.fetch(channelId);
-				if (isTextChannel(channel)) {
-					const message = await channel.messages.fetch(messageId);
-					if (message) {
-						await message.delete();
-					}
-				}
-			} catch (err) {
-				captureError('Error while deleting volatile message', err, { channelId, messageId });
-			} finally {
-				await db.volatileMessage.delete({ where: { id } });
-			}
+	public async execute() {
+		const [sweepCount, errorCount] = await this._sweeper.sweepMessages();
+		if (sweepCount || errorCount) {
+			logger.info('Finished sweeping messages', { sweepCount, errorCount });
 		}
 	}
 }

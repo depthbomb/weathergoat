@@ -4,11 +4,11 @@ import { BaseJob } from '@jobs';
 import { Tokens } from '@container';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
-import { Duration } from '@sapphire/time-utilities';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Container } from '@container';
 import type { WeatherGoat } from '@lib/client';
+import type { ISweeperService } from '@services/sweeper';
 import type { ILocationService } from '@services/location';
 import type { IForecastService } from '@services/forecast';
 
@@ -17,6 +17,7 @@ export default class ReportForecastsJob extends BaseJob {
 	private readonly _reason: string;
 	private readonly _location: ILocationService;
 	private readonly _forecast: IForecastService;
+	private readonly _sweeper: ISweeperService;
 
 	public constructor(container: Container) {
 		super({
@@ -28,6 +29,7 @@ export default class ReportForecastsJob extends BaseJob {
 		this._reason = 'Required for weather forecast reporting';
 		this._location = container.resolve(Tokens.Location);
 		this._forecast = container.resolve(Tokens.Forecast);
+		this._sweeper = container.resolve(Tokens.Sweeper);
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -61,8 +63,7 @@ export default class ReportForecastsJob extends BaseJob {
 			}
 
 			const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);
-
-			const { id: messageId } = await webhook.send({
+			const sentMessage = await webhook.send({
 				username: this._username,
 				avatarURL: client.user!.avatarURL({ forceStatic: false })!,
 				embeds: [embed],
@@ -70,14 +71,7 @@ export default class ReportForecastsJob extends BaseJob {
 			});
 
 			if (autoCleanup) {
-				await db.volatileMessage.create({
-					data: {
-						guildId,
-						channelId,
-						messageId,
-						expiresAt: new Duration('4h').fromNow
-					}
-				});
+				await this._sweeper.enqueueMessage(sentMessage, '4h');
 			}
 		}
 	}

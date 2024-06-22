@@ -9,6 +9,7 @@ import cacheService from '@services/cache';
 import { captureError } from '@lib/errors';
 import alertsService from '@services/alerts';
 import githubService from '@services/github';
+import sweeperService from '@services/sweeper';
 import featuresService from '@services/features';
 import locationService from '@services/location';
 import forecastService from '@services/forecast';
@@ -48,7 +49,8 @@ wg.container
 	.register(Tokens.Forecast, forecastService)
 	.register(Tokens.GitHub, githubService)
 	.register(Tokens.HTTP, httpService)
-	.register(Tokens.Location, locationService);
+	.register(Tokens.Location, locationService)
+	.register(Tokens.Sweeper, sweeperService);
 
 const features = wg.container.resolve<IFeaturesService>(Tokens.Features);
 

@@ -9,11 +9,13 @@ import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@lib/client';
 import type { IAlertsService } from '@services/alerts';
+import type { ISweeperService } from '@services/sweeper';
 
 export default class ReportAlertsJob extends BaseJob {
-	private readonly _alerts: IAlertsService;
 	private readonly _username: string;
 	private readonly _reason: string;
+	private readonly _alerts: IAlertsService;
+	private readonly _sweeper: ISweeperService;
 
 	public constructor(container: Container) {
 		super({
@@ -21,9 +23,10 @@ export default class ReportAlertsJob extends BaseJob {
 			pattern: '*/30 * * * * *'
 		});
 
-		this._alerts = container.resolve(Tokens.Alerts);
 		this._username = 'WeatherGoat#Alerts';
 		this._reason = 'Required for weather alert reporting';
+		this._alerts = container.resolve(Tokens.Alerts);
+		this._sweeper = container.resolve(Tokens.Sweeper);
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -86,14 +89,12 @@ export default class ReportAlertsJob extends BaseJob {
 						const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
 						if (referencedSentAlert) {
 							// Enqueue parent alert messages to be deleted immediately
-							await db.volatileMessage.create({
-								data: {
-									guildId: referencedSentAlert.guildId,
-									channelId: referencedSentAlert.channelId,
-									messageId: referencedSentAlert.messageId,
-									expiresAt: new Date()
-								}
-							});
+							await this._sweeper.enqueueMessage(
+								referencedSentAlert.guildId,
+								referencedSentAlert.channelId,
+								referencedSentAlert.messageId,
+								new Date()
+							);
 						}
 
 						alertUrls.push(reference.url);
@@ -108,7 +109,7 @@ export default class ReportAlertsJob extends BaseJob {
 					pingOnSevere
 				);
 				const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);
-				const { id: messageId } = await webhook.send({
+				const sentMessage = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
 					username: this._username,
 					avatarURL: client.user.avatarURL({ forceStatic: false })!,
@@ -117,14 +118,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 				if (autoCleanup) {
 					const expiresAt = alert.expires;
-					await db.volatileMessage.create({
-						data: {
-							guildId,
-							channelId,
-							messageId,
-							expiresAt
-						}
-					});
+					await this._sweeper.enqueueMessage(sentMessage, expiresAt);
 				}
 
 				await db.sentAlert.create({
@@ -132,7 +126,7 @@ export default class ReportAlertsJob extends BaseJob {
 						alertId: alert.id,
 						guildId,
 						channelId: channelId,
-						messageId,
+						messageId: sentMessage.id,
 						json: JSON.stringify(alert)
 					}
 				});
@@ -148,14 +142,12 @@ export default class ReportAlertsJob extends BaseJob {
 
 						if (!expiredSentAlert) continue;
 
-						await db.volatileMessage.create({
-							data: {
-								guildId: expiredSentAlert.guildId,
-								channelId: expiredSentAlert.channelId,
-								messageId: expiredSentAlert.messageId,
-								expiresAt: new Date()
-							}
-						});
+						await this._sweeper.enqueueMessage(
+							expiredSentAlert.guildId,
+							expiredSentAlert.channelId,
+							expiredSentAlert.messageId,
+							new Date()
+						);
 					}
 				}
 			}

@@ -11,4 +11,5 @@ export const enum Tokens {
 	GitHub = 'com.weathergoat.services.GitHub',
 	HTTP = 'com.weathergoat.services.HTTP',
 	Location = 'com.weathergoat.services.Location',
+	Sweeper = 'com.weathergoat.services.Sweeper',
 }
