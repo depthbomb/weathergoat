@@ -1,8 +1,8 @@
 import { db } from '@db';
 import { _ } from '@lib/i18n';
 import { BaseJob } from '@jobs';
-import { v7 as uuidv7 } from 'uuid';
 import { Colors } from '@constants';
+import { v7 as uuidv7 } from 'uuid';
 import { logger } from '@lib/logger';
 import { isDiscordAPIError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
@@ -19,18 +19,17 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		});
 	}
 
-	public async execute(client: WeatherGoat<true>, job: Cron): Promise<unknown> {
+	public async execute(client: WeatherGoat<true>, job: Cron) {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
 			try {
 				const guild = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
-
 				if (!isTextChannel(channel)) {
 					logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
 
 					await db.radarChannel.delete({ where: { id } });
-					return;
+					continue;
 				}
 
 				const message = await channel.messages.fetch(messageId);
