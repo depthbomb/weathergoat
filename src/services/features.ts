@@ -27,7 +27,7 @@ export default class FeaturesService implements IFeaturesService {
 	private readonly _features: Collection<string, Feature>;
 
 	public constructor() {
-		this._logger = logger.child({ logger: tokens.features });
+		this._logger = logger.child({ service: tokens.features });
 		this._features = new Collection();
 	}
 
