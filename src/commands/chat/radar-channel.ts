@@ -1,10 +1,8 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { tokens } from '@container';
-import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseCommand } from '@commands';
-import { Duration } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
@@ -76,7 +74,7 @@ export default class RadarChannelCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
+		const location = await this._location.getInfoFromCoordinates(latitude, longitude);
 		const row = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()
@@ -90,36 +88,23 @@ export default class RadarChannelCommand extends BaseCommand {
 			);
 
 		const initialReply = await interaction.editReply({
-			content: _('commands.radarChannel.coordLocationAskConfirmation', { latitude, longitude, info }),
+			content: _('commands.radarChannel.coordLocationAskConfirmation', { latitude, longitude, location }),
 			components: [row]
 		});
 
 		try {
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const embed = new EmbedBuilder()
-					.setColor(Colors.Primary)
-					.setTitle(_('jobs.radar.embedTitle', { info }))
-					.setFooter({ text: _('jobs.radar.embedFooter') })
-					.setImage(info.radarImageUrl)
-					.addFields(
-						{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-						{ name: _('jobs.radar.nextUpdateTitle'), value: time(new Duration('5m').fromNow, 'R'), inline: true },
-					)
-
 				const guildId      = interaction.guildId!;
 				const channelId    = channel.id;
-				const firstMessage = await channel.send({ embeds: [embed] });
-
 				await db.radarChannel.create({
 					data: {
 						uuid: uuidv7(),
 						guildId,
 						channelId,
-						messageId: firstMessage.id,
-						location: info.location,
-						radarStation: info.radarStation,
-						radarImageUrl: info.radarImageUrl
+						location: location.location,
+						radarStation: location.radarStation,
+						radarImageUrl: location.radarImageUrl
 					}
 				});
 

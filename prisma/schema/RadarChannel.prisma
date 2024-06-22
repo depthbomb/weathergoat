@@ -1,9 +1,9 @@
 model RadarChannel {
-  id            Int    @id @default(autoincrement())
-  uuid          String @unique
+  id            Int     @id @default(autoincrement())
+  uuid          String  @unique
   guildId       String
   channelId     String
-  messageId     String
+  messageId     String?
   location      String
   radarStation  String
   radarImageUrl String

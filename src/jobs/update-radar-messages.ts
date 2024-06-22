@@ -5,7 +5,7 @@ import { logger } from '@logger';
 import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { isDiscordAPIError } from '@errors';
-import { time, EmbedBuilder } from 'discord.js';
+import { time, MessageFlags, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type Cron from 'croner';
 import type { Logger } from 'winston';
@@ -27,6 +27,8 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	public async execute(client: WeatherGoat<true>, job: Cron) {
 		const radarChannels = await db.radarChannel.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
+			const embed = this._createRadarMessageEmbed(location, radarStation, radarImageUrl, job);
+
 			try {
 				const guild = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
@@ -37,17 +39,21 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 					continue;
 				}
 
-				const message = await channel.messages.fetch(messageId);
-				const embed = new EmbedBuilder()
-						.setColor(Colors.Primary)
-						.setTitle(_('jobs.radar.embedTitle', { location }))
-						.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
-						.setImage(`${radarImageUrl}?${uuidv7()}`)
-						.addFields(
-							{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-							{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
-						);
-				await message.edit({ embeds: [embed] })
+				if (!messageId) {
+					const initialMessage = await channel.send({ embeds: [embed], flags: [MessageFlags.SuppressNotifications] });
+
+					await db.radarChannel.update({
+						where: {
+							id
+						},
+						data: {
+							messageId: initialMessage.id
+						}
+					});
+				} else {
+					const message = await channel.messages.fetch(messageId);
+					await message.edit({ embeds: [embed] });
+				}
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
@@ -62,5 +68,17 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				}
 			}
 		}
+	}
+
+	private _createRadarMessageEmbed(location: string, radarStation: string, radarImageUrl: string, job: Cron) {
+		return new EmbedBuilder()
+			.setColor(Colors.Primary)
+			.setTitle(_('jobs.radar.embedTitle', { location }))
+			.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
+			.setImage(`${radarImageUrl}?${uuidv7()}`)
+			.addFields(
+				{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
+				{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
+			);
 	}
 }
