@@ -91,7 +91,7 @@ export default class ForecastCommand extends BaseCommand {
 
 		try {
 			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
-			const row  = new ActionRowBuilder<ButtonBuilder>()
+			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
@@ -125,7 +125,7 @@ export default class ForecastCommand extends BaseCommand {
 
 				return interaction.editReply({
 					content: _('commands.forecasts.destCreated', {
-						mention: channel.toString(),
+						channel,
 						destination
 					}),
 					components: []
@@ -196,7 +196,7 @@ export default class ForecastCommand extends BaseCommand {
 
 		const embed = new EmbedBuilder()
 			.setColor(Colors.Primary)
-			.setTitle(_('commands.forecasts.listEmbedTitle', { channel }));
+			.setTitle(_('commands.forecasts.listEmbedTitle'));
 
 		for (const { uuid, latitude, longitude, channelId, autoCleanup } of destinations) {
 			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
@@ -204,7 +204,7 @@ export default class ForecastCommand extends BaseCommand {
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					_('common.reportingTo', { location: channel }),
+					_('common.reportingTo', { channel }),
 					codeBlock('json', JSON.stringify({ uuid, autoCleanup }, null, 4))
 				].join('\n')
 			});

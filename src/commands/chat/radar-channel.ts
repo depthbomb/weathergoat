@@ -95,8 +95,8 @@ export default class RadarChannelCommand extends BaseCommand {
 		try {
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const guildId      = interaction.guildId!;
-				const channelId    = channel.id;
+				const guildId = interaction.guildId!;
+				const channelId = channel.id;
 				await db.radarChannel.create({
 					data: {
 						uuid: uuidv7(),
@@ -109,9 +109,7 @@ export default class RadarChannelCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: _('commands.radarChannel.destCreated', {
-						mention: channel.toString()
-					}),
+					content: _('commands.radarChannel.destCreated', { channel }),
 					components: []
 				});
 			} else {

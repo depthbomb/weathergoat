@@ -133,7 +133,7 @@ export default class AlertsCommand extends BaseCommand {
 
 				return interaction.editReply({
 					content: _('commands.alerts.destCreated', {
-						mention: channel.toString(),
+						channel,
 						destination
 					}),
 					components: []
@@ -207,7 +207,7 @@ export default class AlertsCommand extends BaseCommand {
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					_('common.reportingTo', { location: channel }),
+					_('common.reportingTo', { channel }),
 					codeBlock('json', JSON.stringify({ uuid, autoCleanup, pingOnSevere }, null, 4))
 				].join('\n')
 			});

@@ -3,6 +3,7 @@ import { t, use } from 'i18next';
 import { LOCALES_PATH } from '@constants';
 import fsBackend from 'i18next-fs-backend';
 import type enUS from '../locales/en-US.json';
+import type { Channel, User } from 'discord.js';
 
 declare module 'i18next' {
 	interface CustomTypeOptions {
@@ -20,7 +21,14 @@ export default async function() {
 		},
 		fallbackLng: ['en-US'],
 		interpolation: {
-			escapeValue: false
+			escapeValue: false,
+			format: function(value, format) {
+				if (format === 'mention') {
+					return (value as Channel | User).toString();
+				}
+
+				return value;
+			}
 		}
 	});
 }
