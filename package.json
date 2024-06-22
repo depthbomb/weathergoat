@@ -38,7 +38,7 @@
 		"@types/bun": "latest",
 		"@types/uuid": "^9.0.8",
 		"prisma": "^5.15.1",
-		"typescript": "beta"
+		"typescript": "latest"
 	},
 	"trustedDependencies": [
 		"@prisma/client",
