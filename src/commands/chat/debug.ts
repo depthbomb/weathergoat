@@ -87,7 +87,7 @@ export default class DebugCommand extends BaseCommand {
 
 		const alertDestinations = await db.alertDestination.findMany();
 		const forecastDestinations = await db.forecastDestination.findMany();
-		const radarChannels = await db.radarChannel.findMany();
+		const autoRadarMessages = await db.autoRadarMessage.findMany();
 		const sentAlerts = await db.sentAlert.findMany();
 		const volatileMessages = await db.volatileMessage.findMany();
 
@@ -96,7 +96,7 @@ export default class DebugCommand extends BaseCommand {
 			path,
 			alertDestinations,
 			forecastDestinations,
-			radarChannels,
+			autoRadarMessages,
 			sentAlerts,
 			volatileMessages
 		}, null, 4);

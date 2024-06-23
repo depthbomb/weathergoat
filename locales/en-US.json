@@ -58,15 +58,20 @@
 			"destRemoved": "Forecast destination has been successfully removed.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},
-		"radarChannel": {
+		"autoRadar": {
+			"err": {
+				"noMessageByUuid": "No radar message exists by the UUID `{{uuid}}`.",
+				"noMessages": "This server does not appear to have any radar messages"
+			},
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{location.location}}** with the radar image below.\nIs this correct?\n{{location.radarImageUrl}}",
-			"destCreated": "Radar channel destination successfully set to {{channel, mention}} and you should see the message appear shortly!\nNote that I will only update my initial message in the channel so you should disallow members from sending messages in it.\nYou can delete my radar message or the channel it is in to remove this destination."
+			"destCreated": "{{channel, mention}} has been successfully designated as the destination for an auto-updating radar message!\nAfter a short period, the message will be sent in the channel and then updated automatically.\nYou can remove this designation by using the `/auto-radar remove` command with the UUID `{{uuid}}`. Deleting the radar message will result in it being sent again.",
+			"deleteSuccess": "That radar message has been deleted and won't be sent again!",
+			"listEmbedTitle": "Radar messages in this server"
 		},
 		"radar": {
 			"err": {
 				"invalidStation": "Invalid station: `{{station}}`."
 			},
-
 			"embedTitle": "Radar Loop for {{station}}"
 		}
 	},

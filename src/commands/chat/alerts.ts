@@ -2,7 +2,6 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { tokens } from '@container';
 import { Colors } from '@constants';
-import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
 import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -154,7 +153,6 @@ export default class AlertsCommand extends BaseCommand {
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
 		const uuid = interaction.options.getString('uuid', true);
-
 		if (!isUuidValid(uuid)) {
 			return interaction.reply(_('common.err.invalidUuid', { uuid }));
 		}
@@ -166,13 +164,8 @@ export default class AlertsCommand extends BaseCommand {
 			return interaction.editReply(_('commands.alerts.err.noDestByUuid', { uuid }));
 		}
 
-		try {
-			await db.alertDestination.delete({ where: { uuid } });
-			return interaction.editReply(_('commands.alerts.destRemoved'));
-		} catch (err: unknown) {
-			reportError('Failed to remove alert destination', err, { uuid });
-			return interaction.editReply(_('commands.alerts.err.couldNotRemoveDest'));
-		}
+		await db.alertDestination.delete({ where: { uuid } });
+		await interaction.editReply(_('commands.alerts.destRemoved'));
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {

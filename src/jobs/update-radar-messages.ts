@@ -25,9 +25,17 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
-		const radarChannels = await db.radarChannel.findMany();
-		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarChannels) {
-			const embed = this._createRadarMessageEmbed(location, radarStation, radarImageUrl, job);
+		const radarMessages = await db.autoRadarMessage.findMany();
+		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
+			const embed = new EmbedBuilder()
+				.setColor(Colors.Primary)
+				.setTitle(_('jobs.radar.embedTitle', { location }))
+				.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
+				.setImage(`${radarImageUrl}?${uuidv7()}`)
+				.addFields(
+					{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
+					{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
+				);
 
 			try {
 				const guild = await client.guilds.fetch(guildId);
@@ -35,14 +43,14 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				if (!isTextChannel(channel)) {
 					this._logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
 
-					await db.radarChannel.delete({ where: { id } });
+					await db.autoRadarMessage.delete({ where: { id } });
 					continue;
 				}
 
 				if (!messageId) {
 					// Create initial radar message
 					const initialMessage = await channel.send({ embeds: [embed], flags: [MessageFlags.SuppressNotifications] });
-					await db.radarChannel.update({
+					await db.autoRadarMessage.update({
 						where: {
 							id
 						},
@@ -62,24 +70,12 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 						// Unknown channel, guild, or message
 						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
 
-						await db.radarChannel.delete({ where: { id } });
+						await db.autoRadarMessage.delete({ where: { id } });
 					}
 				} else {
 					throw err;
 				}
 			}
 		}
-	}
-
-	private _createRadarMessageEmbed(location: string, radarStation: string, radarImageUrl: string, job: Cron) {
-		return new EmbedBuilder()
-			.setColor(Colors.Primary)
-			.setTitle(_('jobs.radar.embedTitle', { location }))
-			.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
-			.setImage(`${radarImageUrl}?${uuidv7()}`)
-			.addFields(
-				{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-				{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
-			);
 	}
 }

@@ -1,4 +1,4 @@
-model RadarChannel {
+model AutoRadarMessage {
   id            Int     @id @default(autoincrement())
   uuid          String  @unique
   guildId       String

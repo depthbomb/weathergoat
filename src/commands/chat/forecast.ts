@@ -2,7 +2,6 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { tokens } from '@container';
 import { Colors } from '@constants';
-import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
 import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -146,7 +145,6 @@ export default class ForecastCommand extends BaseCommand {
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
 		const uuid = interaction.options.getString('uuid', true);
-
 		if (!isUuidValid(uuid)) {
 			return interaction.reply(_('common.err.invalidUuid', { uuid }));
 		}
@@ -158,13 +156,8 @@ export default class ForecastCommand extends BaseCommand {
 			return interaction.editReply(_('commands.forecasts.err.noDestByUuid', { uuid }));
 		}
 
-		try {
-			await db.forecastDestination.delete({ where: { uuid } });
-			return interaction.editReply(_('commands.forecasts.destRemoved'));
-		} catch (err: unknown) {
-			reportError('Failed to remove forecast destination', err, { uuid });
-			return interaction.editReply(_('commands.forecasts.err.couldNotRemoveDest'));
-		}
+		await db.forecastDestination.delete({ where: { uuid } });
+		await interaction.editReply(_('commands.forecasts.destRemoved'));
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
