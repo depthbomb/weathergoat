@@ -31,11 +31,6 @@ export default class RadarChannelCommand extends BaseCommand {
 			.setDescription('Designates a channel to post auto-updating radar images for a region')
 			.setDMPermission(false)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			.addChannelOption(o => o
-				.setName('channel')
-				.setDescription('The channel')
-				.setRequired(true)
-			)
 			.addStringOption(o => o
 				.setName('latitude')
 				.setDescription('The latitude of the area')
@@ -44,6 +39,11 @@ export default class RadarChannelCommand extends BaseCommand {
 			.addStringOption(o => o
 				.setName('longitude')
 				.setDescription('The longitude of the area')
+				.setRequired(true)
+			)
+			.addChannelOption(o => o
+				.setName('channel')
+				.setDescription('The channel')
 				.setRequired(true)
 			),
 			preconditions: [
@@ -57,9 +57,9 @@ export default class RadarChannelCommand extends BaseCommand {
 	public async handle(interaction: ChatInputCommandInteraction) {
 		const maxCount = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
 		const guildId = interaction.guildId;
-		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const latitude = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
+		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 
 		if (!guildId) {
 			return interaction.reply(_('common.err.guildOnly'));

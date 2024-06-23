@@ -40,8 +40,8 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				}
 
 				if (!messageId) {
+					// Create initial radar message
 					const initialMessage = await channel.send({ embeds: [embed], flags: [MessageFlags.SuppressNotifications] });
-
 					await db.radarChannel.update({
 						where: {
 							id
@@ -51,6 +51,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 						}
 					});
 				} else {
+					// otherwise update existing message
 					const message = await channel.messages.fetch(messageId);
 					await message.edit({ embeds: [embed] });
 				}
