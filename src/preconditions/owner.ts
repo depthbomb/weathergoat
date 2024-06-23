@@ -12,7 +12,7 @@ export class OwnerPrecondition extends BasePrecondition {
 			await interaction.client.application.fetch();
 		}
 
-		if (interaction.client.application.owner!.id === interaction.user.id) {
+		if (interaction.client.application.owner!.id !== interaction.user.id) {
 			return PreconditionResult.fromFailure('This command may only be executed by my owner.');
 		}
 
