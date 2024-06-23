@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { Colors } from '@constants';
+import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { tokens, Container } from '@container';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
@@ -157,15 +157,15 @@ export default class ReportAlertsJob extends BaseJob {
 	private _getAlertSeverityColor(alert: Alert) {
 		switch (alert.severity) {
 			case 'Unknown':
-				return Colors.SeverityUnknown;
+				return Color.SeverityUnknown;
 			case 'Minor':
-				return Colors.SeverityMinor;
+				return Color.SeverityMinor;
 			case 'Moderate':
-				return Colors.SeverityModerate;
+				return Color.SeverityModerate;
 			case 'Severe':
-				return Colors.SeveritySevere;
+				return Color.SeveritySevere;
 			case 'Extreme':
-				return Colors.SeverityExtreme;
+				return Color.SeverityExtreme;
 		}
 	}
 }

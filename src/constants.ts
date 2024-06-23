@@ -20,7 +20,7 @@ export const COMMANDS_DIR  = join(ROOT_DIR, 'commands');
 export const EVENTS_DIR    = join(ROOT_DIR, 'events');
 export const JOBS_DIR      = join(ROOT_DIR, 'jobs');
 
-export const enum Colors {
+export const enum Color {
 	Primary          = 0x5876aa,
 	Info             = 0x0ea5e9,
 	Success          = 0x84cc16,

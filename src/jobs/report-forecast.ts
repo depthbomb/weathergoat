@@ -1,8 +1,8 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
+import { Color } from '@constants';
 import { tokens } from '@container';
-import { Colors } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -52,7 +52,7 @@ export default class ReportForecastsJob extends BaseJob {
 			const location = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const embed = new EmbedBuilder()
 				.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
-				.setColor(Colors.Primary)
+				.setColor(Color.Primary)
 				.setThumbnail(forecast.getIcon('large'))
 				.setDescription(forecast.detailedForecast)
 				.addFields({ name: _('jobs.forecasts.atAGlanceTitle'), value: forecast.shortForecast })

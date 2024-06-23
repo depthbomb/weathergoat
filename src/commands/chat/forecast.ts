@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
+import { Color } from '@constants';
 import { tokens } from '@container';
-import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -188,7 +188,7 @@ export default class ForecastCommand extends BaseCommand {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(Colors.Primary)
+			.setColor(Color.Primary)
 			.setTitle(_('commands.forecasts.listEmbedTitle'));
 
 		for (const { uuid, latitude, longitude, channelId, autoCleanup } of destinations) {

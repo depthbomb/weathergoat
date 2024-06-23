@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
+import { Color } from '@constants';
 import { tokens } from '@container';
-import { Colors } from '@constants';
 import { BaseCommand } from '@commands';
 import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -202,7 +202,7 @@ export default class AutoRadarCommand extends BaseCommand {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(Colors.Primary)
+			.setColor(Color.Primary)
 			.setTitle(_('commands.autoRadar.listEmbedTitle'));
 
 		for (const { uuid, location, channelId, messageId, radarStation, radarImageUrl } of messages) {

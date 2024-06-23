@@ -2,7 +2,7 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { logger } from '@logger';
-import { Colors } from '@constants';
+import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { isDiscordAPIError } from '@errors';
 import { time, MessageFlags, EmbedBuilder } from 'discord.js';
@@ -28,7 +28,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		const radarMessages = await db.autoRadarMessage.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
 			const embed = new EmbedBuilder()
-				.setColor(Colors.Primary)
+				.setColor(Color.Primary)
 				.setTitle(_('jobs.radar.embedTitle', { location }))
 				.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
 				.setImage(`${radarImageUrl}?${uuidv7()}`)

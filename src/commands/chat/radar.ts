@@ -1,5 +1,5 @@
 import { _ } from '@i18n';
-import { Colors } from '@constants';
+import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseCommandWithAutocomplete } from '@commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
@@ -207,7 +207,7 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(Colors.Primary)
+			.setColor(Color.Primary)
 			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${uuidv7()}`)
 			.setTitle(_('commands.radar.embedTitle', { station }))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`);

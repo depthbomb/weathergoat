@@ -1,7 +1,7 @@
 import { _ } from '@i18n';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { REPO, Colors } from '@constants';
+import { REPO, Color } from '@constants';
 import { isDiscordAPIErrorCode } from '@errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -72,7 +72,7 @@ export default class AboutCommand extends BaseCommand {
 	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
 		.setTitle(_('commands.about.myStatsTitle'))
-		.setColor(Colors.Primary)
+		.setColor(Color.Primary)
 		.addFields(
 			{
 				name: _('commands.about.uptimeTitle'),
