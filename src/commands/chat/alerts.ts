@@ -202,7 +202,7 @@ export default class AlertsCommand extends BaseCommand {
 			.setTitle(_('commands.alerts.listEmbedTitle'));
 
 		for (const { uuid, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
-			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
+			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
