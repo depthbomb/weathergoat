@@ -74,6 +74,10 @@ export abstract class BaseCommand {
 	}
 
 	public createSubcommandMap<T extends string>(map: SubcommandMap<T>) {
+		if (this._subcommandMap) {
+			throw new Error('A subcommand map has already been defined for this command.');
+		}
+
 		this._subcommandMap = map;
 	}
 }
