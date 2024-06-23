@@ -28,7 +28,7 @@ export default class ForecastService implements IForecastService {
 		this._location = container.resolve(tokens.location);
 	}
 
-	public async getForecastForCoordinates(latitude: string, longitude: string): Promise<GridpointForecastPeriod> {
+	public async getForecastForCoordinates(latitude: string, longitude: string) {
 		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 		const res  = await this._http.get(info.forecastUrl);
 

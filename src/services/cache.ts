@@ -33,12 +33,12 @@ export class CacheStore {
 		this._cache = new Map();
 	}
 
-	public has(key: string): boolean {
+	public has(key: string) {
 		this._tryExpireItem(key);
 		return this._cache.has(key);
 	}
 
-	public get<T>(key: string): T | null {
+	public get<T>(key: string) {
 		if (!this.has(key)) {
 			return null;
 		}
@@ -46,7 +46,7 @@ export class CacheStore {
 		return this._cache.get(key)!.value as T;
 	}
 
-	public set<T>(key: string, value: T): T {
+	public set<T>(key: string, value: T) {
 		if (this.has(key)) {
 			this._cache.delete(key);
 		}
@@ -58,7 +58,7 @@ export class CacheStore {
 		return value;
 	}
 
-	private _tryExpireItem(key: string): void {
+	private _tryExpireItem(key: string) {
 		if (!this._cache.has(key)) return;
 
 		const now = new Date();
@@ -76,7 +76,7 @@ export default class CacheService implements ICacheService {
 		this._stores = new Collection();
 	}
 
-	public createStore(name: string, defaultTtl?: string): CacheStore {
+	public createStore(name: string, defaultTtl?: string) {
 		if (this._stores.has(name)) {
 			throw new Error(`Cache store "${name}" already exists`);
 		}
@@ -88,7 +88,7 @@ export default class CacheService implements ICacheService {
 		return store;
 	}
 
-	public getStore(name: string): CacheStore {
+	public getStore(name: string) {
 		if (!this._stores.has(name)) {
 			throw new Error(`Cache store "${name}" does not exist`);
 		}
@@ -96,7 +96,7 @@ export default class CacheService implements ICacheService {
 		return this._stores.get(name)!;
 	}
 
-	public getOrCreateStore(name: string, defaultTtl?: string): CacheStore {
+	public getOrCreateStore(name: string, defaultTtl?: string) {
 		if (this._stores.has(name)) {
 			return this._stores.get(name)!;
 		}

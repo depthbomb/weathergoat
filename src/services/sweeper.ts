@@ -62,7 +62,7 @@ export default class SweeperService implements ISweeperService {
 		return messages;
 	}
 
-	public async enqueueMessage(arg1: string | Message<boolean>, arg2: string, arg3?: string, arg4?: string | Date): Promise<void> {
+	public async enqueueMessage(arg1: string | Message<boolean>, arg2: string, arg3?: string, arg4?: string | Date) {
 		let guildId: string;
 		let channelId: string;
 		let messageId: string;

@@ -74,7 +74,7 @@ export default class LocationService implements ILocationService {
 		return this._coordinatePattern.test(combinedCoordinatesOrLatitude) && this._coordinatePattern.test(longitude as string);
 	}
 
-	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
+	public async getInfoFromCoordinates(latitude: string, longitude: string) {
 		const res = await this._http.get(`/points/${latitude},${longitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });

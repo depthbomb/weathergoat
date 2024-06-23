@@ -60,11 +60,11 @@ export class HttpClient {
 		this._logger = logger.child({ httpClient: this._name });
 	}
 
-	public async get(url: string | URL, options?: GETOptions): Promise<Response> {
+	public async get(url: string | URL, options?: GETOptions) {
 		return this._doRequest(url, { method: 'GET', ...options });
 	}
 
-	private async _doRequest(input: string | URL, init?: RequestOptions): Promise<Response> {
+	private async _doRequest(input: string | URL, init?: RequestOptions) {
 		if (typeof input !== 'string') {
 			input = input.toString();
 		}
@@ -119,7 +119,7 @@ export default class HttpService implements IHttpService {
 		this._clients = new Collection();
 	}
 
-	public getClient(name: string, options: CreateHttpClientOptions): HttpClient {
+	public getClient(name: string, options: CreateHttpClientOptions) {
 		if (this._clients.has(name)) {
 			return this._clients.get(name)!;
 		}
