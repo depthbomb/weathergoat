@@ -17,7 +17,7 @@ import featuresService from '@services/features';
 import locationService from '@services/location';
 import forecastService from '@services/forecast';
 
-logger.info('Booting', { date: new Date() });
+logger.info('Booting', { mode: process.env.MODE, date: new Date() });
 
 if (process.env.SENTRY_DSN) {
 	const { init } = await import('@sentry/bun');
