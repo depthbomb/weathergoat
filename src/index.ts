@@ -51,19 +51,19 @@ await wg.container
 	.register(tokens.sweeper, sweeperService)
 	.init();
 
-const features = wg.container.resolve<IFeaturesService>(tokens.features);
-
-features.set('disable_alert_reporting', 0.0, 'Alert reporting killswitch');
-features.set('disable_forecast_reporting', 0.0, 'Forecast reporting killswitch');
-features.set('disable_message_sweeping', 0.0, 'Message sweeping killswitch');
-features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
-features.set('disable_status_updating', 0.0, 'Status updating killswitch');
-features.set('EXPERIMENTAL_ai_alert_summaries', 0.0, 'Summarizes weather alerts using AI');
-
 if (process.argv.length > 2) {
 	const cli = wg.container.resolve<ICliService>(tokens.cli);
 	await cli.run(process.argv.slice(2));
 } else {
+	const features = wg.container.resolve<IFeaturesService>(tokens.features);
+
+	features.set('disable_alert_reporting', 0.0, 'Alert reporting killswitch');
+	features.set('disable_forecast_reporting', 0.0, 'Forecast reporting killswitch');
+	features.set('disable_message_sweeping', 0.0, 'Message sweeping killswitch');
+	features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
+	features.set('disable_status_updating', 0.0, 'Status updating killswitch');
+	features.set('EXPERIMENTAL_ai_alert_summaries', 0.0, 'Summarizes weather alerts using AI');
+
 	await wg.login(process.env.BOT_TOKEN);
 }
 
