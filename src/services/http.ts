@@ -83,9 +83,9 @@ export class HttpClient {
 			requestUrl = withQuery(requestUrl, init.query);
 		}
 
-		const id = `${this._name}-${this._requestNum}`;
+		const requestId = `${this._name}-${this._requestNum}`;
 
-		this._logger.silly('Making HTTP request', { id, method: init?.method, url: requestUrl, retry: this._retry });
+		this._logger.silly('Making HTTP request', { requestId, method: init?.method, url: requestUrl, retry: this._retry });
 
 		const startTime = hrtime.bigint();
 
@@ -99,7 +99,7 @@ export class HttpClient {
 		const endTime = hrtime.bigint();
 
 		this._logger.silly('Finished HTTP request', {
-			id,
+			requestId,
 			status: `${res.status} - ${res.statusText}`,
 			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
 		});

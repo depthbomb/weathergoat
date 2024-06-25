@@ -53,9 +53,10 @@ export default class SweeperService implements ISweeperService {
 	}
 
 	public async getDueMessages() {
+		const now = new Date();
 		const messages = await db.volatileMessage.findMany({
 			where: {
-				expiresAt: { lte: new Date() }
+				expiresAt: { lte: now }
 			}
 		});
 
@@ -101,7 +102,7 @@ export default class SweeperService implements ISweeperService {
 		const messages = await this.getDueMessages();
 		for (const { id, channelId, messageId } of messages) {
 			try {
-				const channel = await this._client.channels?.fetch(channelId);
+				const channel = await this._client.channels.fetch(channelId);
 				if (isTextChannel(channel)) {
 					const message = await channel.messages.fetch(messageId);
 					if (message) {
