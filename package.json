@@ -10,13 +10,13 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.12.0",
-		"@prisma/client": "^5.15.1",
+		"@prisma/client": "^5.16.0",
 		"@sapphire/discord.js-utilities": "^7.3.0",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.9",
 		"@sapphire/stopwatch": "^1.5.2",
 		"@sapphire/time-utilities": "^1.7.12",
-		"@sentry/bun": "^8.11.0",
+		"@sentry/bun": "^8.12.0",
 		"bufferutil": "^4.0.8",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.3",
@@ -37,7 +37,7 @@
 	"devDependencies": {
 		"@types/bun": "latest",
 		"@types/uuid": "^9.0.8",
-		"prisma": "^5.15.1",
+		"prisma": "^5.16.0",
 		"typescript": "latest"
 	},
 	"trustedDependencies": [

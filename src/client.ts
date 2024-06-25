@@ -100,7 +100,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const pattern = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
 			const waitUntilReady = job.waitUntilReady ?? true;
-
 			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
 				paused: true,
