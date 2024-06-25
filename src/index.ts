@@ -1,4 +1,4 @@
-if (!process.versions.bun) throw new Error('WeatherGoat must be ran through Bun.');
+if (!process.versions.bun) throw new Error('WeatherGoat requires the Bun runtime to operate.');
 
 import { tokens } from '@container';
 import { WeatherGoat } from '@client';
@@ -65,17 +65,18 @@ if (process.argv.length > 2) {
 	features.set('EXPERIMENTAL_ai_alert_summaries', 0.0, 'Summarizes weather alerts using AI');
 
 	await wg.login(process.env.BOT_TOKEN);
-}
 
-for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
-	await wg.destroy();
-	process.exit(0);
-});
-for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
-	if (err.code !== 'ABORT_ERR') {
-		reportError('Unhandled error', err);
+	for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
 		await wg.destroy();
-	}
+		process.exit(0);
+	});
 
-	process.exit(1);
-});
+	for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
+		if (err.code !== 'ABORT_ERR') {
+			reportError('Unhandled error', err);
+			await wg.destroy();
+		}
+
+		process.exit(1);
+	});
+}

@@ -104,7 +104,7 @@ export default class SweeperService implements ISweeperService {
 			try {
 				const channel = await this._client.channels.fetch(channelId);
 				if (isTextChannel(channel)) {
-					const message = await channel.messages.fetch(messageId);
+					const message = await channel?.messages.fetch(messageId);
 					if (message) {
 						await message.delete();
 						sweepCount++;
@@ -112,7 +112,7 @@ export default class SweeperService implements ISweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				reportError('Error while deleting volatile message', err, { channelId, messageId });
+				reportError('Error while deleting volatile message', err, { id, channelId, messageId });
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}
