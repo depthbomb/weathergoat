@@ -43,7 +43,7 @@ export class Container {
 
 	public resolve<T>(token: symbol): T {
 		if (this._values.has(token)) {
-			return this._values as T;
+			return this._values.get(token) as T;
 		}
 
 		if (this._services.has(token)) {
