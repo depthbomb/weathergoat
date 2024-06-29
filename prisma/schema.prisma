@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AlertDestination {
+  id            Int     @id @default(autoincrement())
+  uuid          String  @unique
+  latitude      String
+  longitude     String
+  zoneId        String
+  countyId      String
+  guildId       String
+  channelId     String
+  autoCleanup   Boolean @default(true)
+  radarImageUrl String?
+  pingOnSevere  Boolean @default(false)
+}
+
+model AutoRadarMessage {
+  id            Int     @id @default(autoincrement())
+  uuid          String  @unique
+  guildId       String
+  channelId     String
+  messageId     String?
+  location      String
+  radarStation  String
+  radarImageUrl String
+}
+
+model ForecastDestination {
+  id            Int     @id @default(autoincrement())
+  uuid          String  @unique
+  latitude      String
+  longitude     String
+  guildId       String
+  channelId     String
+  messageId     String  @unique
+  radarImageUrl String?
+}
+
+model SentAlert {
+  id        Int     @id @default(autoincrement())
+  alertId   String  @unique
+  guildId   String
+  channelId String
+  messageId String
+  json      String?
+}
+
+model VolatileMessage {
+  id        Int      @id @default(autoincrement())
+  guildId   String
+  channelId String
+  messageId String
+  expiresAt DateTime
+}

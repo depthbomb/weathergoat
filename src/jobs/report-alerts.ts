@@ -20,7 +20,8 @@ export default class ReportAlertsJob extends BaseJob {
 	public constructor(container: Container) {
 		super({
 			name: 'report_alerts',
-			pattern: '*/30 * * * * *'
+			pattern: '*/30 * * * * *',
+			runImmediately: true
 		});
 
 		this._username = 'WeatherGoat#Alerts';

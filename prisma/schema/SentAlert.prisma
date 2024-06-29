@@ -1,8 +1,0 @@
-model SentAlert {
-  id        Int     @id @default(autoincrement())
-  alertId   String  @unique
-  guildId   String
-  channelId String
-  messageId String
-  json      String?
-}

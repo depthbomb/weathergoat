@@ -1,7 +1,0 @@
-model VolatileMessage {
-  id        Int      @id @default(autoincrement())
-  guildId   String
-  channelId String
-  messageId String
-  expiresAt DateTime
-}

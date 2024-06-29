@@ -54,7 +54,7 @@
 				"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
 				"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it."
 			},
-			"destCreated": "Hourly forecast reporting created in {{channel, mention}}!\nYou can remove this reporting destination by using the `/forecasts remove` command with the UUID `{{destination.uuid}}`.",
+			"destCreated": "Hourly forecast reporting created in {{channel, mention}}!\nThe message I sent in there will be automatically updated.\nYou can remove this destination by simply deleting the message.",
 			"destRemoved": "Forecast destination has been successfully removed.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},

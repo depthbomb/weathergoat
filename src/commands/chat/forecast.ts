@@ -2,8 +2,9 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
+import { v7 as uuidv7 } from 'uuid';
+import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
-import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
@@ -11,11 +12,13 @@ import {
 	ChannelType,
 	ButtonStyle,
 	EmbedBuilder,
+	MessageFlags,
 	ButtonBuilder,
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes
+	DiscordjsErrorCodes,
+	time
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -38,12 +41,6 @@ export default class ForecastCommand extends BaseCommand {
 				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
 				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
 				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true))
-				.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
-			)
-			.addSubcommand(sc => sc
-				.setName('remove')
-				.setDescription('Removes a forecast reporting destination')
-				.addStringOption(o => o.setName('uuid').setDescription('The UUID of the forecast destination to delete').setRequired(true))
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
@@ -56,9 +53,8 @@ export default class ForecastCommand extends BaseCommand {
 
 		this._location = container.resolve(tokens.location);
 
-		this.createSubcommandMap<'add' | 'remove' | 'list'>({
+		this.createSubcommandMap<'add' | 'list'>({
 			add: { handler: this._handleAddSubcommand },
-			remove: { handler: this._handleRemoveSubcommand },
 			list: { handler: this._handleListSubcommand },
 		});
 	}
@@ -69,15 +65,10 @@ export default class ForecastCommand extends BaseCommand {
 
 	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
-		const guildId = interaction.guildId;
+		const guildId = interaction.guildId!;
 		const latitude = interaction.options.getString('latitude', true);
 		const longitude = interaction.options.getString('longitude', true);
 		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
-		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
-
-		if (!guildId) {
-			return interaction.reply(_('common.err.guildOnly'));
-		}
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of forecast destinations in this server.', { max: maxCount });
@@ -109,65 +100,46 @@ export default class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const destination = await db.forecastDestination.create({
+				const forecastJob = interaction.client.jobs.find(j => j.job.name === 'report_forecasts')!;
+				const initialMessage = await channel.send({
+					content: `This message will be edited for the hourly forecast.\nUpdating ${time(forecastJob.cron.nextRun()!, 'R')}.`,
+					flags: MessageFlags.SuppressNotifications
+				});
+
+				await db.forecastDestination.create({
 					data: {
 						uuid: uuidv7(),
 						latitude,
 						longitude,
 						guildId,
 						channelId: channel.id,
-						autoCleanup,
+						messageId: initialMessage.id,
 						radarImageUrl: info.radarImageUrl
 					},
 					select: { uuid: true }
 				});
 
-				return interaction.editReply({
-					content: _('commands.forecasts.destCreated', {
-						channel,
-						destination
-					}),
-					components: []
-				});
+				await interaction.editReply({ content: _('commands.forecasts.destCreated', { channel }), components: [] });
 			} else {
-				return initialReply.delete();
+				await initialReply.delete();
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+				await interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+				await interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+			} else {
+				reportError('Error creating forecast destination', err);
+				await interaction.editReply({ content: _('common.err.unknown'), components: [] });
 			}
-
-			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
-	}
-
-	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const uuid = interaction.options.getString('uuid', true);
-		if (!isUuidValid(uuid)) {
-			return interaction.reply(_('common.err.invalidUuid', { uuid }));
-		}
-
-		await interaction.deferReply();
-
-		const exists = await db.forecastDestination.exists({ uuid });
-		if (!exists) {
-			return interaction.editReply(_('commands.forecasts.err.noDestByUuid', { uuid }));
-		}
-
-		await db.forecastDestination.delete({ where: { uuid } });
-		await interaction.editReply(_('commands.forecasts.destRemoved'));
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
 		const guildId = interaction.guildId;
-
 		if (!guildId) {
 			return interaction.reply(_('common.err.guildOnly'));
 		}
-
-		const channel = interaction.channel;
 
 		await interaction.deferReply();
 
@@ -177,7 +149,7 @@ export default class ForecastCommand extends BaseCommand {
 				latitude: true,
 				longitude: true,
 				channelId: true,
-				autoCleanup: true
+				messageId: true
 			},
 			where: {
 				guildId
@@ -191,14 +163,14 @@ export default class ForecastCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle(_('commands.forecasts.listEmbedTitle'));
 
-		for (const { uuid, latitude, longitude, channelId, autoCleanup } of destinations) {
+		for (const { uuid, latitude, longitude, channelId, messageId } of destinations) {
 			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					_('common.reportingTo', { channel }),
-					codeBlock('json', JSON.stringify({ uuid, autoCleanup }, null, 4))
+					codeBlock('json', JSON.stringify({ uuid, messageId }, null, 4))
 				].join('\n')
 			});
 		}
