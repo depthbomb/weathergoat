@@ -71,7 +71,7 @@ export default class ReportForecastsJob extends BaseJob {
 				embed.setImage(radarImageUrl + `?${uuidv7()}`);
 			}
 
-			await message.edit({ embeds: [embed] });
+			await message.edit({ content: '', embeds: [embed] });
 		}
 	}
 }
