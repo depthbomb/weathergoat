@@ -19,7 +19,7 @@ import forecastService from '@services/forecast';
 
 logger.info('Booting', { mode: process.env.MODE, date: new Date() });
 
-if (process.env.SENTRY_DSN) {
+if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
 	const { init } = await import('@sentry/bun');
 
 	init({ dsn: process.env.SENTRY_DSN });
