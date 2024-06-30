@@ -2,7 +2,6 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { DATABASE_PATH } from '@constants';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
@@ -81,7 +80,6 @@ export default class DebugCommand extends BaseCommand {
 
 	private async _handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
 		const date = new Date();
-		const path = DATABASE_PATH;
 
 		await interaction.deferReply();
 
@@ -93,7 +91,6 @@ export default class DebugCommand extends BaseCommand {
 
 		const json = JSON.stringify({
 			date,
-			path,
 			alertDestinations,
 			forecastDestinations,
 			autoRadarMessages,
