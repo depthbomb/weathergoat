@@ -3,13 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model AlertDestination {
-  id            Int     @id @default(autoincrement())
-  uuid          String  @unique
+  id            String  @id @default(uuid())
   latitude      String
   longitude     String
   zoneId        String
@@ -22,7 +21,7 @@ model AlertDestination {
 }
 
 model AutoRadarMessage {
-  id            Int     @id @default(autoincrement())
+  id            String  @id @default(uuid())
   uuid          String  @unique
   guildId       String
   channelId     String
@@ -33,7 +32,7 @@ model AutoRadarMessage {
 }
 
 model ForecastDestination {
-  id            Int     @id @default(autoincrement())
+  id            String  @id @default(uuid())
   uuid          String  @unique
   latitude      String
   longitude     String
@@ -44,7 +43,7 @@ model ForecastDestination {
 }
 
 model SentAlert {
-  id        Int     @id @default(autoincrement())
+  id        String  @id @default(uuid())
   alertId   String  @unique
   guildId   String
   channelId String
@@ -53,7 +52,7 @@ model SentAlert {
 }
 
 model VolatileMessage {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   guildId   String
   channelId String
   messageId String

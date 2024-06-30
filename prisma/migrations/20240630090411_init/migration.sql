@@ -1,7 +1,6 @@
 -- CreateTable
 CREATE TABLE "AlertDestination" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "uuid" TEXT NOT NULL,
+    "id" TEXT NOT NULL,
     "latitude" TEXT NOT NULL,
     "longitude" TEXT NOT NULL,
     "zoneId" TEXT NOT NULL,
@@ -10,60 +9,70 @@ CREATE TABLE "AlertDestination" (
     "channelId" TEXT NOT NULL,
     "autoCleanup" BOOLEAN NOT NULL DEFAULT true,
     "radarImageUrl" TEXT,
-    "pingOnSevere" BOOLEAN NOT NULL DEFAULT false
+    "pingOnSevere" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "AlertDestination_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AutoRadarMessage" (
+    "id" TEXT NOT NULL,
+    "uuid" TEXT NOT NULL,
+    "guildId" TEXT NOT NULL,
+    "channelId" TEXT NOT NULL,
+    "messageId" TEXT,
+    "location" TEXT NOT NULL,
+    "radarStation" TEXT NOT NULL,
+    "radarImageUrl" TEXT NOT NULL,
+
+    CONSTRAINT "AutoRadarMessage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ForecastDestination" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" TEXT NOT NULL,
     "uuid" TEXT NOT NULL,
     "latitude" TEXT NOT NULL,
     "longitude" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     "channelId" TEXT NOT NULL,
-    "autoCleanup" BOOLEAN NOT NULL DEFAULT true,
-    "radarImageUrl" TEXT
-);
-
--- CreateTable
-CREATE TABLE "RadarChannel" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "uuid" TEXT NOT NULL,
-    "guildId" TEXT NOT NULL,
-    "channelId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
-    "location" TEXT NOT NULL,
-    "radarStation" TEXT NOT NULL,
-    "radarImageUrl" TEXT NOT NULL
+    "radarImageUrl" TEXT,
+
+    CONSTRAINT "ForecastDestination_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "SentAlert" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" TEXT NOT NULL,
     "alertId" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     "channelId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
-    "json" TEXT
+    "json" TEXT,
+
+    CONSTRAINT "SentAlert_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "VolatileMessage" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     "channelId" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
-    "expiresAt" DATETIME NOT NULL
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "VolatileMessage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AlertDestination_uuid_key" ON "AlertDestination"("uuid");
+CREATE UNIQUE INDEX "AutoRadarMessage_uuid_key" ON "AutoRadarMessage"("uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ForecastDestination_uuid_key" ON "ForecastDestination"("uuid");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RadarChannel_uuid_key" ON "RadarChannel"("uuid");
+CREATE UNIQUE INDEX "ForecastDestination_messageId_key" ON "ForecastDestination"("messageId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SentAlert_alertId_key" ON "SentAlert"("alertId");
