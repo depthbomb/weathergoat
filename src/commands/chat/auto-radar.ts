@@ -3,7 +3,7 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
+import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
@@ -126,9 +126,8 @@ export default class AutoRadarCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const guildId = interaction.guildId!;
 				const channelId = channel.id;
-				const { uuid } = await db.autoRadarMessage.create({
+				const { id } = await db.autoRadarMessage.create({
 					data: {
-						uuid: uuidv7(),
 						guildId,
 						channelId,
 						location: location.location,
@@ -138,7 +137,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: _('commands.autoRadar.destCreated', { channel, uuid }),
+					content: _('commands.autoRadar.destCreated', { channel, id }),
 					components: []
 				});
 			} else {
@@ -156,16 +155,16 @@ export default class AutoRadarCommand extends BaseCommand {
 	}
 
 	public async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const uuid = interaction.options.getString('uuid', true);
-		if (!isUuidValid(uuid)) {
-			return interaction.reply(_('common.err.invalidUuid', { uuid }));
+		const id = interaction.options.getString('uuid', true);
+		if (!isUuidValid(id)) {
+			return interaction.reply(_('common.err.invalidUuid', { id }));
 		}
 
 		await interaction.deferReply();
 
-		const radarMessage = await db.autoRadarMessage.findFirst({ where: { uuid } });
+		const radarMessage = await db.autoRadarMessage.findFirst({ where: { id } });
 		if (!radarMessage) {
-			return interaction.editReply(_('commands.autoRadar.err.noMessageByUuid', { uuid }));
+			return interaction.editReply(_('commands.autoRadar.err.noMessageByUuid', { id }));
 		}
 
 		const { channelId, messageId } = radarMessage;
@@ -175,7 +174,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			await message?.delete();
 		}
 
-		await db.autoRadarMessage.delete({ where: { uuid } });
+		await db.autoRadarMessage.delete({ where: { id } });
 		await interaction.editReply(_('commands.autoRadar.deleteSuccess'));
 	}
 
@@ -186,7 +185,7 @@ export default class AutoRadarCommand extends BaseCommand {
 
 		const messages = await db.autoRadarMessage.findMany({
 			select: {
-				uuid: true,
+				id: true,
 				location: true,
 				channelId: true,
 				messageId: true,
@@ -205,7 +204,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle(_('commands.autoRadar.listEmbedTitle'));
 
-		for (const { uuid, location, channelId, messageId, radarStation, radarImageUrl } of messages) {
+		for (const { id, location, channelId, messageId, radarStation, radarImageUrl } of messages) {
 			if (messageId) {
 				const link = messageLink(channelId, messageId, guildId);
 				embed.addFields({
@@ -213,7 +212,7 @@ export default class AutoRadarCommand extends BaseCommand {
 					value: [
 						`- Radar Image: ${radarImageUrl}`,
 						`- Message: ${link}`,
-						`- UUID: \`${uuid}\``
+						`- UUID: \`${id}\``
 					].join('\n')
 				});
 			} else {
@@ -222,7 +221,7 @@ export default class AutoRadarCommand extends BaseCommand {
 					value: [
 						`- Radar Image: ${radarImageUrl}`,
 						`- Message: _Not sent yet_`,
-						`- UUID: \`${uuid}\``
+						`- UUID: \`${id}\``
 					].join('\n')
 				});
 			}

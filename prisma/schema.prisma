@@ -22,7 +22,6 @@ model AlertDestination {
 
 model AutoRadarMessage {
   id            String  @id @default(uuid())
-  uuid          String  @unique
   guildId       String
   channelId     String
   messageId     String?
@@ -33,7 +32,6 @@ model AutoRadarMessage {
 
 model ForecastDestination {
   id            String  @id @default(uuid())
-  uuid          String  @unique
   latitude      String
   longitude     String
   guildId       String

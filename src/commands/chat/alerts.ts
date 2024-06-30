@@ -3,7 +3,7 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { v7 as uuidv7, validate as isUuidValid } from 'uuid';
+import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
@@ -116,7 +116,6 @@ export default class AlertsCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const destination = await db.alertDestination.create({
 					data: {
-						uuid: uuidv7(),
 						latitude,
 						longitude,
 						zoneId: info.zoneId,
@@ -127,7 +126,7 @@ export default class AlertsCommand extends BaseCommand {
 						pingOnSevere,
 						radarImageUrl: info.radarImageUrl
 					},
-					select: { uuid: true }
+					select: { id: true }
 				});
 
 				return interaction.editReply({
@@ -152,19 +151,19 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const uuid = interaction.options.getString('uuid', true);
-		if (!isUuidValid(uuid)) {
-			return interaction.reply(_('common.err.invalidUuid', { uuid }));
+		const id = interaction.options.getString('uuid', true);
+		if (!isUuidValid(id)) {
+			return interaction.reply(_('common.err.invalidUuid', { id }));
 		}
 
 		await interaction.deferReply();
 
-		const exists = await db.alertDestination.exists({ uuid });
+		const exists = await db.alertDestination.exists({ id });
 		if (!exists) {
-			return interaction.editReply(_('commands.alerts.err.noDestByUuid', { uuid }));
+			return interaction.editReply(_('commands.alerts.err.noDestByUuid', { id }));
 		}
 
-		await db.alertDestination.delete({ where: { uuid } });
+		await db.alertDestination.delete({ where: { id } });
 		await interaction.editReply(_('commands.alerts.destRemoved'));
 	}
 
@@ -175,7 +174,7 @@ export default class AlertsCommand extends BaseCommand {
 
 		const destinations = await db.alertDestination.findMany({
 			select: {
-				uuid: true,
+				id: true,
 				latitude: true,
 				longitude: true,
 				channelId: true,
@@ -194,14 +193,14 @@ export default class AlertsCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle(_('commands.alerts.listEmbedTitle'));
 
-		for (const { uuid, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
+		for (const { id, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					_('common.reportingTo', { channel }),
-					codeBlock('json', JSON.stringify({ uuid, autoCleanup, pingOnSevere }, null, 4))
+					codeBlock('json', JSON.stringify({ id, autoCleanup, pingOnSevere }, null, 4))
 				].join('\n')
 			});
 		}

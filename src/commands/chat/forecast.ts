@@ -108,15 +108,13 @@ export default class ForecastCommand extends BaseCommand {
 
 				await db.forecastDestination.create({
 					data: {
-						uuid: uuidv7(),
 						latitude,
 						longitude,
 						guildId,
 						channelId: channel.id,
 						messageId: initialMessage.id,
 						radarImageUrl: info.radarImageUrl
-					},
-					select: { uuid: true }
+					}
 				});
 
 				await interaction.editReply({ content: _('commands.forecasts.destCreated', { channel }), components: [] });
@@ -145,7 +143,7 @@ export default class ForecastCommand extends BaseCommand {
 
 		const destinations = await db.forecastDestination.findMany({
 			select: {
-				uuid: true,
+				id: true,
 				latitude: true,
 				longitude: true,
 				channelId: true,
@@ -163,14 +161,14 @@ export default class ForecastCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle(_('commands.forecasts.listEmbedTitle'));
 
-		for (const { uuid, latitude, longitude, channelId, messageId } of destinations) {
+		for (const { id, latitude, longitude, channelId, messageId } of destinations) {
 			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					_('common.reportingTo', { channel }),
-					codeBlock('json', JSON.stringify({ uuid, messageId }, null, 4))
+					codeBlock('json', JSON.stringify({ id, messageId }, null, 4))
 				].join('\n')
 			});
 		}
