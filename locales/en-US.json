@@ -6,7 +6,7 @@
 			"noDestinations": "There are no {{type}} destinations in this server.",
 			"tooManyDestinations": "You have exceeded the max limit of {{type}} destinations (`{{max}}`).",
 			"locationQueryHttpError": "There was a problem retrieving the location you provided.```{{err.code}}: {{err.status}}```",
-			"invalidUuid": "The provided [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Textual_representation) `{{uuid}}` is invalid.",
+			"invalidUuid": "The provided [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Textual_representation) `{{id}}` is invalid.",
 			"unknown": "An unknown error has occurred"
 		},
 		"yes": "Yes",
@@ -37,11 +37,11 @@
 		"alerts": {
 			"err": {
 				"destExists": "This channel is already designated as an alert destination.",
-				"noDestByUuid": "No alert destination exists with the UUID `{{uuid}}`.",
+				"noDestByUuid": "No alert destination exists with the UUID `{{id}}`.",
 				"couldNotRemoveDest": "The alert destination could not be removed. Please try again later.",
 				"noDestInChannel": "{{channel, mention}} does not have any alert reporting assigned to it."
 			},
-			"destCreated": "Alert reporting created in {{channel, mention}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the UUID `{{destination.uuid}}`.",
+			"destCreated": "Alert reporting created in {{channel, mention}}!\nYou can remove this reporting destination by using the `/alerts remove` command with the UUID `{{destination.id}}`.",
 			"destRemoved": "Alert reporting destination has been successfully removed.",
 			"listEmbedTitle": "Alert reporting destinations in this server"
 		},
@@ -50,7 +50,7 @@
 		},
 		"forecasts": {
 			"err": {
-				"noDestByUuid": "No forecast destination exists with the UUID `{{uuid}}`.",
+				"noDestByUuid": "No forecast destination exists with the UUID `{{id}}`.",
 				"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
 				"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it."
 			},
@@ -60,11 +60,11 @@
 		},
 		"autoRadar": {
 			"err": {
-				"noMessageByUuid": "No radar message exists by the UUID `{{uuid}}`.",
+				"noMessageByUuid": "No radar message exists by the UUID `{{id}}`.",
 				"noMessages": "This server does not appear to have any radar messages"
 			},
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{location.location}}** with the radar image below.\nIs this correct?\n{{location.radarImageUrl}}",
-			"destCreated": "{{channel, mention}} has been successfully designated as the destination for an auto-updating radar message!\nAfter a short period, the message will be sent in the channel and then updated automatically.\nYou can remove this designation by using the `/auto-radar remove` command with the UUID `{{uuid}}`. Deleting the radar message will result in it being sent again.",
+			"destCreated": "{{channel, mention}} has been successfully designated as the destination for an auto-updating radar message!\nAfter a short period, the message will be sent in the channel and then updated automatically.\nYou can remove this designation by using the `/auto-radar remove` command with the UUID `{{id}}`. Deleting the radar message will result in it being sent again.",
 			"deleteSuccess": "That radar message has been deleted and won't be sent again!",
 			"listEmbedTitle": "Radar messages in this server"
 		},
