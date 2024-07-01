@@ -22,10 +22,6 @@ type CommandOptions = {
 	/**
 	 * Instances of {@link BasePrecondition|preconditions} whose {@link BasePrecondition.check|check}
 	 * method is called before the command's {@link BaseCommand.handle|handler} method.
-	 *
-	 * These preconditions will be checked command-wide so if you need to have different
-	 * preconditions for subcommands then you should manually call the check where the subcommands
-	 * are handled.
 	 */
 	preconditions?: BasePrecondition[];
 };
