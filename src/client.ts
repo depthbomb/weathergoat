@@ -9,8 +9,8 @@ import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
 import type { Logger } from 'winston';
 import type { BaseEvent } from '@events';
+import type { ClientEvents, ClientOptions } from 'discord.js';
 import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
-import type { TextChannel, ClientEvents, ClientOptions } from 'discord.js';
 
 type BaseModule<T> = { default: new(container: Container) => T };
 type JobModule = BaseModule<BaseJob>;
@@ -77,18 +77,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		if (!logger.closed) {
 			logger.close();
 		}
-	}
-
-	public async getOrCreateWebhook(channel: TextChannel, name: string, reason?: string) {
-		const webhooks = await channel.fetchWebhooks();
-		let ourWebhook = webhooks.find(w => w.name === name);
-		if (!ourWebhook) {
-			ourWebhook = await channel.createWebhook({ name, reason });
-
-			this._logger.info('Created webhook', { name, channel: channel.name } );
-		}
-
-		return ourWebhook;
 	}
 
 	public async registerJobs() {

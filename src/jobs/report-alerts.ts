@@ -1,21 +1,24 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
+import { logger } from '@logger';
 import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
 import { tokens, Container } from '@container';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import type { Logger } from 'winston';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@client';
+import type { TextChannel } from 'discord.js';
 import type { IAlertsService } from '@services/alerts';
 import type { ISweeperService } from '@services/sweeper';
 
 export default class ReportAlertsJob extends BaseJob {
-	private readonly _username: string;
-	private readonly _reason: string;
+	private readonly _logger: Logger;
 	private readonly _alerts: IAlertsService;
 	private readonly _sweeper: ISweeperService;
+	private readonly _webhookUsername = 'WeatherGoat#Alerts';
 
 	public constructor(container: Container) {
 		super({
@@ -24,8 +27,7 @@ export default class ReportAlertsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._username = 'WeatherGoat#Alerts';
-		this._reason = 'Required for weather alert reporting';
+		this._logger = logger.child({ jobName: this.name });
 		this._alerts = container.resolve(tokens.alerts);
 		this._sweeper = container.resolve(tokens.sweeper);
 	}
@@ -109,10 +111,10 @@ export default class ReportAlertsJob extends BaseJob {
 					(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
 					pingOnSevere
 				);
-				const webhook = await client.getOrCreateWebhook(channel, this._username, this._reason);
+				const webhook = await this._getOrCreateWebhook(channel);
 				const sentMessage = await webhook.send({
 					content: shouldPingEveryone ? '@everyone' : '',
-					username: this._username,
+					username: this._webhookUsername,
 					avatarURL: client.user.avatarURL({ forceStatic: false })!,
 					embeds: [embed]
 				});
@@ -153,6 +155,19 @@ export default class ReportAlertsJob extends BaseJob {
 				}
 			}
 		}
+	}
+
+	private async _getOrCreateWebhook(channel: TextChannel) {
+		const reason = 'Required for weather alert reporting';
+		const webhooks = await channel.fetchWebhooks();
+		let ourWebhook = webhooks.find(w => w.name === this._webhookUsername);
+		if (!ourWebhook) {
+			ourWebhook = await channel.createWebhook({ name: this._webhookUsername, reason });
+
+			this._logger.info('Created webhook', { name: this._webhookUsername, channel: channel.name } );
+		}
+
+		return ourWebhook;
 	}
 
 	private _getAlertSeverityColor(alert: Alert) {
