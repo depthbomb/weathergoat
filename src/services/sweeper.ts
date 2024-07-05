@@ -1,9 +1,10 @@
 import { db } from '@db';
+import { logger } from '@logger';
 import { tokens } from '@container';
-import { reportError } from '@logger';
 import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Prisma } from '@db';
+import type { Logger } from 'winston';
 import type { Message } from 'discord.js';
 import type { IService } from '@services';
 import type { WeatherGoat } from '@client';
@@ -46,9 +47,11 @@ export interface ISweeperService extends IService {
 }
 
 export default class SweeperService implements ISweeperService {
+	private readonly _logger: Logger;
 	private readonly _client: WeatherGoat<true>;
 
 	public constructor(container: Container) {
+		this._logger = logger.child({ service: tokens.sweeper.description });
 		this._client = container.resolve(tokens.client);
 	}
 
@@ -112,7 +115,7 @@ export default class SweeperService implements ISweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				reportError('Error while deleting volatile message', err, { id, channelId, messageId });
+				this._logger.error('Error while deleting volatile message', err, { id, channelId, messageId });
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}
