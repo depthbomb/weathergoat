@@ -62,7 +62,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async destroy() {
-		this._logger.info('Shutting down', { date: new Date() });
+		this._logger.info('Shutting down');
 
 		for (const { cron } of this.jobs) {
 			if (cron.isRunning()) {

@@ -17,7 +17,7 @@ import featuresService from '@services/features';
 import locationService from '@services/location';
 import forecastService from '@services/forecast';
 
-logger.info('Booting', { mode: process.env.MODE, date: new Date() });
+logger.info('Booting', { mode: process.env.MODE });
 
 if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
 	const { init } = await import('@sentry/bun');
@@ -25,7 +25,8 @@ if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
 	init({ dsn: process.env.SENTRY_DSN });
 }
 
-const wg = new WeatherGoat<false>({
+const wg = new WeatherGoat({
+	shards: 'auto',
 	presence: {
 		status: 'dnd'
 	},
