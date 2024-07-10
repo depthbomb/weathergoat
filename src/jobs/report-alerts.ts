@@ -1,9 +1,10 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { logger } from '@logger';
 import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
+import { HTTPRequestError } from '@errors';
+import { logger, reportError } from '@logger';
 import { tokens, Container } from '@container';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -49,110 +50,118 @@ export default class ReportAlertsJob extends BaseJob {
 
 			if (!isTextChannel(channel)) continue;
 
-			const alerts = await this._alerts.getActiveAlertsForZone(zoneId);
-			for (const alert of alerts) {
-				const alreadyReported = await db.sentAlert.findFirst({
-					where: {
-						alertId: alert.id,
-						guildId: channel.guildId,
-						channelId
+			try {
+				const alerts = await this._alerts.getActiveAlertsForZone(zoneId);
+				for (const alert of alerts) {
+					const alreadyReported = await db.sentAlert.findFirst({
+						where: {
+							alertId: alert.id,
+							guildId: channel.guildId,
+							channelId
+						}
+					});
+					if (alreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
+						continue;
 					}
-				});
-				if (alreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
-					continue;
-				}
 
-				const isUpdate = alert.messageType === 'Update';
-				const embed = new EmbedBuilder()
-					.setTitle(`${isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
-					.setDescription(codeBlock('md', alert.description))
-					.setColor(this._getAlertSeverityColor(alert))
-					.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
-					.setURL(alert.url)
-					.setFooter({ text: alert.event })
-					.addFields(
-						{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
-						{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
-						{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
-						{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
-					)
-					.setTimestamp();
+					const isUpdate = alert.messageType === 'Update';
+					const embed = new EmbedBuilder()
+						.setTitle(`${isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
+						.setDescription(codeBlock('md', alert.description))
+						.setColor(this._getAlertSeverityColor(alert))
+						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
+						.setURL(alert.url)
+						.setFooter({ text: alert.event })
+						.addFields(
+							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
+							{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
+							{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
+							{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
+						)
+						.setTimestamp();
 
-				if (alert.instruction) {
-					embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
-				}
+					if (alert.instruction) {
+						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
+					}
 
-				if (radarImageUrl) {
-					embed.setImage(radarImageUrl + `?${uuidv7()}`);
-				}
+					if (radarImageUrl) {
+						embed.setImage(radarImageUrl + `?${uuidv7()}`);
+					}
 
-				if (alert.references.length) {
-					const alertUrls = [] as string[];
-					for (const reference of alert.references) {
-						const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
-						if (referencedSentAlert) {
-							// Enqueue parent alert messages to be deleted immediately
+					if (alert.references.length) {
+						const alertUrls = [] as string[];
+						for (const reference of alert.references) {
+							const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
+							if (referencedSentAlert) {
+								// Enqueue parent alert messages to be deleted immediately
+								await this._sweeper.enqueueMessage(
+									referencedSentAlert.guildId,
+									referencedSentAlert.channelId,
+									referencedSentAlert.messageId,
+									new Date()
+								);
+							}
+
+							alertUrls.push(reference.url);
+						}
+
+						embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: alertUrls.join('\n') });
+					}
+
+					const shouldPingEveryone = !!(
+						(alert.severity === 'Severe' || alert.severity === 'Extreme') &&
+						(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
+						pingOnSevere
+					);
+					const webhook = await this._getOrCreateWebhook(channel);
+					const sentMessage = await webhook.send({
+						content: shouldPingEveryone ? '@everyone' : '',
+						username: this._webhookUsername,
+						avatarURL: client.user.avatarURL({ forceStatic: false })!,
+						embeds: [embed]
+					});
+
+					if (autoCleanup) {
+						const expiresAt = alert.expires;
+						await this._sweeper.enqueueMessage(sentMessage, expiresAt);
+					}
+
+					await db.sentAlert.create({
+						data: {
+							alertId: alert.id,
+							guildId,
+							channelId: channelId,
+							messageId: sentMessage.id,
+							json: JSON.stringify(alert)
+						}
+					});
+
+					// Enqueue expired alert messages to be deleted immediately
+					if (alert.expiredReferences) {
+						for (const expiredReference of alert.expiredReferences) {
+							const expiredSentAlert = await db.sentAlert.findFirst({
+								where: {
+									alertId: expiredReference.alertId
+								}
+							});
+
+							if (!expiredSentAlert) continue;
+
 							await this._sweeper.enqueueMessage(
-								referencedSentAlert.guildId,
-								referencedSentAlert.channelId,
-								referencedSentAlert.messageId,
+								expiredSentAlert.guildId,
+								expiredSentAlert.channelId,
+								expiredSentAlert.messageId,
 								new Date()
 							);
 						}
-
-						alertUrls.push(reference.url);
-					}
-
-					embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: alertUrls.join('\n') })
-				}
-
-				const shouldPingEveryone = !!(
-					(alert.severity === 'Severe' || alert.severity === 'Extreme') &&
-					(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
-					pingOnSevere
-				);
-				const webhook = await this._getOrCreateWebhook(channel);
-				const sentMessage = await webhook.send({
-					content: shouldPingEveryone ? '@everyone' : '',
-					username: this._webhookUsername,
-					avatarURL: client.user.avatarURL({ forceStatic: false })!,
-					embeds: [embed]
-				});
-
-				if (autoCleanup) {
-					const expiresAt = alert.expires;
-					await this._sweeper.enqueueMessage(sentMessage, expiresAt);
-				}
-
-				await db.sentAlert.create({
-					data: {
-						alertId: alert.id,
-						guildId,
-						channelId: channelId,
-						messageId: sentMessage.id,
-						json: JSON.stringify(alert)
-					}
-				});
-
-				// Enqueue expired alert messages to be deleted immediately
-				if (alert.expiredReferences) {
-					for (const expiredReference of alert.expiredReferences) {
-						const expiredSentAlert = await db.sentAlert.findFirst({
-							where: {
-								alertId: expiredReference.alertId
-							}
-						});
-
-						if (!expiredSentAlert) continue;
-
-						await this._sweeper.enqueueMessage(
-							expiredSentAlert.guildId,
-							expiredSentAlert.channelId,
-							expiredSentAlert.messageId,
-							new Date()
-						);
 					}
 				}
+			} catch (err) {
+				if (err instanceof HTTPRequestError && err.code === 503) {
+					continue;
+				}
+
+				reportError('An error occurred while reporting alerts', err, { zoneId, guildId, channelId });
 			}
 		}
 	}
