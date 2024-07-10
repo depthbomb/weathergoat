@@ -89,7 +89,6 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					if (alert.references.length) {
-						const alertUrls = [] as string[];
 						for (const reference of alert.references) {
 							const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
 							if (referencedSentAlert) {
@@ -101,11 +100,7 @@ export default class ReportAlertsJob extends BaseJob {
 									new Date()
 								);
 							}
-
-							alertUrls.push(reference.url);
 						}
-
-						embed.addFields({ name: _('jobs.alerts.referencesTitle'), value: alertUrls.join('\n') });
 					}
 
 					const shouldPingEveryone = !!(
