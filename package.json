@@ -16,7 +16,7 @@
 		"@sapphire/ratelimits": "^2.4.9",
 		"@sapphire/stopwatch": "^1.5.2",
 		"@sapphire/time-utilities": "^1.7.12",
-		"@sentry/bun": "^8.16.0",
+		"@sentry/bun": "^8.17.0",
 		"bufferutil": "^4.0.8",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.3",
@@ -30,7 +30,7 @@
 		"ufo": "^1.5.3",
 		"utf-8-validate": "^6.0.4",
 		"uuid": "^10.0.0",
-		"winston": "^3.13.0",
+		"winston": "^3.13.1",
 		"winston-daily-rotate-file": "^5.0.0",
 		"zlib-sync": "^0.1.9"
 	},
