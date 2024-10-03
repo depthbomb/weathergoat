@@ -1,3 +1,4 @@
+import { fetch } from 'bun';
 import { logger } from '@logger';
 import { tokens } from '@container';
 import { hrtime } from 'node:process';
