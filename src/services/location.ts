@@ -75,14 +75,14 @@ export default class LocationService implements ILocationService {
 	}
 
 	public async getInfoFromCoordinates(latitude: string, longitude: string) {
-		const res = await this._http.get(`/points/${latitude},${longitude}`);
-
-		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
-
 		const cacheKey = latitude + longitude;
 		if (this._cache.has(cacheKey)) {
 			return this._cache.get<CoordinateInfo>(cacheKey)!;
 		}
+		
+		const res = await this._http.get(`/points/${latitude},${longitude}`);
+
+		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
 		const data = plainToClass(Point, json);
