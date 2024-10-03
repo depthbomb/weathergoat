@@ -3,12 +3,16 @@ import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js
 
 export type WeatherGoatError = InvalidPermissionsError | HTTPRequestError | MaxDestinationError;
 
-export class InvalidPermissionsError extends MakeErrorClass('You do not have permission to perform this action') {}
-export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>('An error occurred while making an HTTP request') {}
+export class InvalidPermissionsError extends MakeErrorClass('You do not have permission to perform this action.') {}
+export class GuildOnlyInvocationInNonGuildError extends MakeErrorClass('This command may only be called in a guild.') {}
+export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>('An error occurred while making an HTTP request.') {}
 export class MaxDestinationError extends MakeErrorClass<{ max: number; }>('You have reached the maximum amount of destinations.') {}
 
 export function isWeatherGoatError<T extends WeatherGoatError>(err: unknown): err is T {
-	return err instanceof InvalidPermissionsError || err instanceof HTTPRequestError || err instanceof MaxDestinationError;
+	return err instanceof InvalidPermissionsError ||
+			err instanceof GuildOnlyInvocationInNonGuildError ||
+			err instanceof HTTPRequestError ||
+			err instanceof MaxDestinationError;
 }
 
 export function isDiscordAPIError(err: unknown): err is DiscordAPIError {
