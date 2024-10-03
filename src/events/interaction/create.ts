@@ -22,13 +22,13 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		const command = this._getCommand(interaction);
 		if (!command) return;
 
-		if (interaction.isChatInputCommand()) {
+		if (interaction.isChatInputCommand() && interaction.channel?.isSendable()) {
 			const sw = new Stopwatch();
 
 			try {
 				this._logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
 
-				await interaction.channel?.sendTyping();
+				await interaction.channel.sendTyping();
 
 				if (command.preconditions) {
 					for (const precondition of command.preconditions) {
