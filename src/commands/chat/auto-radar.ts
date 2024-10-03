@@ -7,7 +7,7 @@ import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
-	time,
+	messageLink,
 	ChannelType,
 	ButtonStyle,
 	EmbedBuilder,
@@ -16,7 +16,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	DiscordjsErrorCodes,
-	messageLink
+	InteractionContextType
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -31,7 +31,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('auto-radar')
 			.setDescription('Auto radar super command')
-			.setDMPermission(false)
+			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')

@@ -7,6 +7,7 @@ import { BaseCommand } from '@commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
 import {
+	time,
 	codeBlock,
 	ChannelType,
 	ButtonStyle,
@@ -17,7 +18,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 	DiscordjsErrorCodes,
-	time
+	InteractionContextType
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -32,7 +33,7 @@ export default class ForecastCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('forecasts')
 			.setDescription('Forecasts super command')
-			.setDMPermission(false)
+			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')

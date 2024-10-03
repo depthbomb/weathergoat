@@ -15,7 +15,8 @@ import {
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes
+	DiscordjsErrorCodes,
+	InteractionContextType
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -30,7 +31,7 @@ export default class AlertsCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('alerts')
 			.setDescription('Alerts super command')
-			.setDMPermission(false)
+			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')
