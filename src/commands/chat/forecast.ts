@@ -5,7 +5,7 @@ import { tokens } from '@container';
 import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	time,
 	codeBlock,
@@ -17,8 +17,7 @@ import {
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes,
-	InteractionContextType
+	DiscordjsErrorCodes
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -33,7 +32,6 @@ export default class ForecastCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('forecasts')
 			.setDescription('Forecasts super command')
-			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')
@@ -69,6 +67,8 @@ export default class ForecastCommand extends BaseCommand {
 		const latitude = interaction.options.getString('latitude', true);
 		const longitude = interaction.options.getString('longitude', true);
 		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+
+		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of forecast destinations in this server.', { max: maxCount });

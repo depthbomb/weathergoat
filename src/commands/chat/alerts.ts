@@ -5,7 +5,7 @@ import { tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -15,8 +15,7 @@ import {
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes,
-	InteractionContextType
+	DiscordjsErrorCodes
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -31,7 +30,6 @@ export default class AlertsCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('alerts')
 			.setDescription('Alerts super command')
-			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')
@@ -78,14 +76,16 @@ export default class AlertsCommand extends BaseCommand {
 		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
-		if (!guildId) return interaction.reply(_('common.err.guildOnly'));
+		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of alert destinations in this server.', {
 			max: maxCount
 		});
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) return interaction.reply(_('common.err.invalidLatOrLon'));
+		if (!this._location.isValidCoordinates(latitude, longitude)) {
+			return interaction.reply(_('common.err.invalidLatOrLon'));
+		}
 
 		await interaction.deferReply();
 

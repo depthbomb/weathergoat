@@ -5,7 +5,7 @@ import { tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	messageLink,
 	ChannelType,
@@ -15,8 +15,7 @@ import {
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes,
-	InteractionContextType
+	DiscordjsErrorCodes
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
@@ -31,7 +30,6 @@ export default class AutoRadarCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('auto-radar')
 			.setDescription('Auto radar super command')
-			.setContexts(InteractionContextType.Guild)
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('add')
@@ -90,9 +88,7 @@ export default class AutoRadarCommand extends BaseCommand {
 		const longitude = interaction.options.getString('longitude', true).trim();
 		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 
-		if (!guildId) {
-			return interaction.reply(_('common.err.guildOnly'));
-		}
+		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of radar channels in this server.', { max: maxCount });
