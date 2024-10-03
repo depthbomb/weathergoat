@@ -49,7 +49,6 @@
 		"zlib-sync"
 	],
 	"patchedDependencies": {
-		"@types/uuid@9.0.8": "patches/@types%2Fuuid@9.0.8.patch",
-		"croner@8.0.2": "patches/croner@8.0.2.patch"
+		"croner@8.1.2": "patches/croner@8.1.2.patch"
 	}
 }
