@@ -8,7 +8,7 @@ datasource db {
 }
 
 model AlertDestination {
-  id            String  @id @default(uuid())
+  id            String  @id @default(uuid(7))
   latitude      String
   longitude     String
   zoneId        String
@@ -21,7 +21,7 @@ model AlertDestination {
 }
 
 model AutoRadarMessage {
-  id            String  @id @default(uuid())
+  id            String  @id @default(uuid(7))
   guildId       String
   channelId     String
   messageId     String?
@@ -31,7 +31,7 @@ model AutoRadarMessage {
 }
 
 model ForecastDestination {
-  id            String  @id @default(uuid())
+  id            String  @id @default(uuid(7))
   latitude      String
   longitude     String
   guildId       String
@@ -41,7 +41,7 @@ model ForecastDestination {
 }
 
 model SentAlert {
-  id        String  @id @default(uuid())
+  id        String  @id @default(uuid(7))
   alertId   String  @unique
   guildId   String
   channelId String
@@ -50,7 +50,7 @@ model SentAlert {
 }
 
 model VolatileMessage {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid(7))
   guildId   String
   channelId String
   messageId String
