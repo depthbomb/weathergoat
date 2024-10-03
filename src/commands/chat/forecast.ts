@@ -2,7 +2,6 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
-import { v7 as uuidv7 } from 'uuid';
 import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
