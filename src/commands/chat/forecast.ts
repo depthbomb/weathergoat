@@ -106,7 +106,7 @@ export default class ForecastCommand extends BaseCommand {
 					content: `This message will be edited for the hourly forecast.\nUpdating ${time(forecastJob.cron.nextRun()!, 'R')}.`,
 					flags: MessageFlags.SuppressNotifications
 				});
-				const snowflake = generateSnowflake().toString();
+				const snowflake = generateSnowflake();
 
 				await db.forecastDestination.create({
 					data: {

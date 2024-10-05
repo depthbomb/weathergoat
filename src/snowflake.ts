@@ -1,14 +1,32 @@
 import { Snowflake } from '@sapphire/snowflake';
-import type { Snowflake as SnowflakeType } from 'discord.js';
+
+type SnowflakeType = string | bigint;
+
+export const enum SnowflakeReturnType {
+	BigInt,
+	String,
+}
 
 export const epoch = new Date('August 5, 2022 19:13:00 GMT-0500');
+
 export const snowflake = new Snowflake(epoch);
-export const generateSnowflake = () => snowflake.generate();
+
+export function generateSnowflake(): string;
+export function generateSnowflake(returnType: SnowflakeReturnType.String): string;
+export function generateSnowflake(returnType: SnowflakeReturnType.BigInt): bigint;
+export function generateSnowflake(returnType: SnowflakeReturnType = SnowflakeReturnType.String): string | bigint {
+	const sf = snowflake.generate();
+	if (returnType === SnowflakeReturnType.String) {
+		return sf.toString();
+	}
+
+	return sf;
+}
+
 export function isValidSnowflake(input: SnowflakeType): boolean {
-	// TODO see if this actually throws on an invalid snowflake
 	try {
-		snowflake.deconstruct(input);
-		return true;
+		const parts = snowflake.deconstruct(input);
+		return parts.epoch === BigInt(epoch.getTime());
 	} catch {
 		return false;
 	}

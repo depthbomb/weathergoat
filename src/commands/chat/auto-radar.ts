@@ -122,7 +122,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const guildId = interaction.guildId!;
 				const channelId = channel.id;
-				const snowflake = generateSnowflake().toString();
+				const snowflake = generateSnowflake();
 				const { id } = await db.autoRadarMessage.create({
 					data: {
 						snowflake,
