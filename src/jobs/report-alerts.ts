@@ -52,7 +52,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 			try {
 				const alerts = await this._alerts.getActiveAlertsForZone(zoneId);
-				for (const alert of alerts) {
+				for (const alert of alerts.filter(a => a.isNotTest)) {
 					const alreadyReported = await db.sentAlert.findFirst({
 						where: {
 							alertId: alert.id,
@@ -60,13 +60,12 @@ export default class ReportAlertsJob extends BaseJob {
 							channelId
 						}
 					});
-					if (alreadyReported || alert.status === 'Exercise' || alert.status === 'Test') {
+					if (alreadyReported) {
 						continue;
 					}
 
-					const isUpdate = alert.messageType === 'Update';
 					const embed = new EmbedBuilder()
-						.setTitle(`${isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
+						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 						.setDescription(codeBlock('md', alert.description))
 						.setColor(this._getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })

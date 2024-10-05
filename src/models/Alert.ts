@@ -34,6 +34,14 @@ export class Alert {
 	public response!: 'Shelter' | 'Evacuate' | 'Prepare' | 'Execute' | 'Avoid' | 'Monitor' | 'Assess' | 'AllClear' | 'None';
 	public parameters!: { [key: string]: string[] };
 
+	public get isUpdate() {
+		return this.messageType === 'Update';
+	}
+
+	public get isNotTest() {
+		return this.status !== 'Test' && this.status !== 'Exercise' && this.status !== 'Draft';
+	}
+
 	public get url() {
 		return withQuery(ALERTS_SEARCH_BASE_URL, { id: this.id });
 	}
@@ -53,5 +61,9 @@ export class Alert {
 		}
 
 		return null;
+	}
+
+	public get json() {
+		return JSON.stringify(this);
 	}
 }
