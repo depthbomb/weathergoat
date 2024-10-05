@@ -13,8 +13,6 @@ MODE=development
 BOT_ID=1234
 BOT_TOKEN=token_here
 
-DATABASE_URL="postgresql://postgres:1234@localhost:5432/weathergoat_dev?schema=public"
-
 # optional
 SENTRY_DSN=https://1234.ingest.us.sentry.io/5678
 
