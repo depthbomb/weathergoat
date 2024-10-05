@@ -56,7 +56,11 @@ export default class DebugCommand extends BaseCommand {
 		let json: string = '';
 		switch (domain) {
 			case 'services':
-				json = JSON.stringify(Array.from(interaction.client.container.services.keys()), null, 4);
+				const services = [];
+				for (const key of interaction.client.container.services.keys()) {
+					services.push(key.description);
+				}
+				json = JSON.stringify(services, null, 4);
 				break;
 			case 'jobs':
 				const jobs = Array.from(interaction.client.jobs.values());
