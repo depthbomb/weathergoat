@@ -4,8 +4,8 @@ import { BaseJob } from '@jobs';
 import { logger } from '@logger';
 import { Color } from '@constants';
 import { tokens } from '@container';
-import { v7 as uuidv7 } from 'uuid';
 import { EmbedBuilder } from 'discord.js';
+import { generateSnowflake } from '@snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { WeatherGoat } from '@client';
 import type { Container } from '@container';
@@ -68,7 +68,7 @@ export default class ReportForecastsJob extends BaseJob {
 				.setTimestamp();
 
 			if (radarImageUrl) {
-				embed.setImage(radarImageUrl + `?${uuidv7()}`);
+				embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 			}
 
 			await message.edit({ content: '', embeds: [embed] });

@@ -1,6 +1,6 @@
 import { _ } from '@i18n';
 import { Color } from '@constants';
-import { v7 as uuidv7 } from 'uuid';
+import { generateSnowflake } from '@snowflake';
 import { BaseCommandWithAutocomplete } from '@commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
@@ -208,7 +208,7 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
-			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${uuidv7()}`)
+			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${generateSnowflake()}`)
 			.setTitle(_('commands.radar.embedTitle', { station }))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`);
 

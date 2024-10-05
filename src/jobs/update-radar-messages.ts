@@ -3,7 +3,7 @@ import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { logger } from '@logger';
 import { Color } from '@constants';
-import { v7 as uuidv7 } from 'uuid';
+import { generateSnowflake } from '@snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { time, MessageFlags, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
@@ -33,7 +33,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				.setColor(Color.Primary)
 				.setTitle(_('jobs.radar.embedTitle', { location }))
 				.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
-				.setImage(`${radarImageUrl}?${uuidv7()}`)
+				.setImage(`${radarImageUrl}?${generateSnowflake()}`)
 				.addFields(
 					{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
 					{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },

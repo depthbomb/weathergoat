@@ -3,12 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:../.data/weathergoat.db"
 }
 
 model AlertDestination {
-  id            String  @id @default(uuid(7))
+  id            Int     @id @default(autoincrement())
+  snowflake     String  @unique
   latitude      String
   longitude     String
   zoneId        String
@@ -21,7 +22,8 @@ model AlertDestination {
 }
 
 model AutoRadarMessage {
-  id            String  @id @default(uuid(7))
+  id            Int     @id @default(autoincrement())
+  snowflake     String  @unique
   guildId       String
   channelId     String
   messageId     String?
@@ -31,7 +33,8 @@ model AutoRadarMessage {
 }
 
 model ForecastDestination {
-  id            String  @id @default(uuid(7))
+  id            Int     @id @default(autoincrement())
+  snowflake     String  @unique
   latitude      String
   longitude     String
   guildId       String
@@ -41,7 +44,7 @@ model ForecastDestination {
 }
 
 model SentAlert {
-  id        String  @id @default(uuid(7))
+  id        Int     @id @default(autoincrement())
   alertId   String  @unique
   guildId   String
   channelId String
@@ -50,7 +53,7 @@ model SentAlert {
 }
 
 model VolatileMessage {
-  id        String   @id @default(uuid(7))
+  id        Int      @id @default(autoincrement())
   guildId   String
   channelId String
   messageId String

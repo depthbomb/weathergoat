@@ -3,8 +3,8 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { isValidSnowflake, generateSnowflake } from '@snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	codeBlock,
@@ -43,7 +43,7 @@ export default class AlertsCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('remove')
 				.setDescription('Removes an alert reporting destination')
-				.addStringOption(o => o.setName('uuid').setDescription('The UUID of the alert destination to delete').setRequired(true))
+				.addStringOption(o => o.setName('snowflake').setDescription('The snowflake of the alert destination to delete').setRequired(true))
 			)
 			.addSubcommand(sc => sc
 				.setName('list')
@@ -113,8 +113,10 @@ export default class AlertsCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 15_000 });
 			if (customId === 'confirm') {
+				const snowflake = generateSnowflake().toString();
 				const destination = await db.alertDestination.create({
 					data: {
+						snowflake,
 						latitude,
 						longitude,
 						zoneId: info.zoneId,
@@ -125,7 +127,7 @@ export default class AlertsCommand extends BaseCommand {
 						pingOnSevere,
 						radarImageUrl: info.radarImageUrl
 					},
-					select: { id: true }
+					select: { snowflake: true }
 				});
 
 				return interaction.editReply({
@@ -150,19 +152,19 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const id = interaction.options.getString('uuid', true);
-		if (!isUuidValid(id)) {
-			return interaction.reply(_('common.err.invalidUuid', { id }));
+		const snowflake = interaction.options.getString('snowflake', true);
+		if (!isValidSnowflake(snowflake)) {
+			return interaction.reply(_('common.err.invalidSnowflake', { snowflake }));
 		}
 
 		await interaction.deferReply();
 
-		const exists = await db.alertDestination.exists({ id });
+		const exists = await db.alertDestination.exists({ snowflake });
 		if (!exists) {
-			return interaction.editReply(_('commands.alerts.err.noDestByUuid', { id }));
+			return interaction.editReply(_('commands.alerts.err.noDestBySnowflake', { snowflake }));
 		}
 
-		await db.alertDestination.delete({ where: { id } });
+		await db.alertDestination.delete({ where: { snowflake } });
 		await interaction.editReply(_('commands.alerts.destRemoved'));
 	}
 

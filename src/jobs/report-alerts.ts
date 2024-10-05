@@ -2,10 +2,10 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
-import { v7 as uuidv7 } from 'uuid';
 import { HTTPRequestError } from '@errors';
 import { logger, reportError } from '@logger';
 import { tokens, Container } from '@container';
+import { generateSnowflake } from '@snowflake';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
@@ -84,7 +84,7 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					if (radarImageUrl) {
-						embed.setImage(radarImageUrl + `?${uuidv7()}`);
+						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 					}
 
 					if (alert.references.length) {

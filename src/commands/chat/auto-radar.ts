@@ -3,8 +3,8 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { validate as isUuidValid } from 'uuid';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { isValidSnowflake, generateSnowflake } from '@snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	messageLink,
@@ -58,8 +58,8 @@ export default class AutoRadarCommand extends BaseCommand {
 				.setName('remove')
 				.setDescription('Designates a channel to post an auto-updating radar image for a region')
 				.addStringOption(o => o
-					.setName('uuid')
-					.setDescription('The UUID of the radar message to remove')
+					.setName('snowflake')
+					.setDescription('The snowflake of the radar message to remove')
 					.setRequired(true)
 				)
 			),
@@ -122,8 +122,10 @@ export default class AutoRadarCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const guildId = interaction.guildId!;
 				const channelId = channel.id;
+				const snowflake = generateSnowflake().toString();
 				const { id } = await db.autoRadarMessage.create({
 					data: {
+						snowflake,
 						guildId,
 						channelId,
 						location: location.location,
@@ -151,16 +153,16 @@ export default class AutoRadarCommand extends BaseCommand {
 	}
 
 	public async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const id = interaction.options.getString('uuid', true);
-		if (!isUuidValid(id)) {
-			return interaction.reply(_('common.err.invalidUuid', { id }));
+		const snowflake = interaction.options.getString('snowflake', true);
+		if (!isValidSnowflake(snowflake)) {
+			return interaction.reply(_('common.err.invalidSnowflake', { snowflake }));
 		}
 
 		await interaction.deferReply();
 
-		const radarMessage = await db.autoRadarMessage.findFirst({ where: { id } });
+		const radarMessage = await db.autoRadarMessage.findFirst({ where: { snowflake } });
 		if (!radarMessage) {
-			return interaction.editReply(_('commands.autoRadar.err.noMessageByUuid', { id }));
+			return interaction.editReply(_('commands.autoRadar.err.noMessageBySnowflake', { snowflake }));
 		}
 
 		const { channelId, messageId } = radarMessage;
@@ -170,7 +172,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			await message?.delete();
 		}
 
-		await db.autoRadarMessage.delete({ where: { id } });
+		await db.autoRadarMessage.delete({ where: { snowflake } });
 		await interaction.editReply(_('commands.autoRadar.deleteSuccess'));
 	}
 
@@ -208,7 +210,7 @@ export default class AutoRadarCommand extends BaseCommand {
 					value: [
 						`- Radar Image: ${radarImageUrl}`,
 						`- Message: ${link}`,
-						`- UUID: \`${id}\``
+						`- Snowflake: \`${id}\``
 					].join('\n')
 				});
 			} else {
@@ -217,7 +219,7 @@ export default class AutoRadarCommand extends BaseCommand {
 					value: [
 						`- Radar Image: ${radarImageUrl}`,
 						`- Message: _Not sent yet_`,
-						`- UUID: \`${id}\``
+						`- Snowflake: \`${id}\``
 					].join('\n')
 				});
 			}
