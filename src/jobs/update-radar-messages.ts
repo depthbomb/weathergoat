@@ -4,15 +4,16 @@ import { BaseJob } from '@jobs';
 import { logger } from '@logger';
 import { Color } from '@constants';
 import { v7 as uuidv7 } from 'uuid';
-import { isDiscordAPIError } from '@errors';
-import { time, MessageFlags, EmbedBuilder } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
+import { time, MessageFlags, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type Cron from 'croner';
 import type { Logger } from 'winston';
 import type { WeatherGoat } from '@client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	private readonly _logger: Logger;
+	private readonly _errorCodes: number[]
 
 	public constructor() {
 		super({
@@ -22,6 +23,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		});
 
 		this._logger = logger.child({ jobName: this.name });
+		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage]
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
@@ -66,7 +68,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
-					if ([10003, 10004, 10008].includes(code as number)) {
+					if (isDiscordAPIErrorCode(err, this._errorCodes)) {
 						// Unknown channel, guild, or message
 						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
 

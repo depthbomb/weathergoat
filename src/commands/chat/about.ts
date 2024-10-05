@@ -6,7 +6,7 @@ import { isDiscordAPIErrorCode } from '@errors';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { arch, uptime, version, platform, hostname } from 'node:os';
-import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { time, EmbedBuilder, SlashCommandBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { Container } from '@container';
 import type { IGithubService } from '@services/github';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -61,7 +61,7 @@ export default class AboutCommand extends BaseCommand {
 		try {
 			await interaction.editReply(response);
 		} catch (err) {
-			if (isDiscordAPIErrorCode(err, 50035)) {
+			if (isDiscordAPIErrorCode(err, RESTJSONErrorCodes.InvalidFormBodyOrContentType)) {
 				await interaction.editReply(_('commands.about.responseTooLong', { repo: REPO }));
 			} else {
 				throw err;
