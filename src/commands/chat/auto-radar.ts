@@ -91,7 +91,7 @@ export default class AutoRadarCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of radar channels in this server.', { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, _('commands.autoRadar.err.maxDestinationsReached'), { max: maxCount });
 
 		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
@@ -104,11 +104,11 @@ export default class AutoRadarCommand extends BaseCommand {
 			.addComponents(
 				new ButtonBuilder()
 					.setCustomId('confirm')
-					.setLabel('Yes')
+					.setLabel(_('common.yes'))
 					.setStyle(ButtonStyle.Success),
 				new ButtonBuilder()
 					.setCustomId('deny')
-					.setLabel('No')
+					.setLabel(_('common.no'))
 					.setStyle(ButtonStyle.Danger)
 			);
 

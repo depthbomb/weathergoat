@@ -71,7 +71,7 @@ export default class ForecastCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of forecast destinations in this server.', { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, _('commands.forecasts.err.maxDestinationsReached'), { max: maxCount });
 
 		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));

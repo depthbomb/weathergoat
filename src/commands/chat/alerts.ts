@@ -79,9 +79,7 @@ export default class AlertsCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, 'You have reached the maximum amount of alert destinations in this server.', {
-			max: maxCount
-		});
+		MaxDestinationError.assert(existingCount < maxCount, _('commands.alerts.err.maxDestinationsReached'), { max: maxCount });
 
 		if (!this._location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
@@ -100,11 +98,11 @@ export default class AlertsCommand extends BaseCommand {
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel('Yes')
+						.setLabel(_('common.yes'))
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel('No')
+						.setLabel(_('common.no'))
 						.setStyle(ButtonStyle.Danger)
 				);
 
