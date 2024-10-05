@@ -16,7 +16,6 @@
 		"@sapphire/ratelimits": "^2.4.9",
 		"@sapphire/snowflake": "^3.5.3",
 		"@sapphire/stopwatch": "^1.5.2",
-		"@sapphire/string-store": "^1.1.0-next.7c2bed20",
 		"@sapphire/time-utilities": "^1.7.12",
 		"@sentry/bun": "^8.33.1",
 		"bufferutil": "^4.0.8",
