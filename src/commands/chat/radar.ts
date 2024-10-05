@@ -217,8 +217,9 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 
 	public async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
 		const value = interaction.options.getFocused().trim().toLowerCase();
-
-		if (value.length === 0) return;
+		if (value.length === 0) {
+			return;
+		}
 
 		const filtered = this._radars.filter((v, k) => k.toLowerCase().includes(value) || v.toLowerCase().includes(value));
 		const limited  = [...filtered.entries()].slice(0, 25); // Limit the results to 25

@@ -39,7 +39,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					}
 				}
 
-				await command.handle(interaction);
+				await command.callCommand(interaction);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
 					if (err instanceof MaxDestinationError) {

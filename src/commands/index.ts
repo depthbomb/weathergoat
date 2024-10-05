@@ -1,9 +1,12 @@
 import { InvalidPermissionsError } from '@errors';
+import { tryToRespond } from '@utils/interactions';
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { BasePrecondition } from '@preconditions';
 import type {
 	PermissionResolvable,
 	AutocompleteInteraction,
+	InteractionReplyOptions,
 	ChatInputCommandInteraction,
 	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder
@@ -31,12 +34,25 @@ export abstract class BaseCommand {
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 	public readonly preconditions: BasePrecondition[];
 
+	private _localStorage: AsyncLocalStorage<ChatInputCommandInteraction>;
 	private _subcommandMap?: SubcommandMap;
 
 	public constructor(options: CommandOptions) {
 		this.name = options.data.name;
 		this.data = options.data;
 		this.preconditions = options.preconditions ?? [];
+
+		this._localStorage = new AsyncLocalStorage();
+	}
+
+	public get ctx() {
+		return {
+			interaction: this._localStorage.getStore()
+		};
+	}
+
+	public async callCommand(interaction: ChatInputCommandInteraction): Promise<unknown> {
+		return this._localStorage.run(interaction, async () => await this.handle(interaction));
 	}
 
 	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;
@@ -75,6 +91,10 @@ export abstract class BaseCommand {
 		}
 
 		this._subcommandMap = map;
+	}
+
+	public async tryToRespond(options: string | InteractionReplyOptions) {
+		return tryToRespond(this.ctx.interaction!, options);
 	}
 }
 
