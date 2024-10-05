@@ -1,10 +1,8 @@
 if (!process.versions.bun) throw new Error('WeatherGoat requires the Bun runtime to operate.');
 
-import { fetch } from 'bun';
 import { tokens } from '@container';
 import { WeatherGoat } from '@client';
 import { logger, reportError } from '@logger';
-import { API_BASE_ENDPOINT } from '@constants';
 import { Partials, GatewayIntentBits } from 'discord.js';
 import type { ICliService } from '@services/cli';
 import type { IFeaturesService } from '@services/features';
@@ -65,8 +63,6 @@ if (process.argv.length > 2) {
 	features.set('disable_message_sweeping', 0.0, 'Message sweeping killswitch');
 	features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
 	features.set('disable_status_updating', 0.0, 'Status updating killswitch');
-
-	fetch.preconnect(API_BASE_ENDPOINT);
 
 	await wg.login(process.env.BOT_TOKEN);
 
