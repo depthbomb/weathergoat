@@ -71,7 +71,7 @@ export default class ReportForecastsJob extends BaseJob {
 				embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 			}
 
-			await message.edit({ content: '', embeds: [embed] });
+			await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
 		}
 	}
 }

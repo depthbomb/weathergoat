@@ -14,7 +14,8 @@
 		"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{info.location}}**.\nIs this correct?",
 		"confirmationCancelled": "Confirmation cancelled",
 		"promptTimedOut": "You did not respond to the prompt in time.",
-		"reportingTo": "Reporting to {{channel, mention}}"
+		"reportingTo": "Reporting to {{channel, mention}}",
+		"deleteToDeleteSubheading": "-# Delete this message to stop"
 	},
 	"events": {
 		"interactions": {

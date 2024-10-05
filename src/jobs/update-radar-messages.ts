@@ -51,7 +51,11 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 
 				if (!messageId) {
 					// Create initial radar message
-					const initialMessage = await channel.send({ embeds: [embed], flags: [MessageFlags.SuppressNotifications] });
+					const initialMessage = await channel.send({
+						content: _('common.deleteToDeleteSubheading'),
+						embeds: [embed],
+						flags: [MessageFlags.SuppressNotifications]
+					});
 					await db.autoRadarMessage.update({
 						where: {
 							id
@@ -63,7 +67,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				} else {
 					// otherwise update existing message
 					const message = await channel.messages.fetch(messageId);
-					await message.edit({ embeds: [embed] });
+					await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
 				}
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
