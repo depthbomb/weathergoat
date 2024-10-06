@@ -3,24 +3,25 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
+import { generateSnowflake } from '@snowflake';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isValidSnowflake, generateSnowflake } from '@snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	messageLink,
 	ChannelType,
 	ButtonStyle,
+	MessageFlags,
 	EmbedBuilder,
 	ButtonBuilder,
 	ActionRowBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	DiscordjsErrorCodes
+	DiscordjsErrorCodes,
 } from 'discord.js';
 import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
 import type { ILocationService } from '@services/location';
-import type { GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AutoRadarCommand extends BaseCommand {
 	private readonly _location: ILocationService;
@@ -53,15 +54,6 @@ export default class AutoRadarCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('list')
 				.setDescription('Lists all auto-updating radar messages in this server')
-			)
-			.addSubcommand(sc => sc
-				.setName('remove')
-				.setDescription('Designates a channel to post an auto-updating radar image for a region')
-				.addStringOption(o => o
-					.setName('snowflake')
-					.setDescription('The snowflake of the radar message to remove')
-					.setRequired(true)
-				)
 			),
 			preconditions: [
 				new CooldownPrecondition({ duration: '5s', global: true })
@@ -70,9 +62,8 @@ export default class AutoRadarCommand extends BaseCommand {
 
 		this._location = container.resolve(tokens.location);
 
-		this.createSubcommandMap<'add' | 'remove' | 'list'>({
+		this.createSubcommandMap<'add' | 'list'>({
 			add: { handler: this._handleAddSubcommand },
-			remove: { handler: this._handleRemoveSubcommand },
 			list: { handler: this._handleListSubcommand },
 		});
 	}
@@ -82,7 +73,7 @@ export default class AutoRadarCommand extends BaseCommand {
 	}
 
 	public async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
-		const maxCount = process.env.MAX_RADAR_CHANNELS_PER_GUILD;
+		const maxCount = process.env.MAX_RADAR_MESSAGES_PER_GUILD;
 		const guildId = interaction.guildId;
 		const latitude = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
@@ -123,11 +114,17 @@ export default class AutoRadarCommand extends BaseCommand {
 				const guildId = interaction.guildId!;
 				const channelId = channel.id;
 				const snowflake = generateSnowflake();
-				const { id } = await db.autoRadarMessage.create({
+				const placeholderMessage = await channel.send({
+					content: _('commands.autoRadar.placeholderMessage', { location }),
+					flags: [MessageFlags.SuppressNotifications]
+				});
+
+				await db.autoRadarMessage.create({
 					data: {
 						snowflake,
 						guildId,
 						channelId,
+						messageId: placeholderMessage.id,
 						location: location.location,
 						radarStation: location.radarStation,
 						radarImageUrl: location.radarImageUrl
@@ -135,7 +132,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: _('commands.autoRadar.destCreated', { channel, id }),
+					content: _('commands.autoRadar.destCreated', { channel }),
 					components: []
 				});
 			} else {
@@ -150,30 +147,6 @@ export default class AutoRadarCommand extends BaseCommand {
 
 			await interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
-	}
-
-	public async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const snowflake = interaction.options.getString('snowflake', true);
-		if (!isValidSnowflake(snowflake)) {
-			return interaction.reply(_('common.err.invalidSnowflake', { snowflake }));
-		}
-
-		await interaction.deferReply();
-
-		const radarMessage = await db.autoRadarMessage.findFirst({ where: { snowflake } });
-		if (!radarMessage) {
-			return interaction.editReply(_('commands.autoRadar.err.noMessageBySnowflake', { snowflake }));
-		}
-
-		const { channelId, messageId } = radarMessage;
-		if (messageId) {
-			const channel = await interaction.guild!.channels.fetch(channelId) as GuildTextBasedChannel;
-			const message = await channel?.messages.fetch(messageId);
-			await message?.delete();
-		}
-
-		await db.autoRadarMessage.delete({ where: { snowflake } });
-		await interaction.editReply(_('commands.autoRadar.deleteSuccess'));
 	}
 
 	public async _handleListSubcommand(interaction: ChatInputCommandInteraction) {

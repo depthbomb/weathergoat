@@ -103,7 +103,7 @@ export default class ForecastCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const forecastJob = interaction.client.jobs.find(j => j.job.name === 'report_forecasts')!;
 				const initialMessage = await channel.send({
-					content: `This message will be edited for the hourly forecast.\nUpdating ${time(forecastJob.cron.nextRun()!, 'R')}.`,
+					content: _('commands.forecasts.placeholderMessage', { location: info, time: time(forecastJob.cron.nextRun()!, 'R') }),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();

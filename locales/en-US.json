@@ -15,7 +15,7 @@
 		"confirmationCancelled": "Confirmation cancelled",
 		"promptTimedOut": "You did not respond to the prompt in time.",
 		"reportingTo": "Reporting to {{channel, mention}}",
-		"deleteToDeleteSubheading": "-# Delete this message to stop"
+		"deleteToDeleteSubheading": "-# Delete this message to stop."
 	},
 	"events": {
 		"interactions": {
@@ -57,8 +57,8 @@
 				"noDestInChannel": "{{channel}} does not have any forecast reporting assigned to it.",
 				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
 			},
-			"destCreated": "Hourly forecast reporting created in {{channel, mention}}!\nThe message I sent in there will be automatically updated.\nYou can remove this destination by simply deleting the message.",
-			"destRemoved": "Forecast destination has been successfully removed.",
+			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{{location.location}}** {{time}}. Delete this message at any time to stop.",
+			"destCreated": "Hourly forecast reporting created in {{channel, mention}}!\nYou can remove this destination by simply deleting the message.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},
 		"autoRadar": {
@@ -68,8 +68,8 @@
 				"maxDestinationsReached": "You have reached the maximum amount of radar messages in this server."
 			},
 			"coordLocationAskConfirmation": "The location found for coordinates `{{latitude}},{{longitude}}` is **{{location.location}}** with the radar image below.\nIs this correct?\n{{location.radarImageUrl}}",
-			"destCreated": "{{channel, mention}} has been successfully designated as the destination for an auto-updating radar message!\nAfter a short period, the message will be sent in the channel and then updated automatically.\nYou can remove this designation by using the `/auto-radar remove` command with the snowflake `{{snowflake}}`. Deleting the radar message will result in it being sent again.",
-			"deleteSuccess": "That radar message has been deleted and won't be sent again!",
+			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{{location.location}}**. Delete this message at any time to stop.",
+			"destCreated": "{{channel, mention}} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
 			"listEmbedTitle": "Radar messages in this server"
 		},
 		"radar": {

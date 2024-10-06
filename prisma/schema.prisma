@@ -22,11 +22,11 @@ model AlertDestination {
 }
 
 model AutoRadarMessage {
-  id            Int     @id @default(autoincrement())
-  snowflake     String  @unique
+  id            Int    @id @default(autoincrement())
+  snowflake     String @unique
   guildId       String
   channelId     String
-  messageId     String?
+  messageId     String @unique
   location      String
   radarStation  String
   radarImageUrl String
@@ -56,6 +56,6 @@ model VolatileMessage {
   id        Int      @id @default(autoincrement())
   guildId   String
   channelId String
-  messageId String
+  messageId String   @unique
   expiresAt DateTime
 }

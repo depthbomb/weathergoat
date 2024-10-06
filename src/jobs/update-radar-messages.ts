@@ -6,7 +6,7 @@ import { Color } from '@constants';
 import { generateSnowflake } from '@snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
-import { time, MessageFlags, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
+import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type Cron from 'croner';
 import type { Logger } from 'winston';
 import type { WeatherGoat } from '@client';
@@ -18,7 +18,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	public constructor() {
 		super({
 			name: 'update_radar_messages',
-			pattern: '*/2 * * * *',
+			pattern: '*/4 * * * *',
 			runImmediately: true
 		});
 
@@ -29,16 +29,6 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	public async execute(client: WeatherGoat<true>, job: Cron) {
 		const radarMessages = await db.autoRadarMessage.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
-			const embed = new EmbedBuilder()
-				.setColor(Color.Primary)
-				.setTitle(_('jobs.radar.embedTitle', { location }))
-				.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
-				.setImage(`${radarImageUrl}?${generateSnowflake()}`)
-				.addFields(
-					{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-					{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
-				);
-
 			try {
 				const guild = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
@@ -49,26 +39,25 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 					continue;
 				}
 
-				if (!messageId) {
-					// Create initial radar message
-					const initialMessage = await channel.send({
-						content: _('common.deleteToDeleteSubheading'),
-						embeds: [embed],
-						flags: [MessageFlags.SuppressNotifications]
-					});
-					await db.autoRadarMessage.update({
-						where: {
-							id
-						},
-						data: {
-							messageId: initialMessage.id
-						}
-					});
-				} else {
-					// otherwise update existing message
-					const message = await channel.messages.fetch(messageId);
-					await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
+				const message = await channel.messages.fetch(messageId);
+				if (!message.editable) {
+					logger.warn('Auto radar message is not editable, deleting record', { guildId, channelId, messageId });
+
+					await db.autoRadarMessage.delete({ where: { id } });
+					continue;
 				}
+
+				const embed = new EmbedBuilder()
+					.setColor(Color.Primary)
+					.setTitle(_('jobs.radar.embedTitle', { location }))
+					.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
+					.setImage(`${radarImageUrl}?${generateSnowflake()}`)
+					.addFields(
+						{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
+						{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
+					);
+
+				await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

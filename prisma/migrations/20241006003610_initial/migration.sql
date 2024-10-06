@@ -19,7 +19,7 @@ CREATE TABLE "AutoRadarMessage" (
     "snowflake" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     "channelId" TEXT NOT NULL,
-    "messageId" TEXT,
+    "messageId" TEXT NOT NULL,
     "location" TEXT NOT NULL,
     "radarStation" TEXT NOT NULL,
     "radarImageUrl" TEXT NOT NULL
@@ -63,6 +63,9 @@ CREATE UNIQUE INDEX "AlertDestination_snowflake_key" ON "AlertDestination"("snow
 CREATE UNIQUE INDEX "AutoRadarMessage_snowflake_key" ON "AutoRadarMessage"("snowflake");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AutoRadarMessage_messageId_key" ON "AutoRadarMessage"("messageId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ForecastDestination_snowflake_key" ON "ForecastDestination"("snowflake");
 
 -- CreateIndex
@@ -70,3 +73,6 @@ CREATE UNIQUE INDEX "ForecastDestination_messageId_key" ON "ForecastDestination"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SentAlert_alertId_key" ON "SentAlert"("alertId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VolatileMessage_messageId_key" ON "VolatileMessage"("messageId");
