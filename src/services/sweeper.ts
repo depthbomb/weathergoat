@@ -89,6 +89,11 @@ export default class SweeperService implements ISweeperService {
 			expiresAt = typeof arg2 === 'string' ? new Duration(arg2).fromNow : arg2;
 		}
 
+		const exists = await db.volatileMessage.findFirst({ where: { messageId } });
+		if (exists) {
+			return;
+		}
+
 		await db.volatileMessage.create({
 			data: {
 				guildId,
