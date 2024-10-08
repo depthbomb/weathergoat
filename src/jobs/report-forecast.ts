@@ -84,7 +84,7 @@ export default class ReportForecastsJob extends BaseJob {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
 					if (isDiscordAPIErrorCode(err, this._errorCodes)) {
-						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
+						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, code, message });
 
 						await db.forecastDestination.delete({ where: { id } });
 					}
