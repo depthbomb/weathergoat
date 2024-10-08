@@ -68,7 +68,6 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const embed = new EmbedBuilder()
 						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
-						.setDescription(codeBlock('md', alert.description))
 						.setColor(this._getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
@@ -80,6 +79,13 @@ export default class ReportAlertsJob extends BaseJob {
 							{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
 						)
 						.setTimestamp();
+
+					if (alert.description.length >= 1024) {
+						// Description is too long, add link to the weather alert in the description instead.
+						embed.setDescription(`## The description of this alert is too large to send. You can read view the full alert [here.](${alert.url})`)
+					} else {
+						embed.setDescription(codeBlock('md', alert.description));
+					}
 
 					if (alert.instruction) {
 						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
