@@ -13,7 +13,7 @@ import type { WeatherGoat } from '@client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	private readonly _logger: Logger;
-	private readonly _errorCodes: number[]
+	private readonly _errorCodes: number[];
 
 	public constructor() {
 		super({
@@ -23,7 +23,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		});
 
 		this._logger = logger.child({ jobName: this.name });
-		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage]
+		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
@@ -62,7 +62,6 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
 					if (isDiscordAPIErrorCode(err, this._errorCodes)) {
-						// Unknown channel, guild, or message
 						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
 
 						await db.autoRadarMessage.delete({ where: { id } });
