@@ -7,7 +7,7 @@ import { logger, reportError } from '@logger';
 import { tokens, Container } from '@container';
 import { generateSnowflake } from '@snowflake';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
-import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@client';
@@ -71,6 +71,7 @@ export default class ReportAlertsJob extends BaseJob {
 						.setColor(this._getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
+						.setDescription(codeBlock('md', alert.description))
 						.setFooter({ text: alert.event })
 						.addFields(
 							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
@@ -80,13 +81,6 @@ export default class ReportAlertsJob extends BaseJob {
 						)
 						.setTimestamp();
 
-					if (alert.description.length >= 1991) {
-						// Description is too long, add link to the weather alert in the description instead.
-						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
-					} else {
-						embed.setDescription(codeBlock('md', alert.description));
-					}
-
 					if (alert.instruction) {
 						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
 					}
@@ -95,19 +89,19 @@ export default class ReportAlertsJob extends BaseJob {
 						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 					}
 
-					if (alert.references.length) {
-						for (const reference of alert.references) {
-							const referencedSentAlert = await db.sentAlert.findFirst({ where: { alertId: reference.identifier } });
-							if (referencedSentAlert) {
-								// Enqueue parent alert messages to be deleted immediately
-								await this._sweeper.enqueueMessage(
-									referencedSentAlert.guildId,
-									referencedSentAlert.channelId,
-									referencedSentAlert.messageId,
-									new Date()
-								);
-							}
-						}
+					if (
+						embed.data.description!.length > EmbedLimits.MaximumDescriptionLength ||
+						embed.length > EmbedLimits.MaximumTotalCharacters
+					) {
+						/**
+						 * Since it is most likely that the description is the issue with the
+						 * payload being too long, we replace it with a shorter placeholder that
+						 * instead links directly to the alert page on the NWS website.
+						 *
+						 * "Instructions" could possibly be very long too so we may want to
+						 * eventually check and substitue that as well.
+						 */
+						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
 					}
 
 					const shouldPingEveryone = !!(
@@ -134,7 +128,7 @@ export default class ReportAlertsJob extends BaseJob {
 							guildId,
 							channelId: channelId,
 							messageId: sentMessage.id,
-							json: JSON.stringify(alert)
+							json: alert.json
 						}
 					});
 
