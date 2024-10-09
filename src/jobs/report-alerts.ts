@@ -66,12 +66,13 @@ export default class ReportAlertsJob extends BaseJob {
 						continue;
 					}
 
+					const description = codeBlock('md', alert.description);
+					const placeholderDescription = _('jobs.alerts.payloadTooLargePlaceholder', { alert });
 					const embed = new EmbedBuilder()
 						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 						.setColor(this._getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
-						.setDescription(codeBlock('md', alert.description))
 						.setFooter({ text: alert.event })
 						.addFields(
 							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
@@ -89,19 +90,10 @@ export default class ReportAlertsJob extends BaseJob {
 						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 					}
 
-					if (
-						embed.data.description!.length > EmbedLimits.MaximumDescriptionLength ||
-						embed.length > EmbedLimits.MaximumTotalCharacters
-					) {
-						/**
-						 * Since it is most likely that the description is the issue with the
-						 * payload being too long, we replace it with a shorter placeholder that
-						 * instead links directly to the alert page on the NWS website.
-						 *
-						 * "Instructions" could possibly be very long too so we may want to
-						 * eventually check and substitue that as well.
-						 */
-						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
+					if ((embed.length + description.length) > EmbedLimits.MaximumTotalCharacters) {
+						embed.setDescription(placeholderDescription);
+					} else {
+						embed.setDescription(description);
 					}
 
 					const shouldPingEveryone = !!(
