@@ -16,7 +16,8 @@ export interface ISweeperService extends IService {
 	 */
 	getDueMessages(): Promise<Prisma.PromiseReturnType<typeof db.volatileMessage.findMany>>;
 	/**
-	 * Enqueues a message to be deleted at a later time.
+	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
+	 * updated with the new time instead.
 	 *
 	 * @param guildId The ID of the guild that the message is in.
 	 * @param channelId The ID of the channel that the message is in.
@@ -26,7 +27,8 @@ export interface ISweeperService extends IService {
 	 */
 	enqueueMessage(guildId: string, channelId: string, messageId: string, expires: string | Date): Promise<void>;
 	/**
-	 * Enqueues a message to be deleted at a later time.
+	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
+	 * updated with the new time instead.
 	 *
 	 * @param message The message.
 	 * @param expires The duration string (for example `1 day`) that the message should last for or
@@ -89,13 +91,16 @@ export default class SweeperService implements ISweeperService {
 			expiresAt = typeof arg2 === 'string' ? new Duration(arg2).fromNow : arg2;
 		}
 
-		const exists = await db.volatileMessage.findFirst({ where: { messageId } });
-		if (exists) {
-			return;
-		}
-
-		await db.volatileMessage.create({
-			data: {
+		await db.volatileMessage.upsert({
+			where: {
+				guildId,
+				channelId,
+				messageId
+			},
+			update: {
+				expiresAt
+			},
+			create: {
 				guildId,
 				channelId,
 				messageId,
