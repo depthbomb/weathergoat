@@ -73,7 +73,6 @@ export default class ReportAlertsJob extends BaseJob {
 						.setColor(this._getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
-						.setFooter({ text: alert.event })
 						.addFields(
 							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
 							{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
