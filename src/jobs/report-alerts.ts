@@ -90,7 +90,10 @@ export default class ReportAlertsJob extends BaseJob {
 						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 					}
 
-					if ((embed.length + description.length) > EmbedLimits.MaximumTotalCharacters) {
+					if (
+						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
+						description.length > EmbedLimits.MaximumDescriptionLength
+					) {
 						embed.setDescription(placeholderDescription);
 					} else {
 						embed.setDescription(description);
