@@ -87,7 +87,8 @@
 			"expiresTitle": "Expires",
 			"affectedAreasTitle": "Affected Areas",
 			"instructionsTitle": "Instructions",
-			"referencesTitle": "References"
+			"referencesTitle": "References",
+			"payloadTooLargePlaceholder": "## The description of this alert is too large to send. View the full alert [here.]({{alert.url}})"
 		},
 		"forecasts": {
 			"embedTitle": "{{forecast.name}}'s Forecast for {{location.location}}",

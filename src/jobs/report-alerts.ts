@@ -80,9 +80,9 @@ export default class ReportAlertsJob extends BaseJob {
 						)
 						.setTimestamp();
 
-					if (alert.description.length >= 1024) {
+					if (alert.description.length >= 1991) {
 						// Description is too long, add link to the weather alert in the description instead.
-						embed.setDescription(`## The description of this alert is too large to send. You can read view the full alert [here.](${alert.url})`)
+						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
 					} else {
 						embed.setDescription(codeBlock('md', alert.description));
 					}
