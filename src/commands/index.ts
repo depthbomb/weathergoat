@@ -55,7 +55,19 @@ export abstract class BaseCommand {
 		return this._localStorage.run(interaction, async () => await this.handle(interaction));
 	}
 
+	/**
+	 * The actual logic that is executed when the user executes this command.
+	 * @param interaction The {@link ChatInputCommandInteracation}
+	 */
 	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;
+
+	/**
+	 * When overridden, handles autocomplete interactions for this command.
+	 * @param interaction The {@link AutocompleteInteraction}.
+	 */
+	public async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
+		return Promise.resolve();
+	}
 
 	public async handleSubcommand(interaction: ChatInputCommandInteraction) {
 		if (!this._subcommandMap) {
@@ -96,8 +108,4 @@ export abstract class BaseCommand {
 	public async tryToRespond(options: string | InteractionReplyOptions) {
 		return tryToRespond(this.ctx.interaction!, options);
 	}
-}
-
-export abstract class BaseCommandWithAutocomplete extends BaseCommand {
-	public abstract handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown>;
 }

@@ -7,7 +7,6 @@ import { isPreconditionError } from '@preconditions';
 import { isWeatherGoatError, MaxDestinationError } from '@errors';
 import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';
-import type { BaseCommandWithAutocomplete } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	private readonly _logger: Logger;
@@ -59,7 +58,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {
-				await (command as BaseCommandWithAutocomplete).handleAutocomplete?.(interaction);
+				await command.handleAutocomplete(interaction);
 			} catch (err: unknown) {
 				reportError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
 			}

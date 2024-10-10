@@ -1,11 +1,11 @@
 import { _ } from '@i18n';
 import { Color } from '@constants';
+import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@snowflake';
-import { BaseCommandWithAutocomplete } from '@commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
-export default class RadarCommand extends BaseCommandWithAutocomplete {
+export default class RadarCommand extends BaseCommand {
 	private readonly _radars: Collection<string, string>;
 
 	public constructor() {
@@ -215,7 +215,7 @@ export default class RadarCommand extends BaseCommandWithAutocomplete {
 		return interaction.reply({ embeds: [embed] });
 	}
 
-	public async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
+	public override async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
 		const value = interaction.options.getFocused().trim().toLowerCase();
 		if (value.length === 0) {
 			return;
