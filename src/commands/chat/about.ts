@@ -69,27 +69,29 @@ export default class AboutCommand extends BaseCommand {
 	}
 
 	private async _handleStatsSubcommand(interaction: ChatInputCommandInteraction) {
+		const bunCommitSha = Bun.revision.slice(0, 7);
+		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${Bun.revision.slice(0, 7)}`;
 		const embed = new EmbedBuilder()
-		.setTitle(_('commands.about.myStatsTitle'))
-		.setColor(Color.Primary)
-		.addFields(
-			{
-				name: _('commands.about.uptimeTitle'),
-				value: `${_('commands.about.applicationPrefix')} ${this._formatter.format(interaction.client.uptime ?? 0)}\n${_('commands.about.systemPrefix')} ${this._formatter.format(uptime() * 1_000)}`
-			},
-			{
-				name: _('commands.about.runtimeTitle'),
-				value: `Bun ${Bun.version} (${Bun.revision.slice(0, 7)})`
-			},
-			{
-				name: _('commands.about.systemTitle'),
-				value: `${version()} (${platform()}) ${arch()}`
-			},
-			{
-				name: _('commands.about.hostNameTitle'),
-				value: hostname()
-			}
-		);
+			.setTitle(_('commands.about.myStatsTitle'))
+			.setColor(Color.Primary)
+			.addFields(
+				{
+					name: _('commands.about.uptimeTitle'),
+					value: `- ${_('commands.about.applicationPrefix')} ${this._formatter.format(interaction.client.uptime ?? 0)}\n- ${_('commands.about.systemPrefix')} ${this._formatter.format(uptime() * 1_000)}`
+				},
+				{
+					name: _('commands.about.runtimeTitle'),
+					value: `Bun ${Bun.version} ([${bunCommitSha}](${bunCommitUrl}))`
+				},
+				{
+					name: _('commands.about.systemTitle'),
+					value: `${version()} (${platform()}) ${arch()}`
+				},
+				{
+					name: _('commands.about.hostNameTitle'),
+					value: hostname()
+				}
+			);
 
 		await interaction.reply({ embeds: [embed] });
 	}
