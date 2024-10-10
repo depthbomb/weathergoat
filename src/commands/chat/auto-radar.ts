@@ -1,17 +1,14 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Color } from '@constants';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@snowflake';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
-	messageLink,
 	ChannelType,
 	ButtonStyle,
 	MessageFlags,
-	EmbedBuilder,
 	ButtonBuilder,
 	ActionRowBuilder,
 	PermissionFlagsBits,
@@ -30,49 +27,20 @@ export default class AutoRadarCommand extends BaseCommand {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('auto-radar')
-			.setDescription('Auto radar super command')
+			.setDescription('Designates a channel to post an auto-updating radar image for a region')
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			.addSubcommand(sc => sc
-				.setName('add')
-				.setDescription('Designates a channel to post an auto-updating radar image for a region')
-				.addStringOption(o => o
-					.setName('latitude')
-					.setDescription('The latitude of the area')
-					.setRequired(true)
-				)
-				.addStringOption(o => o
-					.setName('longitude')
-					.setDescription('The longitude of the area')
-					.setRequired(true)
-				)
-				.addChannelOption(o => o
-					.setName('channel')
-					.setDescription('The channel to host the auto-updating radar image')
-					.setRequired(true)
-				)
-			)
-			.addSubcommand(sc => sc
-				.setName('list')
-				.setDescription('Lists all auto-updating radar messages in this server')
-			),
+			.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area').setRequired(true))
+			.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area').setRequired(true))
+			.addChannelOption(o => o.setName('channel').setDescription('The channel to host the auto-updating radar image').setRequired(true)),
 			preconditions: [
 				new CooldownPrecondition({ duration: '5s', global: true })
 			]
 		});
 
 		this._location = container.resolve(tokens.location);
-
-		this.createSubcommandMap<'add' | 'list'>({
-			add: { handler: this._handleAddSubcommand },
-			list: { handler: this._handleListSubcommand },
-		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	public async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount = process.env.MAX_RADAR_MESSAGES_PER_GUILD;
 		const guildId = interaction.guildId;
 		const latitude = interaction.options.getString('latitude', true).trim();
@@ -147,57 +115,5 @@ export default class AutoRadarCommand extends BaseCommand {
 
 			await interaction.editReply({ content: _('common.err.unknown'), components: [] });
 		}
-	}
-
-	public async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
-		const guildId = interaction.guildId!;
-
-		await interaction.deferReply();
-
-		const messages = await db.autoRadarMessage.findMany({
-			select: {
-				id: true,
-				location: true,
-				channelId: true,
-				messageId: true,
-				radarStation: true,
-				radarImageUrl: true
-			},
-			where: {
-				guildId
-			}
-		});
-		if (!messages.length) {
-			return interaction.editReply(_('commands.autoRadar.err.noMessages'));
-		}
-
-		const embed = new EmbedBuilder()
-			.setColor(Color.Primary)
-			.setTitle(_('commands.autoRadar.listEmbedTitle'));
-
-		for (const { id, location, channelId, messageId, radarStation, radarImageUrl } of messages) {
-			if (messageId) {
-				const link = messageLink(channelId, messageId, guildId);
-				embed.addFields({
-					name: `${location} (${radarStation})`,
-					value: [
-						`- Radar Image: ${radarImageUrl}`,
-						`- Message: ${link}`,
-						`- Snowflake: \`${id}\``
-					].join('\n')
-				});
-			} else {
-				embed.addFields({
-					name: `${location} (${radarStation})`,
-					value: [
-						`- Radar Image: ${radarImageUrl}`,
-						`- Message: _Not sent yet_`,
-						`- Snowflake: \`${id}\``
-					].join('\n')
-				});
-			}
-		}
-
-		await interaction.editReply({ embeds: [embed] });
 	}
 }

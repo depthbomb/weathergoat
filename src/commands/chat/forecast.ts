@@ -1,6 +1,5 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { Color } from '@constants';
 import { tokens } from '@container';
 import { reportError } from '@logger';
 import { BaseCommand } from '@commands';
@@ -9,10 +8,8 @@ import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
 	time,
-	codeBlock,
 	ChannelType,
 	ButtonStyle,
-	EmbedBuilder,
 	MessageFlags,
 	ButtonBuilder,
 	ActionRowBuilder,
@@ -32,37 +29,20 @@ export default class ForecastCommand extends BaseCommand {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('forecasts')
-			.setDescription('Forecasts super command')
+			.setDescription('Designates a channel for posting hourly weather forecasts to')
 			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			.addSubcommand(sc => sc
-				.setName('add')
-				.setDescription('Designates a channel for posting hourly weather forecasts to')
-				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
-				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
-				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true))
-			)
-			.addSubcommand(sc => sc
-				.setName('list')
-				.setDescription('Lists all forecast reporting destinations in the server')
-			),
+			.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
+			.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
+			.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true)),
 			preconditions: [
 				new CooldownPrecondition({ duration: '5s', global: true })
 			]
 		});
 
 		this._location = container.resolve(tokens.location);
-
-		this.createSubcommandMap<'add' | 'list'>({
-			add: { handler: this._handleAddSubcommand },
-			list: { handler: this._handleListSubcommand },
-		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
 		const guildId = interaction.guildId!;
 		const latitude = interaction.options.getString('latitude', true);
@@ -134,48 +114,5 @@ export default class ForecastCommand extends BaseCommand {
 				await interaction.editReply({ content: _('common.err.unknown'), components: [] });
 			}
 		}
-	}
-
-	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
-		const guildId = interaction.guildId;
-		if (!guildId) {
-			return interaction.reply(_('common.err.guildOnly'));
-		}
-
-		await interaction.deferReply();
-
-		const destinations = await db.forecastDestination.findMany({
-			select: {
-				id: true,
-				latitude: true,
-				longitude: true,
-				channelId: true,
-				messageId: true
-			},
-			where: {
-				guildId
-			}
-		});
-		if (!destinations.length) {
-			return interaction.editReply(_('common.err.noDestinations', { type: 'forecast reporting' }));
-		}
-
-		const embed = new EmbedBuilder()
-			.setColor(Color.Primary)
-			.setTitle(_('commands.forecasts.listEmbedTitle'));
-
-		for (const { id, latitude, longitude, channelId, messageId } of destinations) {
-			const info    = await this._location.getInfoFromCoordinates(latitude, longitude);
-			const channel = await interaction.client.channels.fetch(channelId);
-			embed.addFields({
-				name: `${info.location} (${latitude}, ${longitude})`,
-				value: [
-					_('common.reportingTo', { channel }),
-					codeBlock('json', JSON.stringify({ id, messageId }, null, 4))
-				].join('\n')
-			});
-		}
-
-		return interaction.editReply({ embeds: [embed] });
 	}
 }
