@@ -5,8 +5,10 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { isWeatherGoatError, MaxDestinationError } from '@errors';
+import type { Maybe } from '@@types';
 import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';
+import type { BaseCommand } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	private readonly _logger: Logger;
@@ -38,7 +40,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					}
 				}
 
-				await command.callCommand(interaction);
+				await command.callHandler(interaction);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
 					if (err instanceof MaxDestinationError) {
@@ -65,7 +67,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		}
 	}
 
-	private _getCommand(interaction: Interaction) {
+	private _getCommand(interaction: Interaction): Maybe<BaseCommand> {
 		if (!('commandName' in interaction)) return;
 
 		return interaction.client.commands.get(interaction.commandName);
