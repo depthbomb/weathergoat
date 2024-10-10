@@ -5,7 +5,7 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { isWeatherGoatError, MaxDestinationError } from '@errors';
-import type { Maybe } from '@@types';
+import type { Maybe } from '#types';
 import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';
 import type { BaseCommand } from '@commands';

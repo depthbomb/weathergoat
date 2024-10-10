@@ -60,9 +60,7 @@ export abstract class BaseCommand {
 	 * @remarks Values will be `undefined` if the command was not called with `callHandler`.
 	 */
 	public get ctx() {
-		return {
-			interaction: this._localStorage.getStore()
-		};
+		return this._localStorage.getStore();
 	}
 
 	/**
@@ -155,6 +153,6 @@ export abstract class BaseCommand {
 	 * @param options Message string or {@link InteractionReplyOptions|reply options}
 	 */
 	public async tryToRespond(options: string | InteractionReplyOptions) {
-		return tryToRespond(this.ctx.interaction?.interaction!, options);
+		return tryToRespond(this.ctx?.interaction!, options);
 	}
 }
