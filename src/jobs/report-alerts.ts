@@ -67,7 +67,6 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					const description = codeBlock('md', alert.description);
-					const placeholderDescription = _('jobs.alerts.payloadTooLargePlaceholder', { alert });
 					const embed = new EmbedBuilder()
 						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
 						.setColor(this._getAlertSeverityColor(alert))
@@ -93,7 +92,7 @@ export default class ReportAlertsJob extends BaseJob {
 						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
 						description.length > EmbedLimits.MaximumDescriptionLength
 					) {
-						embed.setDescription(placeholderDescription);
+						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }));
 					} else {
 						embed.setDescription(description);
 					}
@@ -159,7 +158,7 @@ export default class ReportAlertsJob extends BaseJob {
 	private async _getOrCreateWebhook(channel: TextChannel) {
 		const reason = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
-		let ourWebhook = webhooks.find(w => w.name === this._webhookUsername);
+		let ourWebhook = webhooks.find(w => w.name === this._webhookUsername && w.client === channel.client);
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name: this._webhookUsername, reason });
 
