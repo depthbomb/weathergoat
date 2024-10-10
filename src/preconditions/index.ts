@@ -61,6 +61,11 @@ export abstract class BasePrecondition {
 	}
 }
 
+/**
+ * Returns `true` if the {@link error} is a {@link PreconditionError} and `false` otherwise.
+ *
+ * @param err The {@link Error} to check
+ */
 export function isPreconditionError(err: unknown): err is PreconditionError {
 	return err instanceof PreconditionError;
 }
