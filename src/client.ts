@@ -9,13 +9,13 @@ import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
 import type { Logger } from 'winston';
 import type { BaseEvent } from '@events';
+import type { BaseCommand } from '@commands';
 import type { ClientEvents, ClientOptions } from 'discord.js';
-import type { BaseCommand, BaseCommandWithAutocomplete } from '@commands';
 
 type BaseModule<T> = { default: new(container: Container) => T };
 type JobModule = BaseModule<BaseJob>;
 type EventModule = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule = BaseModule<BaseCommand | BaseCommandWithAutocomplete>;
+type CommandModule = BaseModule<BaseCommand>;
 
 type WeatherGoatOptions = ClientOptions & {
 	/**
@@ -30,7 +30,7 @@ type WeatherGoatOptions = ClientOptions & {
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Array<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
-	public readonly commands: Collection<string, BaseCommand | BaseCommandWithAutocomplete>;
+	public readonly commands: Collection<string, BaseCommand>;
 	public readonly container: Container;
 
 	private readonly _logger: Logger;
