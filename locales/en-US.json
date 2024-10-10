@@ -20,7 +20,7 @@
 	"events": {
 		"interactions": {
 			"err": {
-				"commandError": "I encountered a problem executing that command. Please try again later."
+				"commandError": "I've encountered a problem executing that command. Please try again later."
 			}
 		}
 	},

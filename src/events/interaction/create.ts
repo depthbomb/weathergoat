@@ -1,10 +1,10 @@
-import { _ } from '@i18n';
 import { BaseEvent } from '@events';
+import { isWeatherGoatError } from '@errors';
 import { logger, reportError } from '@logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { isWeatherGoatError, MaxDestinationError } from '@errors';
+import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@messages';
 import type { Maybe } from '#types';
 import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';
@@ -43,26 +43,22 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				await command.callHandler(interaction);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
-					if (err instanceof MaxDestinationError) {
-						await tryToRespond(interaction, `[${err.name}] ${err.message} (${err.max}).`);
-					} else {
-						await tryToRespond(interaction, `[${err.name}] ${err.message}.`);
-					}
+					await tryToRespond(interaction, WEATHERGOAT_ERROR(err));
 				} else if (isPreconditionError(err)) {
-					await tryToRespond(interaction, err.message);
+					await tryToRespond(interaction, PRECONDITION_ERROR(err));
 				} else {
 					reportError('Error in interaction handler', err, { interaction: interaction.commandName });
 
-					await tryToRespond(interaction, _('events.interactions.err.commandError'));
+					await tryToRespond(interaction, INTERACTION_ERROR());
 				}
 			} finally {
-				this._logger.info(`Interaction completed in ${sw.toString()}`);
+				this._logger.silly(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {
 				await command.handleAutocomplete(interaction);
 			} catch (err: unknown) {
-				reportError('Error in autocomplete interaction handler', err, { interaction: interaction.commandName });
+				reportError('Error in interaction autocomplete handler', err, { interaction: interaction.commandName });
 			}
 		}
 	}
