@@ -11,6 +11,7 @@ import type { GridpointForecastPeriod } from '@models/GridpointForecastPeriod';
 export interface IForecastService extends IService {
 	/**
 	 * Retrieves the latest forecast period for the provided coordinates.
+	 *
 	 * @param latitude The latitude of the location.
 	 * @param longitude The longitude of the location.
 	 */

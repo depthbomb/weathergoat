@@ -41,9 +41,9 @@ export interface ISweeperService extends IService {
 	 *
 	 * @returns An array with the following structure: `[sweepCount, errorCount]`.
 	 *
-	 * @remark `errorCount` merely refers to the number of errors as the result of a message not being
-	 * retrieved properly from the Discord API. This can happen for various reasons and is usually
-	 * through no fault of our own. The corresponding database record is deleted regardless.
+	 * @remark `errorCount` merely refers to the number of errors as the result of a message not
+	 * being retrieved properly from the Discord API. This can happen for various reasons and is
+	 * usually through no fault of our own. The corresponding database record is deleted regardless.
 	 */
 	sweepMessages(): Promise<number[]>;
 }

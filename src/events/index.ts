@@ -42,7 +42,7 @@ export abstract class BaseEvent<T extends keyof ClientEvents> {
 	/**
 	 * Called when the event is emitted.
 	 *
-	 * @param args {@link ClientEvents}-specific arguments
+	 * @param args {@link ClientEvents|Event}-specific arguments.
 	 */
 	public abstract handle(...args: ClientEvents[T]): Promise<unknown>;
 }

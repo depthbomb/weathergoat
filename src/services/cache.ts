@@ -7,17 +7,20 @@ type CacheItem<T> = { value: T; ttl: Duration; };
 export interface ICacheService extends IService {
 	/**
 	 * Creates a new cache store.
+	 *
 	 * @param name The name of the cache store.
 	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
 	 */
 	createStore(name: string, defaultTtl?: string): CacheStore;
 	/**
 	 * Retrieves an existing cache store.
+	 *
 	 * @param name The name of the cache store.
 	 */
 	getStore(name: string): CacheStore;
 	/**
 	 * Retrieves an existing cache store or creates it if it doesn't exist.
+	 *
 	 * @param name The name of the cache store.
 	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
 	 */

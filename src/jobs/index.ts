@@ -62,8 +62,8 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	/**
 	 * Called when the job is scheduled to run.
 	 *
-	 * @param client The bot {@link WeatherGoat|client}
-	 * @param job The underlying {@link Cron} instance of the job
+	 * @param client The bot {@link WeatherGoat|client}.
+	 * @param job The underlying {@link Cron} instance of the job.
 	 */
 	public abstract execute(client: WeatherGoat<WaitsUntilReady>, job: Cron): Promise<unknown>;
 }

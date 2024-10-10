@@ -15,7 +15,18 @@ export class PreconditionResult {
 		public readonly err: Nullable<PreconditionError> = null
 	) {}
 
+	/**
+	 * Creates a success {@link result}.
+	 *
+	 * @param result {@link CheckResult.Success}.
+	 */
 	public static from(result: CheckResult.Success): PreconditionResult;
+	/**
+	 * Creates a failing {@link result} with an optional {@link errorMessage}.
+	 *
+	 * @param result {@link CheckResult.Fail}.
+	 * @param errorMessage Optional error message for the result.
+	 */
 	public static from(result: CheckResult.Fail, errorMessage?: string): PreconditionResult;
 	public static from(result: CheckResult, errorMessage?: string): PreconditionResult {
 		if (result === CheckResult.Success) {
@@ -27,10 +38,20 @@ export class PreconditionResult {
 		);
 	}
 
+	/**
+	 * Creates a successful {@link PreconditionResult}.
+	 *
+	 * @remark This is a shortcut for `PreconditionResult.from(CheckResult.Success);`
+	 */
 	public static fromSuccess() {
 		return this.from(CheckResult.Success);
 	}
 
+	/**
+	 * Creates a failing {@link PreconditionResult}.
+	 *
+	 * @remark This is a shortcut for `PreconditionResult.from(CheckResult.Fail, errorMessage);`
+	 */
 	public static fromFailure(errorMessage?: string) {
 		return this.from(CheckResult.Fail, errorMessage);
 	}
@@ -48,7 +69,8 @@ export abstract class BasePrecondition {
 	public abstract check(interaction: ChatInputCommandInteraction, container: Container): Promise<PreconditionResult>;
 
 	/**
-	 * Runs logic on a command interaction and throws a {@link PreconditionError} if the check fails.
+	 * Runs logic on a command interaction and throws a {@link PreconditionError} if the check
+	 * fails.
 	 *
 	 * @param interaction The {@link ChatInputCommandInteraction|interaction} of the command to run
 	 * the check on.

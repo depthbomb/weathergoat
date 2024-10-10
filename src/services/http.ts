@@ -33,6 +33,7 @@ type GETOptions = Omit<RequestOptions, 'method'>;
 export interface IHttpService extends IService {
 	/**
 	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
+	 *
 	 * @param name The name to identify the HTTP client.
 	 * @param options Options to use when creating the HTTP client.
 	 */

@@ -66,7 +66,7 @@ export abstract class BaseCommand {
 	/**
 	 * Creates the command context and calls the command's `handle` method.
 	 *
-	 * @param interaction The {@link ChatInputCommandInteraction}
+	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 */
 	public async callHandler(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		return this._localStorage.run({ interaction }, async () => await this.handle(interaction));
@@ -75,7 +75,7 @@ export abstract class BaseCommand {
 	/**
 	 * The actual logic that is executed when the user executes this command.
 	 *
-	 * @param interaction The {@link ChatInputCommandInteraction}
+	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 */
 	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;
 
@@ -92,7 +92,7 @@ export abstract class BaseCommand {
 	 * If this command has a subcommand map, calls the appropriate subcommand method based on the
 	 * interaction.
 	 *
-	 * @param interaction The {@link ChatInputCommandInteraction}
+	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 *
 	 * @see {@link createSubcommandMap}
 	 */
@@ -118,9 +118,9 @@ export abstract class BaseCommand {
 	 * {@link PermissionResolvable|permissions} and throws an {@link InvalidPermissionsError}
 	 * otherwise.
 	 *
-	 * @param interaction The interation to assert permissions of
-	 * @param permissions Permissions to assert that the interaction has
-	 * @param message Optional error message if the assertion fails
+	 * @param interaction The interaction to assert permissions of.
+	 * @param permissions Permissions to assert that the interaction has.
+	 * @param message Optional error message if the assertion fails.
 	 */
 	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
 		const { channel, member } = interaction;
@@ -150,7 +150,7 @@ export abstract class BaseCommand {
 
 	/**
 	 * Shortcut method for `tryToRespond(interaction, options)`.
-	 * @param options Message string or {@link InteractionReplyOptions|reply options}
+	 * @param options Message string or {@link InteractionReplyOptions|reply options}.
 	 */
 	public async tryToRespond(options: string | InteractionReplyOptions) {
 		return tryToRespond(this.ctx?.interaction!, options);

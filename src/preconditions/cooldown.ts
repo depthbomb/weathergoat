@@ -18,10 +18,11 @@ export class CooldownPrecondition extends BasePrecondition {
 
 	/**
 	 * Creates a precondition that adds a cooldown to interactions.
-	 * @param duration The delay that subject must wait after executing the interaction before it can be
-	 * executed again.
-	 * @param limit The number of times the interaction can be executed per the {@link duration} before
-	 * the subject is limited.
+	 *
+	 * @param duration The delay that subject must wait after executing the interaction before it
+	 * can be executed again.
+	 * @param limit The number of times the interaction can be executed per the {@link duration}
+	 * before the subject is limited.
 	 * @param global Whether the limit applies to everyone in the guild.
 	 */
 	public constructor({ duration, limit, global }: CooldownPreconditionOptions) {

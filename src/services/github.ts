@@ -9,11 +9,13 @@ import type { CacheStore, ICacheService } from './cache';
 export interface IGithubService extends IService {
 	/**
 	 * Returns the SHA hash of the project's latest commit.
+	 *
 	 * @param short Whether to return the hash in a shortened format.
 	 */
 	getCurrentCommitHash(short?: boolean): Promise<string>;
 	/**
 	 * Returns all or a subset of the project's commits.
+	 *
 	 * @param count The number of commits to return.
 	 */
 	getCommits(count?: number): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']['data']>;

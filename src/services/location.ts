@@ -23,7 +23,8 @@ type CoordinateInfo = {
 export interface ILocationService extends IService {
 	/**
 	 * Whether the input coordinates are valid.
-	 * @param coordinates The latitude and longitude joined by a comma (for example `21.3271,-157.8793`).
+	 * @param coordinates The latitude and longitude joined by a comma (for example
+	 * `21.3271,-157.8793`).
 	 */
 	isValidCoordinates(coordinates: string): boolean;
 	/**
@@ -34,7 +35,8 @@ export interface ILocationService extends IService {
 	isValidCoordinates(latitude: string, longitude: string): boolean;
 	/**
 	 * Whether the input coordinates are valid.
-	 * @param combinedCoordinatesOrLatitude The latitude and longitude joined by a comma or the latitude.
+	 * @param combinedCoordinatesOrLatitude The latitude and longitude joined by a comma or the
+	 * latitude.
 	 * @param longitude The optional longitude.
 	 */
 	isValidCoordinates(combinedCoordinatesOrLatitude: string, longitude?: string): boolean;
@@ -79,7 +81,7 @@ export default class LocationService implements ILocationService {
 		if (this._cache.has(cacheKey)) {
 			return this._cache.get<CoordinateInfo>(cacheKey)!;
 		}
-		
+
 		const res = await this._http.get(`/points/${latitude},${longitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
