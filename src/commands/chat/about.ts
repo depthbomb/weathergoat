@@ -1,10 +1,10 @@
 import { _ } from '@i18n';
 import { tokens } from '@container';
 import { BaseCommand } from '@commands';
-import { REPO, Color } from '@constants';
 import { MessageLimits } from '@sapphire/discord-utilities';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { REPO, Color, REPO_NAME, REPO_OWNER } from '@constants';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Container } from '@container';
@@ -55,7 +55,10 @@ export default class AboutCommand extends BaseCommand {
 
 		const messages = await this._github.getCommits(10);
 		const response = messages.map(
-			msg => `${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${msg.html_url}) - [${msg.commit.author?.name}](${msg.author?.html_url})`
+			msg => {
+				const commitUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${msg.sha.slice(0, 7)}`;
+				`${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${commitUrl}) - [${msg.commit.author?.name}](${msg.author?.html_url})`
+			}
 		).join('\n');
 
 		if (response.length > MessageLimits.MaximumLength) {
