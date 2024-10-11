@@ -99,7 +99,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			this.once('ready', async () => {
 				try {
 					if (runImmediately) {
-						console.log('immediately executing job', job.name);
 						await job.execute(this, cron);
 					}
 				} catch (err) {
