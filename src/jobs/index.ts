@@ -11,13 +11,6 @@ type JobOptions<WaitsUntilReady extends boolean = boolean> = {
 	 */
 	pattern: string;
 	/**
-	 * Whether the job should wait until the {@link WeatherGoat|client} is ready before being able
-	 * to execute.
-	 *
-	 * `true` by default.
-	 */
-	waitUntilReady?: WaitsUntilReady;
-	/**
 	 * Whether to run the job immediately after it is registered regardless of whether the job
 	 * should execute.
 	 *
@@ -39,11 +32,6 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	 */
 	public readonly pattern: string;
 	/**
-	 * Whether the job should wait until the {@link WeatherGoat|client} is ready before being able
-	 * to execute.
-	 */
-	public readonly waitUntilReady: boolean;
-	/**
 	 * Whether to run the job immediately after it is registered regardless of whether the job
 	 * should execute.
 	 *
@@ -55,7 +43,6 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	public constructor(options: JobOptions<WaitsUntilReady>) {
 		this.name = options.name;
 		this.pattern = options.pattern;
-		this.waitUntilReady = options.waitUntilReady ?? true;
 		this.runImmediately = options.runImmediately ?? false;
 	}
 

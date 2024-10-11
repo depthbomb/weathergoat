@@ -87,7 +87,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const name = job.name;
 			const pattern = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
-			const waitUntilReady = job.waitUntilReady ?? true;
 			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
 				paused: true,
@@ -97,19 +96,22 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.jobs.push({ job, cron });
 
-			try {
-				if (runImmediately && !waitUntilReady) {
-					await job.execute(this, cron);
+			this.once('ready', async () => {
+				try {
+					if (runImmediately) {
+						console.log('immediately executing job', job.name);
+						await job.execute(this, cron);
+					}
+				} catch (err) {
+					reportError('Error executing `runImmediately` job', err, { name });
+				} finally {
 					cron.resume();
 				}
-			} catch (err) {
-				reportError('Error executing `runImmediately` job', err, { name });
-			}
+			});
 
 			this._logger.info('Registered job', {
 				name,
 				pattern,
-				waitUntilReady,
 				runImmediately,
 			});
 		}
