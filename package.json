@@ -47,5 +47,8 @@
 		"prisma",
 		"utf-8-validate",
 		"zlib-sync"
-	]
+	],
+	"patchedDependencies": {
+		"croner@9.0.0": "patches/croner@9.0.0.patch"
+	}
 }
