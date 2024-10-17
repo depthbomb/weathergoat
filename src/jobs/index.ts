@@ -1,4 +1,4 @@
-import type Cron from 'croner';
+import type { Cron } from 'croner';
 import type { WeatherGoat } from '@client';
 
 type JobOptions<WaitsUntilReady extends boolean = boolean> = {

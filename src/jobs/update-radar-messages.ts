@@ -7,7 +7,7 @@ import { generateSnowflake } from '@snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
-import type Cron from 'croner';
+import type { Cron } from 'croner';
 import type { Logger } from 'winston';
 import type { WeatherGoat } from '@client';
 
