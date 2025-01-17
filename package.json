@@ -24,7 +24,7 @@
 		"cockatiel": "^3.2.1",
 		"croner": "^9.0.0",
 		"discord.js": "^14.17.3",
-		"fejl": "^3.0.1",
+		"fejl": "^4.0.1",
 		"i18next": "^24.2.1",
 		"i18next-fs-backend": "^2.6.0",
 		"octokit": "^4.1.0",
