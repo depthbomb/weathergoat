@@ -1,5 +1,5 @@
 import { logger } from '@logger';
-import { WeatherGoat } from '@client';
+import { container } from '@container';
 import { REST, Routes } from 'discord.js';
 import { Option, Command } from 'clipanion';
 import { Stopwatch } from '@sapphire/stopwatch';
@@ -30,7 +30,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 
 		switch (this.action) {
 			case 'create':
-				const bot = new WeatherGoat({ intents: [], dry: true });
+				const bot = container.resolve('WeatherGoat');
 				await bot.registerCommands();
 
 				const body = [...bot.commands].map(([,command]) => command.data.toJSON());

@@ -1,5 +1,4 @@
 import { logger } from '@logger';
-import { tokens } from '@container';
 import { Collection } from 'discord.js';
 import { plainToInstance } from 'class-transformer';
 import type { Maybe } from '#types';
@@ -27,7 +26,7 @@ export default class FeaturesService implements IFeaturesService {
 	private readonly _features: Collection<string, Feature>;
 
 	public constructor() {
-		this._logger = logger.child({ service: tokens.features.description });
+		this._logger = logger.child({ service: 'Features' });
 		this._features = new Collection();
 	}
 

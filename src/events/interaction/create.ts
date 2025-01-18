@@ -33,7 +33,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 
 				if (command.preconditions) {
 					for (const precondition of command.preconditions) {
-						const result = await precondition.check(interaction, interaction.client.container);
+						const result = await precondition.check(interaction);
 						if (result.err) {
 							throw result.err;
 						}

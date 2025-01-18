@@ -1,17 +1,39 @@
-import type { IService } from '@services';
+import type { WeatherGoat } from '@client';
+import type {
+	IService,
+	ICliService,
+	IHttpService,
+	ICacheService,
+	IAlertsService,
+	IGithubService,
+	ISweeperService,
+	IFeaturesService,
+	IForecastService,
+	ILocationService,
+} from '@services';
 
-export * from './tokens';
+type Service = {
+	WeatherGoat: WeatherGoat;
+	// Services
+	Alerts: IAlertsService;
+	Cache: ICacheService;
+	Cli: ICliService;
+	Features: IFeaturesService;
+	Forecast: IForecastService;
+	Github: IGithubService;
+	Http: IHttpService;
+	Location: ILocationService;
+	Sweeper: ISweeperService;
+};
 
 type ServiceModule = new(container: Container) => IService;
 
-export class Container {
-	private readonly _dry: boolean;
-	private readonly _values: Map<symbol, unknown>;
-	private readonly _modules: Map<symbol, ServiceModule>;
-	private readonly _services: Map<symbol, IService>;
+class Container {
+	private readonly _values: Map<string, unknown>;
+	private readonly _modules: Map<string, ServiceModule>;
+	private readonly _services: Map<string, IService>;
 
-	public constructor(dry: boolean) {
-		this._dry = dry;
+	public constructor() {
 		this._values = new Map();
 		this._modules = new Map();
 		this._services = new Map();
@@ -29,41 +51,37 @@ export class Container {
 		return this._values;
 	}
 
-	public register<T>(token: symbol, serviceModule: T) {
-		this._modules.set(token, serviceModule as ServiceModule);
+	public register<Name extends keyof Service>(name: Name, serviceModule: unknown) {
+		this._modules.set(name, serviceModule as ServiceModule);
 
 		return this;
 	}
 
-	public registerValue<T>(token: symbol, value: T) {
-		this._values.set(token, value);
+	public registerValue<Name extends keyof Service>(name: Name, value: any) {
+		this._values.set(name, value);
 
 		return this;
 	}
 
-	public resolve<T>(token: symbol): T {
-		if (this._values.has(token)) {
-			return this._values.get(token) as T;
+	public resolve<Name extends keyof Service, ResolvedService extends Service[Name]>(name: Name): ResolvedService {
+		if (this._values.has(name)) {
+			return this._values.get(name) as ResolvedService;
 		}
 
-		if (this._services.has(token)) {
-			return this._services.get(token) as T;
+		if (this._services.has(name)) {
+			return this._services.get(name) as ResolvedService;
 		}
 
-		const mod = this._modules.get(token);
+		const mod = this._modules.get(name);
 		if (!mod) {
-			if (this._dry) {
-				return null as T;
-			}
-
-			throw new Error(`Service not registered: ${token.toString()}`);
+			throw new Error(`Service not registered: ${name}`);
 		}
 
 		const service = new mod(this);
 
-		this._services.set(token, service);
+		this._services.set(name, service);
 
-		return service as T;
+		return service as ResolvedService;
 	}
 
 	public async init() {
@@ -78,3 +96,5 @@ export class Container {
 		}
 	}
 }
+
+export const container = new Container();

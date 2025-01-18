@@ -1,11 +1,10 @@
-import { tokens } from '@container';
 import { Point } from '@models/Point';
+import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import type { Maybe } from '#types';
 import type { IService } from '@services';
-import type { Container } from '@container';
 import type { HttpClient, IHttpService } from './http';
 import type { CacheStore, ICacheService } from './cache';
 
@@ -54,13 +53,10 @@ export default class LocationService implements ILocationService {
 	private readonly _coordinatePattern: RegExp;
 	private readonly _coordinatesPattern: RegExp;
 
-	public constructor(container: Container) {
-		const httpService = container.resolve<IHttpService>(tokens.http);
-		const cacheService = container.resolve<ICacheService>(tokens.cache);
-
-		this._http = httpService.getClient('location', { baseUrl: API_BASE_ENDPOINT, retry: true });
-		this._cache = cacheService.createStore('locations', '1 day');
-		this._coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
+	public constructor() {
+		this._http               = container.resolve('Http').getClient('location', { baseUrl: API_BASE_ENDPOINT, retry: true });
+		this._cache              = container.resolve('Cache').createStore('locations', '1 day');
+		this._coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
 		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}
 

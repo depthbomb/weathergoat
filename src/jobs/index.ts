@@ -1,7 +1,7 @@
 import type { Cron } from 'croner';
 import type { WeatherGoat } from '@client';
 
-type JobOptions<WaitsUntilReady extends boolean = boolean> = {
+type JobOptions = {
 	/**
 	 * The unique name of the job.
 	 */
@@ -22,7 +22,7 @@ type JobOptions<WaitsUntilReady extends boolean = boolean> = {
 	runImmediately?: boolean;
 }
 
-export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
+export abstract class BaseJob {
 	/**
 	 * The unique name of the job.
 	 */
@@ -40,7 +40,7 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	 */
 	public readonly runImmediately: boolean;
 
-	public constructor(options: JobOptions<WaitsUntilReady>) {
+	public constructor(options: JobOptions) {
 		this.name = options.name;
 		this.pattern = options.pattern;
 		this.runImmediately = options.runImmediately ?? false;
@@ -52,5 +52,5 @@ export abstract class BaseJob<WaitsUntilReady extends boolean = boolean> {
 	 * @param client The bot {@link WeatherGoat|client}.
 	 * @param job The underlying {@link Cron} instance of the job.
 	 */
-	public abstract execute(client: WeatherGoat<WaitsUntilReady>, job: Cron): Promise<unknown>;
+	public abstract execute(client: WeatherGoat, job: Cron): Promise<unknown>;
 }

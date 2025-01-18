@@ -1,6 +1,5 @@
 import { fetch } from 'bun';
 import { logger } from '@logger';
-import { tokens } from '@container';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
@@ -117,7 +116,7 @@ export default class HttpService implements IHttpService {
 	private readonly _clients: Collection<string, HttpClient>;
 
 	public constructor() {
-		this._logger = logger.child({ service: tokens.http.description });
+		this._logger = logger.child({ service: 'Http' });
 		this._clients = new Collection();
 	}
 

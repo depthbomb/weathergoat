@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { Color } from '@constants';
-import { tokens } from '@container';
+import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@snowflake';
@@ -17,7 +17,6 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
 import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -25,7 +24,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 export default class AlertsCommand extends BaseCommand {
 	private readonly _location: ILocationService;
 
-	public constructor(container: Container) {
+	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('alerts')
@@ -54,7 +53,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve(tokens.location);
+		this._location = container.resolve('Location');
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },

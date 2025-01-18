@@ -1,6 +1,5 @@
 import { MakeErrorClass } from 'fejl';
 import type { Nullable } from '#types';
-import type { Container } from '@container';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export const enum CheckResult {
@@ -66,7 +65,7 @@ export abstract class BasePrecondition {
 	 * the check on.
 	 * @param container The {@link Container|service container instance}.
 	 */
-	public abstract check(interaction: ChatInputCommandInteraction, container: Container): Promise<PreconditionResult>;
+	public abstract check(interaction: ChatInputCommandInteraction): Promise<PreconditionResult>;
 
 	/**
 	 * Runs logic on a command interaction and throws a {@link PreconditionError} if the check
@@ -76,7 +75,7 @@ export abstract class BasePrecondition {
 	 * the check on.
 	 */
 	public async checkAndThrow(interaction: ChatInputCommandInteraction): Promise<void> {
-		const res = await this.check(interaction, interaction.client.container);
+		const res = await this.check(interaction);
 		if (res.err) {
 			throw res.err;
 		}

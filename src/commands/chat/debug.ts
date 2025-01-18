@@ -1,17 +1,16 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { tokens } from '@container';
+import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
-import type { Container } from '@container';
 import type { IFeaturesService } from '@services/features';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class DebugCommand extends BaseCommand {
 	private readonly _features: IFeaturesService;
 
-	public constructor(container: Container) {
+	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('debug')
@@ -39,7 +38,7 @@ export default class DebugCommand extends BaseCommand {
 			]
 		});
 
-		this._features = container.resolve(tokens.features);
+		this._features = container.resolve('Features');
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },
@@ -57,8 +56,8 @@ export default class DebugCommand extends BaseCommand {
 		switch (domain) {
 			case 'services':
 				const services = [];
-				for (const key of interaction.client.container.services.keys()) {
-					services.push(key.description);
+				for (const key of container.services.keys()) {
+					services.push(key);
 				}
 				json = JSON.stringify(services, null, 4);
 				break;
@@ -68,7 +67,6 @@ export default class DebugCommand extends BaseCommand {
 					name: job.name,
 					pattern: job.pattern,
 					runImmediately: job.runImmediately,
-					waitUntilReady: job.waitUntilReady,
 					previousRun: cron.previousRun(),
 					nextRun: cron.nextRun(),
 					msToNextRun: cron.msToNext(),

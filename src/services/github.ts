@@ -1,8 +1,7 @@
 import { Octokit } from 'octokit';
-import { tokens } from '@container';
+import { container } from '@container';
 import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
 import type { IService } from '@services';
-import type { Container } from '@container';
 import type { Endpoints } from '@octokit/types';
 import type { CacheStore, ICacheService } from './cache';
 
@@ -25,14 +24,12 @@ export default class GithubService implements IGithubService {
 	private readonly _octokit: Octokit;
 	private readonly _cache: CacheStore;
 
-	public constructor(container: Container) {
+	public constructor() {
 		if (!process.env.GITHUB_ACCESS_TOKEN) {
 			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
 		}
 
-		const cacheService = container.resolve<ICacheService>(tokens.cache);
-
-		this._cache = cacheService.createStore('github', '10 minutes');
+		this._cache   = container.resolve('Cache').createStore('github', '10 minutes');
 		this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 

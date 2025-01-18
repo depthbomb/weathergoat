@@ -1,11 +1,10 @@
-import { tokens } from '@container';
+import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
 import type { IService } from '@services';
 import type { Alert } from '@models/Alert';
-import type { Container } from '@container';
 import type { HttpClient, IHttpService } from './http';
 
 export interface IAlertsService extends IService {
@@ -24,9 +23,10 @@ export interface IAlertsService extends IService {
 export default class AlertsService implements IAlertsService {
 	private readonly _http: HttpClient;
 
-	public constructor(container: Container) {
-		const httpService = container.resolve<IHttpService>(tokens.http);
-		this._http = httpService.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
+	public constructor() {
+		this._http = container
+			.resolve('Http')
+			.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
 	public async getActiveAlerts() {

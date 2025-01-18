@@ -2,9 +2,9 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
+import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { logger, reportError } from '@logger';
-import { tokens, Container } from '@container';
 import { generateSnowflake } from '@snowflake';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
@@ -21,7 +21,7 @@ export default class ReportAlertsJob extends BaseJob {
 	private readonly _sweeper: ISweeperService;
 	private readonly _webhookUsername = 'WeatherGoat#Alerts';
 
-	public constructor(container: Container) {
+	public constructor() {
 		super({
 			name: 'report_alerts',
 			pattern: '*/30 * * * * *',
@@ -29,8 +29,8 @@ export default class ReportAlertsJob extends BaseJob {
 		});
 
 		this._logger = logger.child({ jobName: this.name });
-		this._alerts = container.resolve(tokens.alerts);
-		this._sweeper = container.resolve(tokens.sweeper);
+		this._alerts = container.resolve('Alerts');
+		this._sweeper = container.resolve('Sweeper');
 	}
 
 	public async execute(client: WeatherGoat<true>) {

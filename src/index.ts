@@ -1,11 +1,9 @@
 if (!process.versions.bun) throw new Error('WeatherGoat requires the Bun runtime to operate.');
 
-import { tokens } from '@container';
 import { WeatherGoat } from '@client';
+import { container } from '@container';
 import { logger, reportError } from '@logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
-import type { ICliService } from '@services/cli';
-import type { IFeaturesService } from '@services/features';
 
 import cliService from '@services/cli';
 import httpService from '@services/http';
@@ -39,24 +37,24 @@ const wg = new WeatherGoat({
 	partials: [Partials.Message, Partials.Channel]
 });
 
-await wg.container
-	.registerValue(tokens.client, wg)
-	.register(tokens.alerts, alertsService)
-	.register(tokens.cache, cacheService)
-	.register(tokens.cli, cliService)
-	.register(tokens.features, featuresService)
-	.register(tokens.forecast, forecastService)
-	.register(tokens.github, githubService)
-	.register(tokens.http, httpService)
-	.register(tokens.location, locationService)
-	.register(tokens.sweeper, sweeperService)
+await container
+	.registerValue('WeatherGoat', wg)
+	.register('Alerts', alertsService)
+	.register('Cache', cacheService)
+	.register('Cli', cliService)
+	.register('Features', featuresService)
+	.register('Forecast', forecastService)
+	.register('Github', githubService)
+	.register('Http', httpService)
+	.register('Location', locationService)
+	.register('Sweeper', sweeperService)
 	.init();
 
 if (process.argv.length > 2) {
-	const cli = wg.container.resolve<ICliService>(tokens.cli);
+	const cli = container.resolve('Cli');
 	await cli.run(process.argv.slice(2));
 } else {
-	const features = wg.container.resolve<IFeaturesService>(tokens.features);
+	const features = container.resolve('Features');
 
 	features.set('disable_alert_reporting', 0.0, 'Alert reporting killswitch');
 	features.set('disable_forecast_reporting', 0.0, 'Forecast reporting killswitch');

@@ -1,5 +1,5 @@
 import { _ } from '@i18n';
-import { tokens } from '@container';
+import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { MessageLimits } from '@sapphire/discord-utilities';
 import { DurationFormatter } from '@sapphire/time-utilities';
@@ -7,7 +7,6 @@ import { CooldownPrecondition } from '@preconditions/cooldown';
 import { REPO, Color, REPO_NAME, REPO_OWNER } from '@constants';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { Container } from '@container';
 import type { IGithubService } from '@services/github';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -15,7 +14,7 @@ export default class AboutCommand extends BaseCommand {
 	private readonly _github: IGithubService;
 	private readonly _formatter: DurationFormatter;
 
-	public constructor(container: Container) {
+	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('about')
@@ -30,7 +29,7 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this._github = container.resolve(tokens.github);
+		this._github = container.resolve('Github');
 		this._formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({

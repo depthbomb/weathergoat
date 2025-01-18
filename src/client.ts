@@ -1,8 +1,8 @@
 import { db } from '@db';
 import initI18n from '@i18n';
 import { Cron } from 'croner';
+import { container } from '@container';
 import { logger, reportError } from '@logger';
-import { tokens, Container } from '@container';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
@@ -12,26 +12,17 @@ import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
 import type { ClientEvents, ClientOptions } from 'discord.js';
 
-type BaseModule<T> = { default: new(container: Container) => T };
+type BaseModule<T> = { default: new() => T };
 type JobModule = BaseModule<BaseJob>;
 type EventModule = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule = BaseModule<BaseCommand>;
 
-type WeatherGoatOptions = ClientOptions & {
-	/**
-	 * Whether the service container should be "dry". This allows services and values to
-	 * be resolved whether they are registered or not and will return `null`. This is useful if you
-	 * need to work with services that have other services injected into them in which they are not
-	 * actually needed, such as when pushing command data to Discord.
-	 */
-	dry?: boolean;
-}
+type WeatherGoatOptions = ClientOptions & {}
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Array<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand>;
-	public readonly container: Container;
 
 	private readonly _logger: Logger;
 	private readonly _moduleFilePattern: RegExp;
@@ -42,9 +33,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.jobs = [];
 		this.events = new Collection();
 		this.commands = new Collection();
-		this.container = new Container(!!options.dry);
 
-		this._logger = logger.child({ logger: tokens.client.description });
+		this._logger = logger.child({ logger: 'WeatherGoat' });
 		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
@@ -72,7 +62,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		await db.$disconnect();
 		await super.destroy();
-		await this.container.dispose();
+		await container.dispose();
 
 		if (!logger.closed) {
 			logger.close();
@@ -83,7 +73,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: JobModule = await import(file);
 
-			const job = new mod(this.container);
+			const job = new mod();
 			const name = job.name;
 			const pattern = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
@@ -120,7 +110,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: EventModule = await import(file);
 
-			const event = new mod(this.container);
+			const event = new mod();
 			const name = event.name;
 			const once = event.once ?? false;
 			const disabled = event.disabled ?? false;
@@ -142,7 +132,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async registerCommands() {
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this._moduleFilePattern)) {
 			const { default: mod }: CommandModule = await import(file);
-			const command = new mod(this.container);
+			const command = new mod();
 
 			this.commands.set(command.name, command);
 

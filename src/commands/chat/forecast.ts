@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { tokens } from '@container';
 import { reportError } from '@logger';
+import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@snowflake';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -17,7 +17,6 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { Container } from '@container';
 import type { HTTPRequestError } from '@errors';
 import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -25,7 +24,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 export default class ForecastCommand extends BaseCommand {
 	private readonly _location: ILocationService;
 
-	public constructor(container: Container) {
+	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('forecasts')
@@ -39,7 +38,7 @@ export default class ForecastCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve(tokens.location);
+		this._location = container.resolve('Location');
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
