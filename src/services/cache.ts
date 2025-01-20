@@ -27,7 +27,7 @@ export interface ICacheService extends IService {
 	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
 }
 
-class CacheStore {
+export class CacheStore {
 	private readonly _ttl: string;
 	private readonly _cache: Collection<string, CacheItem<unknown>>;
 
@@ -62,7 +62,9 @@ class CacheStore {
 	}
 
 	private _tryExpireItem(key: string) {
-		if (!this._cache.has(key)) return;
+		if (!this._cache.has(key)) {
+			return;
+		}
 
 		const now = new Date();
 		const item = this._cache.get(key)!;
