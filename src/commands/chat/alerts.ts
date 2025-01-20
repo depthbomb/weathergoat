@@ -67,12 +67,12 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
-		const maxCount = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
-		const guildId = interaction.guildId;
-		const latitude = interaction.options.getString('latitude', true);
-		const longitude = interaction.options.getString('longitude', true);
-		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
-		const autoCleanup = interaction.options.getBoolean('auto-cleanup') ?? true;
+		const maxCount     = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
+		const guildId      = interaction.guildId;
+		const latitude     = interaction.options.getString('latitude', true);
+		const longitude    = interaction.options.getString('longitude', true);
+		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);

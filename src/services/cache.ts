@@ -55,14 +55,15 @@ export class CacheStore {
 		return this._cache.get(key)!.value as T;
 	}
 
-	public set<T>(key: string, value: T) {
+	public set<T>(key: string, value: T, ttl?: string) {
 		if (this.has(key)) {
 			this._cache.delete(key);
 		}
 
-		const ttl = new Duration(this._ttl ?? '99 years');
-
-		this._cache.set(key, { value, ttl });
+		this._cache.set(key, {
+			value,
+			ttl: new Duration(ttl ?? this._ttl ?? '99 years')
+		});
 
 		return value;
 	}

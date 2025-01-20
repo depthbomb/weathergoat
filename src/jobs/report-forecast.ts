@@ -46,7 +46,7 @@ export default class ReportForecastsJob extends BaseJob {
 		});
 		for (const { id, latitude, longitude, guildId, channelId, messageId, radarImageUrl } of destinations) {
 			try {
-				const guild = await client.guilds.fetch(guildId);
+				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild?.channels.fetch(channelId);
 
 				if (!isTextChannel(channel)) {

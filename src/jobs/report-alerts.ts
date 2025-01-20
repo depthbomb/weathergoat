@@ -156,7 +156,7 @@ export default class ReportAlertsJob extends BaseJob {
 	}
 
 	private async _getOrCreateWebhook(channel: TextChannel) {
-		const reason = 'Required for weather alert reporting';
+		const reason   = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
 		let ourWebhook = webhooks.find(w => w.name === this._webhookUsername && w.client === channel.client);
 		if (!ourWebhook) {

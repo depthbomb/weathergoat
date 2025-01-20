@@ -17,7 +17,9 @@ const consoleTransportFormat = format.combine(
 	format.timestamp(),
 	format.padLevels(),
 	format.printf(({ level, message, timestamp, ...meta }) => {
-		if (Object.keys(meta).length) return `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`;
+		if (Object.keys(meta).length) {
+			return `${timestamp} [${level}] ${message} ${JSON.stringify(meta)}`;
+		}
 
 		return `${timestamp} [${level}] ${message}`;
 	})
