@@ -24,7 +24,7 @@ export default class ForecastService implements IForecastService {
 	public constructor() {
 		const httpService = container.resolve('Http');
 
-		this._http     = httpService.getClient('forecasts', { retry: true });
+		this._http     = httpService.getClient('forecasts');
 		this._location = container.resolve('Location');
 	}
 

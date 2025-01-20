@@ -18,14 +18,23 @@ type HttpClientOptions = {
 	name: string;
 	/**
 	 * The base URL of requests the client makes.
+	 *
+	 * @default undefined
 	 */
 	baseUrl?: string;
 	/**
 	 * Whether to use a retry policy to retry failed requests.
 	 */
+	retry: boolean;
+};
+type CreateHttpClientOptions = Omit<HttpClientOptions, 'name' | 'retry'> & {
+	/**
+	 * Whether to use a retry policy to retry failed requests.
+	 *
+	 * @default true
+	 */
 	retry?: boolean;
 };
-type CreateHttpClientOptions = Omit<HttpClientOptions, 'name'>;
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
@@ -36,7 +45,7 @@ export interface IHttpService extends IService {
 	 * @param name The name to identify the HTTP client.
 	 * @param options Options to use when creating the HTTP client.
 	 */
-	getClient(name: string, options: CreateHttpClientOptions): HttpClient;
+	getClient(name: string, options?: CreateHttpClientOptions): HttpClient;
 }
 
 export class HttpClient {
@@ -50,15 +59,15 @@ export class HttpClient {
 	private _requestNum = 0;
 
 	public constructor(options: HttpClientOptions) {
-		this._name = options?.name;
-		this._retry = !!options?.retry;
-		this._baseUrl = options?.baseUrl;
+		this._name        = options.name;
+		this._retry       = options.retry;
+		this._baseUrl     = options.baseUrl;
 		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), {
 			maxAttempts: 10,
 			backoff: new ConstantBackoff(1_000)
 		});
 		this._durationFormatter = new DurationFormatter();
-		this._logger = logger.child({ httpClient: this._name });
+		this._logger            = logger.child({ httpClient: this._name });
 	}
 
 	public async get(url: string | URL, options?: GETOptions) {
@@ -116,20 +125,20 @@ export default class HttpService implements IHttpService {
 	private readonly _clients: Collection<string, HttpClient>;
 
 	public constructor() {
-		this._logger = logger.child({ service: 'Http' });
+		this._logger  = logger.child({ service: 'Http' });
 		this._clients = new Collection();
 	}
 
-	public getClient(name: string, options: CreateHttpClientOptions) {
+	public getClient(name: string, options?: CreateHttpClientOptions) {
 		if (this._clients.has(name)) {
 			return this._clients.get(name)!;
 		}
 
-		const { baseUrl, retry } = options;
-		const client = new HttpClient({ name, baseUrl, retry });
+		const retry   = options?.retry ?? true;
+		const baseUrl = options?.baseUrl;
+		const client  = new HttpClient({ name, baseUrl, retry });
 
 		this._clients.set(name, client);
-
 		this._logger.info('Created HTTP client', { name, ...options });
 
 		return client;
