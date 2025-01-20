@@ -29,11 +29,11 @@ export interface ICacheService extends IService {
 
 class CacheStore {
 	private readonly _ttl: string;
-	private readonly _cache: Map<string, CacheItem<unknown>>;
+	private readonly _cache: Collection<string, CacheItem<unknown>>;
 
 	public constructor(ttl: string = '1 day') {
-		this._ttl = ttl;
-		this._cache = new Map();
+		this._ttl   = ttl;
+		this._cache = new Collection();
 	}
 
 	public has(key: string) {
