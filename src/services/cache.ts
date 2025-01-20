@@ -27,7 +27,7 @@ export interface ICacheService extends IService {
 	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
 }
 
-export class CacheStore {
+class CacheStore {
 	private readonly _ttl: string;
 	private readonly _cache: Map<string, CacheItem<unknown>>;
 
