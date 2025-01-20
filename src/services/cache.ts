@@ -31,7 +31,7 @@ class CacheStore {
 	private readonly _ttl: string;
 	private readonly _cache: Map<string, CacheItem<unknown>>;
 
-	public constructor(ttl: string = '1 year') {
+	public constructor(ttl: string = '1 day') {
 		this._ttl = ttl;
 		this._cache = new Map();
 	}
