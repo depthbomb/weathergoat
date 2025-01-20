@@ -4,9 +4,9 @@ import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import type { Maybe } from '#types';
+import type { HttpClient } from './http';
+import type { CacheStore } from './cache';
 import type { IService } from '@services';
-import type { HttpClient, IHttpService } from './http';
-import type { CacheStore, ICacheService } from './cache';
 
 type CoordinateInfo = {
 	latitude: string;

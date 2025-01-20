@@ -22,7 +22,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger = logger.child({ jobName: this.name });
+		this._logger     = logger.child({ jobName: this.name });
 		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 

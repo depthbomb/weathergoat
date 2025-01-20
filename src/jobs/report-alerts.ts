@@ -28,8 +28,8 @@ export default class ReportAlertsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger = logger.child({ jobName: this.name });
-		this._alerts = container.resolve('Alerts');
+		this._logger  = logger.child({ jobName: this.name });
+		this._alerts  = container.resolve('Alerts');
 		this._sweeper = container.resolve('Sweeper');
 	}
 

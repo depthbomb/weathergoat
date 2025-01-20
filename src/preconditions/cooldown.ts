@@ -28,7 +28,7 @@ export class CooldownPrecondition extends BasePrecondition {
 	public constructor({ duration, limit, global }: CooldownPreconditionOptions) {
 		super();
 
-		this._global = global ?? false;
+		this._global  = global ?? false;
 		this._manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
 	}
 

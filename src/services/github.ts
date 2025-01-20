@@ -2,8 +2,8 @@ import { Octokit } from 'octokit';
 import { container } from '@container';
 import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
 import type { IService } from '@services';
+import type { CacheStore } from './cache';
 import type { Endpoints } from '@octokit/types';
-import type { CacheStore, ICacheService } from './cache';
 
 export interface IGithubService extends IService {
 	/**

@@ -3,9 +3,9 @@ import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
+import type { HttpClient } from './http';
 import type { IService } from '@services';
 import type { Alert } from '@models/Alert';
-import type { HttpClient, IHttpService } from './http';
 
 export interface IAlertsService extends IService {
 	/**
