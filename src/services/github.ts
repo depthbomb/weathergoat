@@ -29,7 +29,7 @@ export default class GithubService implements IGithubService {
 			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
 		}
 
-		this._cache   = container.resolve('Cache').createStore('github', '10 minutes');
+		this._cache   = container.resolve('Cache').getStore('github', { defaultTtl: '10 minutes' });
 		this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 

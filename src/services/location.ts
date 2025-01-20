@@ -55,7 +55,7 @@ export default class LocationService implements ILocationService {
 
 	public constructor() {
 		this._http               = container.resolve('Http').getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this._cache              = container.resolve('Cache').createStore('locations', '1 day');
+		this._cache              = container.resolve('Cache').getStore('locations', { defaultTtl: '1 week' });
 		this._coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
 		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}

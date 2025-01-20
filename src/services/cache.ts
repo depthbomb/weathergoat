@@ -3,35 +3,41 @@ import { Duration } from '@sapphire/time-utilities';
 import type { IService } from '@services';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
+type CacheStoreOptions = {
+	/**
+	 * The default _time to live_ for stored items. Attempting to retrieve an item passed its
+	 * time to live will result in it being removed from the cache and `null` being returned.
+	 */
+	defaultTtl: string;
+};
+type GetCacheStoreOptions = Omit<CacheStoreOptions, 'defaultTtl'> & {
+	/**
+	 * The default _time to live_ for stored items. Attempting to retrieve an item passed its
+	 * time to live will result in it being removed from the cache and `null` being returned.
+	 *
+	 * @default '99 years'
+	 */
+	defaultTtl?: string;
+};
 
 export interface ICacheService extends IService {
 	/**
-	 * Creates a new cache store.
+	 * Returns a cache store.
 	 *
 	 * @param name The name of the cache store.
-	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
-	 */
-	createStore(name: string, defaultTtl?: string): CacheStore;
-	/**
-	 * Retrieves an existing cache store.
 	 *
-	 * @param name The name of the cache store.
-	 */
-	getStore(name: string): CacheStore;
-	/**
-	 * Retrieves an existing cache store or creates it if it doesn't exist.
+	 * @remarks
 	 *
-	 * @param name The name of the cache store.
-	 * @param defaultTtl The default TTL of cached items in duration format (for example `1 week`).
+	 * If a store does not exist by the provided {@link name} then it is created.
 	 */
-	getOrCreateStore(name: string, defaultTtl?: string): CacheStore;
+	getStore(name: string, options?: GetCacheStoreOptions): CacheStore;
 }
 
 export class CacheStore {
-	private readonly _ttl: string;
+	private readonly _ttl?: string;
 	private readonly _cache: Collection<string, CacheItem<unknown>>;
 
-	public constructor(ttl: string = '1 day') {
+	public constructor(ttl: string) {
 		this._ttl   = ttl;
 		this._cache = new Collection();
 	}
@@ -54,7 +60,7 @@ export class CacheStore {
 			this._cache.delete(key);
 		}
 
-		const ttl = new Duration(this._ttl);
+		const ttl = new Duration(this._ttl ?? '99 years');
 
 		this._cache.set(key, { value, ttl });
 
@@ -66,7 +72,7 @@ export class CacheStore {
 			return;
 		}
 
-		const now = new Date();
+		const now  = new Date();
 		const item = this._cache.get(key)!;
 		if (item.ttl.fromNow <= now) {
 			this._cache.delete(key);
@@ -81,31 +87,7 @@ export default class CacheService implements ICacheService {
 		this._stores = new Collection();
 	}
 
-	public createStore(name: string, defaultTtl?: string) {
-		if (this._stores.has(name)) {
-			throw new Error(`Cache store "${name}" already exists`);
-		}
-
-		const store = new CacheStore(defaultTtl);
-
-		this._stores.set(name, store);
-
-		return store;
-	}
-
-	public getStore(name: string) {
-		if (!this._stores.has(name)) {
-			throw new Error(`Cache store "${name}" does not exist`);
-		}
-
-		return this._stores.get(name)!;
-	}
-
-	public getOrCreateStore(name: string, defaultTtl?: string) {
-		if (this._stores.has(name)) {
-			return this._stores.get(name)!;
-		}
-
-		return this.createStore(name, defaultTtl);
+	public getStore(name: string, options?: GetCacheStoreOptions) {
+		return this._stores.ensure(name, () => new CacheStore(options?.defaultTtl ?? '99 years'));
 	}
 }
