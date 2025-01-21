@@ -34,17 +34,17 @@ export interface ICacheService extends IService {
 }
 
 export class CacheStore {
-	private readonly _ttl?: string;
-	private readonly _cache: Collection<string, CacheItem<unknown>>;
+	private readonly defaultTtl: string;
+	private readonly cache: Collection<string, CacheItem<unknown>>;
 
-	public constructor(ttl: string) {
-		this._ttl   = ttl;
-		this._cache = new Collection();
+	public constructor(options: CacheStoreOptions) {
+		this.defaultTtl = options.defaultTtl;
+		this.cache      = new Collection();
 	}
 
 	public has(key: string) {
-		this._tryExpireItem(key);
-		return this._cache.has(key);
+		this.tryExpireItem(key);
+		return this.cache.has(key);
 	}
 
 	public get<T>(key: string) {
@@ -52,31 +52,31 @@ export class CacheStore {
 			return null;
 		}
 
-		return this._cache.get(key)!.value as T;
+		return this.cache.get(key)!.value as T;
 	}
 
 	public set<T>(key: string, value: T, ttl?: string) {
 		if (this.has(key)) {
-			this._cache.delete(key);
+			this.cache.delete(key);
 		}
 
-		this._cache.set(key, {
+		this.cache.set(key, {
 			value,
-			ttl: new Duration(ttl ?? this._ttl ?? '99 years')
+			ttl: new Duration(ttl ?? this.defaultTtl)
 		});
 
 		return value;
 	}
 
-	private _tryExpireItem(key: string) {
-		if (!this._cache.has(key)) {
+	private tryExpireItem(key: string) {
+		if (!this.cache.has(key)) {
 			return;
 		}
 
 		const now  = new Date();
-		const item = this._cache.get(key)!;
+		const item = this.cache.get(key)!;
 		if (item.ttl.fromNow <= now) {
-			this._cache.delete(key);
+			this.cache.delete(key);
 		}
 	}
 }
@@ -89,6 +89,8 @@ export default class CacheService implements ICacheService {
 	}
 
 	public getStore(name: string, options?: GetCacheStoreOptions) {
-		return this._stores.ensure(name, () => new CacheStore(options?.defaultTtl ?? '99 years'));
+		return this._stores.ensure(name, () => new CacheStore({
+			defaultTtl: options?.defaultTtl ?? '99 years'
+		}));
 	}
 }
