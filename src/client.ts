@@ -24,8 +24,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand>;
 
-	private readonly _logger: Logger;
-	private readonly _moduleFilePattern: RegExp;
+	private readonly logger: Logger;
+	private readonly moduleFilePattern: RegExp;
 
 	public constructor(options: WeatherGoatOptions) {
 		super(options);
@@ -34,8 +34,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.events = new Collection();
 		this.commands = new Collection();
 
-		this._logger = logger.child({ logger: 'WeatherGoat' });
-		this._moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
+		this.logger = logger.child({ logger: 'WeatherGoat' });
+		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
 	public async login(token?: string | undefined) {
@@ -52,7 +52,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async destroy() {
-		this._logger.info('Shutting down');
+		this.logger.info('Shutting down');
 
 		for (const { cron } of this.jobs) {
 			if (cron.isRunning()) {
@@ -70,7 +70,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async registerJobs() {
-		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this._moduleFilePattern)) {
+		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: JobModule = await import(file);
 
 			const job = new mod();
@@ -80,7 +80,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
 				paused: true,
-				protect: (job) => this._logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
+				protect: (job) => this.logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
 				catch: (err) => reportError('Job error', err, { name })
 			});
 
@@ -98,7 +98,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				}
 			});
 
-			this._logger.info('Registered job', {
+			this.logger.info('Registered job', {
 				name,
 				pattern,
 				runImmediately,
@@ -107,7 +107,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async registerEvents() {
-		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this._moduleFilePattern)) {
+		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: EventModule = await import(file);
 
 			const event = new mod();
@@ -125,18 +125,18 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.events.set(name, event);
 
-			this._logger.info('Registered event', { name, once });
+			this.logger.info('Registered event', { name, once });
 		}
 	}
 
 	public async registerCommands() {
-		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this._moduleFilePattern)) {
+		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: CommandModule = await import(file);
 			const command = new mod();
 
 			this.commands.set(command.name, command);
 
-			this._logger.info('Registered command', { name: command.name });
+			this.logger.info('Registered command', { name: command.name });
 		}
 	}
 }

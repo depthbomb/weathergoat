@@ -49,25 +49,25 @@ export interface IHttpService extends IService {
 }
 
 export class HttpClient {
-	private readonly _name: string;
-	private readonly _retry: boolean;
-	private readonly _baseUrl?: string;
-	private readonly _retryPolicy: RetryPolicy;
-	private readonly _durationFormatter: DurationFormatter;
-	private readonly _logger: Logger;
+	private readonly name: string;
+	private readonly retry: boolean;
+	private readonly baseUrl?: string;
+	private readonly retryPolicy: RetryPolicy;
+	private readonly durationFormatter: DurationFormatter;
+	private readonly logger: Logger;
 
-	private _requestNum = 0;
+	private requestNum = 0;
 
 	public constructor(options: HttpClientOptions) {
-		this._name        = options.name;
-		this._retry       = options.retry;
-		this._baseUrl     = options.baseUrl;
-		this._retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), {
+		this.name        = options.name;
+		this.retry       = options.retry;
+		this.baseUrl     = options.baseUrl;
+		this.retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), {
 			maxAttempts: 10,
 			backoff: new ConstantBackoff(1_000)
 		});
-		this._durationFormatter = new DurationFormatter();
-		this._logger            = logger.child({ httpClient: this._name });
+		this.durationFormatter = new DurationFormatter();
+		this.logger            = logger.child({ httpClient: this.name });
 	}
 
 	public async get(url: string | URL, options?: GETOptions) {
@@ -87,34 +87,34 @@ export class HttpClient {
 			},
 		};
 
-		let requestUrl = this._baseUrl ? joinURL(this._baseUrl, input) : input;
+		let requestUrl = this.baseUrl ? joinURL(this.baseUrl, input) : input;
 
 		if (init?.query) {
 			requestUrl = withQuery(requestUrl, init.query);
 		}
 
-		const requestId = `${this._name}-${this._requestNum}`;
+		const requestId = `${this.name}-${this.requestNum}`;
 
-		this._logger.silly('Making HTTP request', { requestId, method: init?.method, url: requestUrl, retry: this._retry });
+		this.logger.silly('Making HTTP request', { requestId, method: init?.method, url: requestUrl, retry: this.retry });
 
 		const startTime = hrtime.bigint();
 
 		let res: Response;
-		if (this._retry) {
-			res = await this._retryPolicy.execute(() => fetch(requestUrl, requestInit));
+		if (this.retry) {
+			res = await this.retryPolicy.execute(() => fetch(requestUrl, requestInit));
 		} else {
 			res = await fetch(requestUrl, requestInit);
 		}
 
 		const endTime = hrtime.bigint();
 
-		this._logger.silly('Finished HTTP request', {
+		this.logger.silly('Finished HTTP request', {
 			requestId,
 			status: `${res.status} - ${res.statusText}`,
-			elapsed: this._durationFormatter.format(Number((endTime - startTime) / 1000000n))
+			elapsed: this.durationFormatter.format(Number((endTime - startTime) / 1000000n))
 		});
 
-		this._requestNum++;
+		this.requestNum++;
 
 		return res;
 	}

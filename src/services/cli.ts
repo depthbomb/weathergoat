@@ -7,19 +7,19 @@ export interface ICliService extends IService {
 }
 
 export default class CliService implements ICliService {
-	private readonly _cli: Cli;
+	private readonly cli: Cli;
 
 	public constructor() {
-		this._cli = new Cli({
+		this.cli = new Cli({
 			binaryLabel: 'WeatherGoat CLI',
 			binaryVersion: '0.0.0',
 			binaryName: process.argv[0]
 		});
 
-		this._cli.register(CommandManagerCommand);
+		this.cli.register(CommandManagerCommand);
 	}
 
 	public async run(args: string[]) {
-		await this._cli.run(args);
+		await this.cli.run(args);
 	}
 }

@@ -11,8 +11,8 @@ import type { IGithubService } from '@services/github';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends BaseCommand {
-	private readonly _github: IGithubService;
-	private readonly _formatter: DurationFormatter;
+	private readonly github: IGithubService;
+	private readonly formatter: DurationFormatter;
 
 	public constructor() {
 		super({
@@ -29,8 +29,8 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this._github = container.resolve('Github');
-		this._formatter = new DurationFormatter();
+		this.github    = container.resolve('Github');
+		this.formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({
 			changelog: {
@@ -52,7 +52,7 @@ export default class AboutCommand extends BaseCommand {
 	private async _handleChangelogSubcommand(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
-		const messages = await this._github.getCommits(10);
+		const messages = await this.github.getCommits(10);
 		const response = messages.map(
 			msg => {
 				const commitUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${msg.sha.slice(0, 7)}`;
@@ -76,7 +76,7 @@ export default class AboutCommand extends BaseCommand {
 			.addFields(
 				{
 					name: _('commands.about.uptimeTitle'),
-					value: `- ${_('commands.about.applicationPrefix')} ${this._formatter.format(interaction.client.uptime ?? 0)}\n- ${_('commands.about.systemPrefix')} ${this._formatter.format(uptime() * 1_000)}`
+					value: `- ${_('commands.about.applicationPrefix')} ${this.formatter.format(interaction.client.uptime ?? 0)}\n- ${_('commands.about.systemPrefix')} ${this.formatter.format(uptime() * 1_000)}`
 				},
 				{
 					name: _('commands.about.runtimeTitle'),

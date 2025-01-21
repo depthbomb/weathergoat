@@ -3,15 +3,15 @@ import { BaseEvent } from '@events';
 import type { Logger } from 'winston';
 
 export default class WarnEvent extends BaseEvent<'warn'> {
-	private readonly _logger: Logger;
+	private readonly logger: Logger;
 
 	public constructor() {
 		super({ name: 'warn' });
 
-		this._logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child({ discordEvent: this.name });
 	}
 
 	public async handle(message: string) {
-		this._logger.warn(message);
+		this.logger.warn(message);
 	}
 }

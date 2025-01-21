@@ -20,7 +20,7 @@ import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AutoRadarCommand extends BaseCommand {
-	private readonly _location: ILocationService;
+	private readonly location: ILocationService;
 
 	public constructor() {
 		super({
@@ -36,28 +36,28 @@ export default class AutoRadarCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve('Location');
+		this.location = container.resolve('Location');
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		const maxCount = process.env.MAX_RADAR_MESSAGES_PER_GUILD;
-		const guildId = interaction.guildId;
-		const latitude = interaction.options.getString('latitude', true).trim();
+		const maxCount  = process.env.MAX_RADAR_MESSAGES_PER_GUILD;
+		const guildId   = interaction.guildId;
+		const latitude  = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
-		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, _('commands.autoRadar.err.maxDestinationsReached'), { max: maxCount });
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) {
+		if (!this.location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
 
-		const location = await this._location.getInfoFromCoordinates(latitude, longitude);
+		const location = await this.location.getInfoFromCoordinates(latitude, longitude);
 		const row = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()
@@ -78,9 +78,9 @@ export default class AutoRadarCommand extends BaseCommand {
 		try {
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const guildId = interaction.guildId!;
-				const channelId = channel.id;
-				const snowflake = generateSnowflake();
+				const guildId            = interaction.guildId!;
+				const channelId          = channel.id;
+				const snowflake          = generateSnowflake();
 				const placeholderMessage = await channel.send({
 					content: _('commands.autoRadar.placeholderMessage', { location }),
 					flags: [MessageFlags.SuppressNotifications]

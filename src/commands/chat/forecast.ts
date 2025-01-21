@@ -22,7 +22,7 @@ import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastCommand extends BaseCommand {
-	private readonly _location: ILocationService;
+	private readonly location: ILocationService;
 
 	public constructor() {
 		super({
@@ -38,29 +38,29 @@ export default class ForecastCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve('Location');
+		this.location = container.resolve('Location');
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		const maxCount = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
-		const guildId = interaction.guildId!;
-		const latitude = interaction.options.getString('latitude', true);
+		const maxCount  = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
+		const guildId   = interaction.guildId!;
+		const latitude  = interaction.options.getString('latitude', true);
 		const longitude = interaction.options.getString('longitude', true);
-		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, _('commands.forecasts.err.maxDestinationsReached'), { max: maxCount });
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) {
+		if (!this.location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
 		await interaction.deferReply();
 
 		try {
-			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
+			const info = await this.location.getInfoFromCoordinates(latitude, longitude);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -80,7 +80,7 @@ export default class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const forecastJob = interaction.client.jobs.find(j => j.job.name === 'report_forecasts')!;
+				const forecastJob    = interaction.client.jobs.find(j => j.job.name === 'report_forecasts')!;
 				const initialMessage = await channel.send({
 					content: _('commands.forecasts.placeholderMessage', { location: info, time: time(forecastJob.cron.nextRun()!, 'R') }),
 					flags: MessageFlags.SuppressNotifications

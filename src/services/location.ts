@@ -48,16 +48,16 @@ export interface ILocationService extends IService {
 }
 
 export default class LocationService implements ILocationService {
-	private readonly _http: HttpClient;
-	private readonly _cache: CacheStore;
-	private readonly _coordinatePattern: RegExp;
-	private readonly _coordinatesPattern: RegExp;
+	private readonly http: HttpClient;
+	private readonly cache: CacheStore;
+	private readonly coordinatePattern: RegExp;
+	private readonly coordinatesPattern: RegExp;
 
 	public constructor() {
-		this._http               = container.resolve('Http').getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this._cache              = container.resolve('Cache').getStore('locations', { defaultTtl: '1 week' });
-		this._coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
-		this._coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
+		this.http               = container.resolve('Http').getClient('location', { baseUrl: API_BASE_ENDPOINT });
+		this.cache              = container.resolve('Cache').getStore('locations', { defaultTtl: '1 week' });
+		this.coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
+		this.coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}
 
 	public isValidCoordinates(combinedCoordinatesOrLatitude: string, longitude?: Maybe<string>): boolean {
@@ -69,16 +69,16 @@ export default class LocationService implements ILocationService {
 			return this.isValidCoordinates(lat, lon);
 		}
 
-		return this._coordinatePattern.test(combinedCoordinatesOrLatitude) && this._coordinatePattern.test(longitude as string);
+		return this.coordinatePattern.test(combinedCoordinatesOrLatitude) && this.coordinatePattern.test(longitude as string);
 	}
 
 	public async getInfoFromCoordinates(latitude: string, longitude: string) {
 		const cacheKey = latitude + longitude;
-		if (this._cache.has(cacheKey)) {
-			return this._cache.get<CoordinateInfo>(cacheKey)!;
+		if (this.cache.has(cacheKey)) {
+			return this.cache.get<CoordinateInfo>(cacheKey)!;
 		}
 
-		const res = await this._http.get(`/points/${latitude},${longitude}`);
+		const res = await this.http.get(`/points/${latitude},${longitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
@@ -95,7 +95,7 @@ export default class LocationService implements ILocationService {
 			radarImageUrl: data.radarImageUrl
 		};
 
-		this._cache.set(cacheKey, info);
+		this.cache.set(cacheKey, info);
 
 		return info;
 	}

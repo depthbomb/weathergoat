@@ -30,7 +30,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		const radarMessages = await db.autoRadarMessage.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
 			try {
-				const guild = await client.guilds.fetch(guildId);
+				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
 					this._logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });

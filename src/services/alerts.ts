@@ -21,16 +21,14 @@ export interface IAlertsService extends IService {
 }
 
 export default class AlertsService implements IAlertsService {
-	private readonly _http: HttpClient;
+	private readonly http: HttpClient;
 
 	public constructor() {
-		this._http = container
-			.resolve('Http')
-			.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
+		this.http = container.resolve('Http').getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
 	public async getActiveAlerts() {
-		const res = await this._http.get('/alerts/active');
+		const res = await this.http.get('/alerts/active');
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
@@ -41,7 +39,7 @@ export default class AlertsService implements IAlertsService {
 	}
 
 	public async getActiveAlertsForZone(zoneId: string) {
-		const res = await this._http.get(`/alerts/active/zone/${zoneId}`);
+		const res = await this.http.get(`/alerts/active/zone/${zoneId}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

@@ -1,4 +1,6 @@
-if (!process.versions.bun) throw new Error('WeatherGoat requires the Bun runtime to operate.');
+if (!process.versions.bun) {
+	throw new Error('WeatherGoat requires the Bun runtime to operate.');
+}
 
 import { WeatherGoat } from '@client';
 import { container } from '@container';

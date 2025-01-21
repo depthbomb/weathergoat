@@ -6,7 +6,7 @@ import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
 export default class RadarCommand extends BaseCommand {
-	private readonly _radars: Collection<string, string>;
+	private readonly radars: Collection<string, string>;
 
 	public constructor() {
 		super({
@@ -21,7 +21,7 @@ export default class RadarCommand extends BaseCommand {
 			)
 		});
 
-		this._radars = new Collection([
+		this.radars = new Collection([
 			// Stations
 			['Aberdeen, South Dakota', 'KABR'],
 			['Albuquerque, New Mexico', 'KABX'],
@@ -202,7 +202,7 @@ export default class RadarCommand extends BaseCommand {
 
 	public handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
-		if (!this._radars.find(v => v === station)) {
+		if (!this.radars.find(v => v === station)) {
 			return interaction.reply(_('commands.radar.err.invalidStation', { station }));
 		}
 
@@ -221,7 +221,7 @@ export default class RadarCommand extends BaseCommand {
 			return;
 		}
 
-		const filtered = this._radars.filter((v, k) => k.toLowerCase().includes(value) || v.toLowerCase().includes(value));
+		const filtered = this.radars.filter((v, k) => k.toLowerCase().includes(value) || v.toLowerCase().includes(value));
 		const limited  = [...filtered.entries()].slice(0, 25); // Limit the results to 25
 
 		return interaction.respond(limited.map(([name, value]) => ({ name, value })));

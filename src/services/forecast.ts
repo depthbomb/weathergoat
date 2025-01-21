@@ -18,19 +18,19 @@ export interface IForecastService extends IService {
 }
 
 export default class ForecastService implements IForecastService {
-	private readonly _http: HttpClient;
-	private readonly _location: ILocationService;
+	private readonly http: HttpClient;
+	private readonly location: ILocationService;
 
 	public constructor() {
 		const httpService = container.resolve('Http');
 
-		this._http     = httpService.getClient('forecasts');
-		this._location = container.resolve('Location');
+		this.http     = httpService.getClient('forecasts');
+		this.location = container.resolve('Location');
 	}
 
 	public async getForecastForCoordinates(latitude: string, longitude: string) {
-		const info = await this._location.getInfoFromCoordinates(latitude, longitude);
-		const res  = await this._http.get(info.forecastUrl);
+		const info = await this.location.getInfoFromCoordinates(latitude, longitude);
+		const res  = await this.http.get(info.forecastUrl);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

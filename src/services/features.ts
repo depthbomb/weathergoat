@@ -22,30 +22,30 @@ class Feature {
 }
 
 export default class FeaturesService implements IFeaturesService {
-	private readonly _logger: Logger;
-	private readonly _features: Collection<string, Feature>;
+	private readonly logger: Logger;
+	private readonly features: Collection<string, Feature>;
 
 	public constructor() {
-		this._logger = logger.child({ service: 'Features' });
-		this._features = new Collection();
+		this.logger = logger.child({ service: 'Features' });
+		this.features = new Collection();
 	}
 
 	public set(name: string, fraction: number, description?: string) {
 		const obj = { name, fraction, description };
 
-		this._features.set(name, plainToInstance(Feature, obj));
+		this.features.set(name, plainToInstance(Feature, obj));
 
-		this._logger.info('Created feature flag', { name, fraction, description });
+		this.logger.info('Created feature flag', { name, fraction, description });
 
 		return this;
 	}
 
 	public get(name: string) {
-		return this._features.get(name);
+		return this.features.get(name);
 	}
 
 	public isFeatureEnabled(name: string, defaultValue?: boolean) {
-		const feature = this._features.find(f => f.name === name);
+		const feature = this.features.find(f => f.name === name);
 		if (!feature) {
 			if (typeof defaultValue === 'undefined') {
 				throw new Error(`Feature flag not found: ${name}`);
@@ -58,6 +58,6 @@ export default class FeaturesService implements IFeaturesService {
 	}
 
 	public all() {
-		return Array.from(this._features.values());
+		return Array.from(this.features.values());
 	}
 }

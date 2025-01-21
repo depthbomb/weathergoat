@@ -8,7 +8,7 @@ import type { IFeaturesService } from '@services/features';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class DebugCommand extends BaseCommand {
-	private readonly _features: IFeaturesService;
+	private readonly features: IFeaturesService;
 
 	public constructor() {
 		super({
@@ -38,7 +38,7 @@ export default class DebugCommand extends BaseCommand {
 			]
 		});
 
-		this._features = container.resolve('Features');
+		this.features = container.resolve('Features');
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },
@@ -73,7 +73,7 @@ export default class DebugCommand extends BaseCommand {
 				})), null, 4);
 				break;
 			case 'features':
-				json = JSON.stringify(this._features.all(), null, 4);
+				json = JSON.stringify(this.features.all(), null, 4);
 				break;
 		}
 
@@ -85,11 +85,11 @@ export default class DebugCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const alertDestinations = await db.alertDestination.findMany();
+		const alertDestinations    = await db.alertDestination.findMany();
 		const forecastDestinations = await db.forecastDestination.findMany();
-		const autoRadarMessages = await db.autoRadarMessage.findMany();
-		const sentAlerts = await db.sentAlert.findMany();
-		const volatileMessages = await db.volatileMessage.findMany();
+		const autoRadarMessages    = await db.autoRadarMessage.findMany();
+		const sentAlerts           = await db.sentAlert.findMany();
+		const volatileMessages     = await db.volatileMessage.findMany();
 
 		const json = JSON.stringify({
 			date,

@@ -34,8 +34,8 @@ class Container {
 	private readonly _services: Map<string, IService>;
 
 	public constructor() {
-		this._values = new Map();
-		this._modules = new Map();
+		this._values   = new Map();
+		this._modules  = new Map();
 		this._services = new Map();
 	}
 
@@ -86,7 +86,7 @@ class Container {
 
 	public async init() {
 		for (const [_, service] of this._services) {
-			await service.init?.(this);
+			await service.init?.();
 		}
 	}
 

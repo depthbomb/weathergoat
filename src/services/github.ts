@@ -21,22 +21,22 @@ export interface IGithubService extends IService {
 }
 
 export default class GithubService implements IGithubService {
-	private readonly _octokit: Octokit;
-	private readonly _cache: CacheStore;
+	private readonly octokit: Octokit;
+	private readonly cache: CacheStore;
 
 	public constructor() {
 		if (!process.env.GITHUB_ACCESS_TOKEN) {
 			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
 		}
 
-		this._cache   = container.resolve('Cache').getStore('github', { defaultTtl: '10 minutes' });
-		this._octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
+		this.cache   = container.resolve('Cache').getStore('github', { defaultTtl: '10 minutes' });
+		this.octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 
 	public async getCurrentCommitHash(short?: boolean) {
 		const cacheKey = 'commit-hash_' + short;
-		if (this._cache.has(cacheKey)) {
-			return this._cache.get<string>(cacheKey)!;
+		if (this.cache.has(cacheKey)) {
+			return this.cache.get<string>(cacheKey)!;
 		}
 
 		const res = await this._getAllCommits();
@@ -47,7 +47,7 @@ export default class GithubService implements IGithubService {
 		const { sha } = res.data[0];
 		const hash = short ? sha.slice(0, 7) : sha;
 
-		this._cache.set(cacheKey, hash);
+		this.cache.set(cacheKey, hash);
 
 		return hash;
 	}
@@ -66,7 +66,7 @@ export default class GithubService implements IGithubService {
 	}
 
 	private async _getAllCommits() {
-		return this._octokit!.request('GET /repos/{owner}/{repo}/commits', {
+		return this.octokit!.request('GET /repos/{owner}/{repo}/commits', {
 			owner: REPO_OWNER,
 			repo: REPO_NAME
 		});

@@ -22,7 +22,7 @@ import type { ILocationService } from '@services/location';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends BaseCommand {
-	private readonly _location: ILocationService;
+	private readonly location: ILocationService;
 
 	public constructor() {
 		super({
@@ -53,7 +53,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this._location = container.resolve('Location');
+		this.location = container.resolve('Location');
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },
@@ -80,7 +80,7 @@ export default class AlertsCommand extends BaseCommand {
 		const existingCount = await db.alertDestination.countByGuild(guildId);
 		MaxDestinationError.assert(existingCount < maxCount, _('commands.alerts.err.maxDestinationsReached'), { max: maxCount });
 
-		if (!this._location.isValidCoordinates(latitude, longitude)) {
+		if (!this.location.isValidCoordinates(latitude, longitude)) {
 			return interaction.reply(_('common.err.invalidLatOrLon'));
 		}
 
@@ -92,7 +92,7 @@ export default class AlertsCommand extends BaseCommand {
 		}
 
 		try {
-			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
+			const info = await this.location.getInfoFromCoordinates(latitude, longitude);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -112,7 +112,7 @@ export default class AlertsCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 15_000 });
 			if (customId === 'confirm') {
-				const snowflake = generateSnowflake();
+				const snowflake   = generateSnowflake();
 				const destination = await db.alertDestination.create({
 					data: {
 						snowflake,
@@ -194,7 +194,7 @@ export default class AlertsCommand extends BaseCommand {
 			.setTitle(_('commands.alerts.listEmbedTitle'));
 
 		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
-			const info = await this._location.getInfoFromCoordinates(latitude, longitude);
+			const info    = await this.location.getInfoFromCoordinates(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,

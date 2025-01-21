@@ -41,8 +41,8 @@ export abstract class BaseJob {
 	public readonly runImmediately: boolean;
 
 	public constructor(options: JobOptions) {
-		this.name = options.name;
-		this.pattern = options.pattern;
+		this.name           = options.name;
+		this.pattern        = options.pattern;
 		this.runImmediately = options.runImmediately ?? false;
 	}
 

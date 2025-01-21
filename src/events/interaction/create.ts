@@ -11,23 +11,24 @@ import type { Interaction } from 'discord.js';
 import type { BaseCommand } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
-	private readonly _logger: Logger;
+	private readonly logger: Logger;
 
 	public constructor() {
 		super({ name: 'interactionCreate' });
 
-		this._logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child({ discordEvent: this.name });
 	}
 
 	public async handle(interaction: Interaction) {
 		const command = this._getCommand(interaction);
-		if (!command) return;
+		if (!command) {
+			return;
+		}
 
 		if (interaction.isChatInputCommand() && interaction.channel?.isSendable()) {
 			const sw = new Stopwatch();
-
 			try {
-				this._logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
+				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
 
 				await interaction.channel.sendTyping();
 
@@ -52,7 +53,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					await tryToRespond(interaction, INTERACTION_ERROR());
 				}
 			} finally {
-				this._logger.silly(`Interaction completed in ${sw.toString()}`);
+				this.logger.silly(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {

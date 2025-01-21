@@ -48,7 +48,6 @@ export default class ReportForecastsJob extends BaseJob {
 			try {
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild?.channels.fetch(channelId);
-
 				if (!isTextChannel(channel)) {
 					logger.warn('Forecast destination channel is missing or not a text channel, deleting record', { guildId, channelId, messageId });
 

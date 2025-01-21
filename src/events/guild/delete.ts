@@ -5,12 +5,12 @@ import type { Logger } from 'winston';
 import type { Guild } from 'discord.js';
 
 export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
-	private readonly _logger: Logger;
+	private readonly logger: Logger;
 
 	public constructor() {
 		super({ name: 'guildDelete' });
 
-		this._logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child({ discordEvent: this.name });
 	}
 
 	public async handle(guild: Guild) {
@@ -20,9 +20,9 @@ export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 		 */
 
 		const guildId = guild.id;
-		const where = { guildId };
+		const where   = { guildId };
 
-		this._logger.info('No longer operating in a guild, cleaning up database', {
+		this.logger.info('No longer operating in a guild, cleaning up database', {
 			name: guild.name,
 			guildId
 		});

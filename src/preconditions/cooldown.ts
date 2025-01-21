@@ -13,8 +13,8 @@ type CooldownPreconditionOptions = {
 };
 
 export class CooldownPrecondition extends BasePrecondition {
-	private readonly _global: boolean;
-	private readonly _manager: RateLimitManager<string>;
+	private readonly global: boolean;
+	private readonly manager: RateLimitManager<string>;
 
 	/**
 	 * Creates a precondition that adds a cooldown to interactions.
@@ -28,13 +28,13 @@ export class CooldownPrecondition extends BasePrecondition {
 	public constructor({ duration, limit, global }: CooldownPreconditionOptions) {
 		super();
 
-		this._global  = global ?? false;
-		this._manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
+		this.global  = global ?? false;
+		this.manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
 	}
 
 	public async check(interaction: ChatInputCommandInteraction) {
 		let id = interaction.user.id;
-		if (this._global) {
+		if (this.global) {
 			const { channel } = interaction;
 			if (channel) {
 				// Default to the user ID if the command is not called in a guild
@@ -42,7 +42,7 @@ export class CooldownPrecondition extends BasePrecondition {
 			}
 		}
 
-		const ratelimit = this._manager.acquire(id);
+		const ratelimit = this.manager.acquire(id);
 		if (ratelimit.limited) {
 			const expiresAt = new Date(ratelimit.expires);
 

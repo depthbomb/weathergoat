@@ -48,12 +48,12 @@ export interface ISweeperService extends IService {
 }
 
 export default class SweeperService implements ISweeperService {
-	private readonly _logger: Logger;
-	private readonly _client: WeatherGoat<true>;
+	private readonly logger: Logger;
+	private readonly client: WeatherGoat<true>;
 
 	public constructor() {
-		this._logger = logger.child({ service: 'Sweeper' });
-		this._client = container.resolve('WeatherGoat');
+		this.logger = logger.child({ service: 'Sweeper' });
+		this.client = container.resolve('WeatherGoat');
 	}
 
 	public async getDueMessages() {
@@ -114,7 +114,7 @@ export default class SweeperService implements ISweeperService {
 		const messages = await this.getDueMessages();
 		for (const { id, channelId, messageId } of messages) {
 			try {
-				const channel = await this._client.channels.fetch(channelId);
+				const channel = await this.client.channels.fetch(channelId);
 				if (isTextChannel(channel)) {
 					const message = await channel?.messages.fetch(messageId);
 					if (message) {
@@ -124,7 +124,7 @@ export default class SweeperService implements ISweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				this._logger.error('Error while deleting volatile message', err, { id, channelId, messageId });
+				this.logger.error('Error while deleting volatile message', err, { id, channelId, messageId });
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}

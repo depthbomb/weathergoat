@@ -47,7 +47,6 @@ export default class ReportAlertsJob extends BaseJob {
 		});
 		for (const { zoneId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
-
 			if (!isTextChannel(channel)) {
 				continue;
 			}

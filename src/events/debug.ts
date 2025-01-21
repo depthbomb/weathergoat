@@ -3,7 +3,7 @@ import { BaseEvent } from '@events';
 import type { Logger } from 'winston';
 
 export default class DebugEvent extends BaseEvent<'debug'> {
-	private readonly _logger: Logger;
+	private readonly logger: Logger;
 
 	public constructor() {
 		super({
@@ -11,10 +11,10 @@ export default class DebugEvent extends BaseEvent<'debug'> {
 			disabled: process.env.MODE === 'production'
 		});
 
-		this._logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child({ discordEvent: this.name });
 	}
 
 	public async handle(message: string) {
-		this._logger.debug(message);
+		this.logger.debug(message);
 	}
 }
