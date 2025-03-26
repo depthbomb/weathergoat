@@ -17,7 +17,7 @@
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
 		"@sapphire/time-utilities": "^1.7.14",
-		"@sentry/bun": "^9.5.0",
+		"@sentry/bun": "^9.9.0",
 		"bufferutil": "^4.0.9",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.4",
