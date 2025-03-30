@@ -36,7 +36,6 @@ export default class ReportAlertsJob extends BaseJob {
 	public async execute(client: WeatherGoat<true>) {
 		const destinations = await db.alertDestination.findMany({
 			select: {
-				zoneId: true,
 				countyId: true,
 				guildId: true,
 				channelId: true,
@@ -45,14 +44,14 @@ export default class ReportAlertsJob extends BaseJob {
 				pingOnSevere: true,
 			}
 		});
-		for (const { zoneId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
+		for (const { countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			const channel = await client.channels.fetch(channelId);
 			if (!isTextChannel(channel)) {
 				continue;
 			}
 
 			try {
-				const alerts = await this._alerts.getActiveAlertsForZone(zoneId);
+				const alerts = await this._alerts.getActiveAlertsForZone(countyId);
 				for (const alert of alerts.filter(a => a.isNotTest)) {
 					const alreadyReported = await db.sentAlert.findFirst({
 						where: {
@@ -149,7 +148,7 @@ export default class ReportAlertsJob extends BaseJob {
 					continue;
 				}
 
-				reportError('An error occurred while reporting alerts', err, { zoneId, guildId, channelId });
+				reportError('An error occurred while reporting alerts', err, { countyId, guildId, channelId });
 			}
 		}
 	}
