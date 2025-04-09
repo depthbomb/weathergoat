@@ -121,25 +121,25 @@ export class HttpClient {
 }
 
 export default class HttpService implements IHttpService {
-	private readonly _logger: Logger;
-	private readonly _clients: Collection<string, HttpClient>;
+	private readonly logger: Logger;
+	private readonly clients: Collection<string, HttpClient>;
 
 	public constructor() {
-		this._logger  = logger.child({ service: 'Http' });
-		this._clients = new Collection();
+		this.logger  = logger.child({ service: 'Http' });
+		this.clients = new Collection();
 	}
 
 	public getClient(name: string, options?: CreateHttpClientOptions) {
-		if (this._clients.has(name)) {
-			return this._clients.get(name)!;
+		if (this.clients.has(name)) {
+			return this.clients.get(name)!;
 		}
 
 		const retry   = options?.retry ?? true;
 		const baseUrl = options?.baseUrl;
 		const client  = new HttpClient({ name, baseUrl, retry });
 
-		this._clients.set(name, client);
-		this._logger.info('Created HTTP client', { name, ...options });
+		this.clients.set(name, client);
+		this.logger.info('Created HTTP client', { name, ...options });
 
 		return client;
 	}

@@ -82,14 +82,14 @@ export class CacheStore {
 }
 
 export default class CacheService implements ICacheService {
-	private readonly _stores: Collection<string, CacheStore>;
+	private readonly stores: Collection<string, CacheStore>;
 
 	public constructor() {
-		this._stores = new Collection();
+		this.stores = new Collection();
 	}
 
 	public getStore(name: string, options?: GetCacheStoreOptions) {
-		return this._stores.ensure(name, () => new CacheStore({
+		return this.stores.ensure(name, () => new CacheStore({
 			defaultTtl: options?.defaultTtl ?? '99 years'
 		}));
 	}

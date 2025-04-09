@@ -29,69 +29,57 @@ type Service = {
 type ServiceModule = new(container: Container) => IService;
 
 class Container {
-	private readonly _values: Map<string, unknown>;
-	private readonly _modules: Map<string, ServiceModule>;
-	private readonly _services: Map<string, IService>;
+	public readonly values: Map<string, unknown>;
+	public readonly modules: Map<string, ServiceModule>;
+	public readonly services: Map<string, IService>;
 
 	public constructor() {
-		this._values   = new Map();
-		this._modules  = new Map();
-		this._services = new Map();
-	}
-
-	public get services() {
-		return this._services;
-	}
-
-	public get modules() {
-		return this._modules;
-	}
-
-	public get values() {
-		return this._values;
+		this.values   = new Map();
+		this.modules  = new Map();
+		this.services = new Map();
 	}
 
 	public register<Name extends keyof Service>(name: Name, serviceModule: unknown) {
-		this._modules.set(name, serviceModule as ServiceModule);
+		this.modules.set(name, serviceModule as ServiceModule);
 
 		return this;
 	}
 
 	public registerValue<Name extends keyof Service>(name: Name, value: any) {
-		this._values.set(name, value);
+		this.values.set(name, value);
 
 		return this;
 	}
 
 	public resolve<Name extends keyof Service, ResolvedService extends Service[Name]>(name: Name): ResolvedService {
-		if (this._values.has(name)) {
-			return this._values.get(name) as ResolvedService;
+		if (this.values.has(name)) {
+			return this.values.get(name) as ResolvedService;
 		}
 
-		if (this._services.has(name)) {
-			return this._services.get(name) as ResolvedService;
+		if (this.services.has(name)) {
+			return this.services.get(name) as ResolvedService;
 		}
 
-		const mod = this._modules.get(name);
+		const mod = this.modules.get(name);
 		if (!mod) {
 			throw new Error(`Service not registered: ${name}`);
 		}
 
 		const service = new mod(this);
 
-		this._services.set(name, service);
+		this.services.set(name, service);
 
 		return service as ResolvedService;
 	}
 
 	public async init() {
-		for (const [_, service] of this._services) {
+		for (const [_, service] of this.services) {
 			await service.init?.();
 		}
 	}
 
 	public async dispose() {
-		for (const [_, service] of this._services) {
+		for (const [_, service] of this.services) {
 			await service.dispose?.();
 		}
 	}

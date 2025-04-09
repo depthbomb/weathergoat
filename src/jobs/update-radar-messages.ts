@@ -12,8 +12,8 @@ import type { Logger } from 'winston';
 import type { WeatherGoat } from '@client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
-	private readonly _logger: Logger;
-	private readonly _errorCodes: number[];
+	private readonly logger: Logger;
+	private readonly errorCodes: number[];
 
 	public constructor() {
 		super({
@@ -22,8 +22,8 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger     = logger.child({ jobName: this.name });
-		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
+		this.logger     = logger.child({ jobName: this.name });
+		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
@@ -33,7 +33,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
-					this._logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
+					this.logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
 
 					await db.autoRadarMessage.delete({ where: { id } });
 					continue;
@@ -61,8 +61,8 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
-					if (isDiscordAPIErrorCode(err, this._errorCodes)) {
-						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
+					if (isDiscordAPIErrorCode(err, this.errorCodes)) {
+						this.logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
 
 						await db.autoRadarMessage.delete({ where: { id } });
 					}

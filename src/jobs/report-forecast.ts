@@ -14,10 +14,10 @@ import type { ILocationService } from '@services/location';
 import type { IForecastService } from '@services/forecast';
 
 export default class ReportForecastsJob extends BaseJob {
-	private readonly _logger: Logger;
-	private readonly _errorCodes: number[];
-	private readonly _location: ILocationService;
-	private readonly _forecast: IForecastService;
+	private readonly logger: Logger;
+	private readonly errorCodes: number[];
+	private readonly location: ILocationService;
+	private readonly forecast: IForecastService;
 
 	public constructor() {
 		super({
@@ -26,10 +26,10 @@ export default class ReportForecastsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger     = logger.child({ jobName: this.name });
-		this._errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
-		this._location   = container.resolve('Location');
-		this._forecast   = container.resolve('Forecast');
+		this.logger     = logger.child({ jobName: this.name });
+		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
+		this.location   = container.resolve('Location');
+		this.forecast   = container.resolve('Forecast');
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -63,8 +63,8 @@ export default class ReportForecastsJob extends BaseJob {
 					continue;
 				}
 
-				const forecast = await this._forecast.getForecastForCoordinates(latitude, longitude);
-				const location = await this._location.getInfoFromCoordinates(latitude, longitude);
+				const forecast = await this.forecast.getForecastForCoordinates(latitude, longitude);
+				const location = await this.location.getInfoFromCoordinates(latitude, longitude);
 				const embed = new EmbedBuilder()
 					.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
 					.setColor(Color.Primary)
@@ -81,8 +81,8 @@ export default class ReportForecastsJob extends BaseJob {
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
-					if (isDiscordAPIErrorCode(err, this._errorCodes)) {
-						this._logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, code, message });
+					if (isDiscordAPIErrorCode(err, this.errorCodes)) {
+						this.logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, code, message });
 
 						await db.forecastDestination.delete({ where: { id } });
 					}

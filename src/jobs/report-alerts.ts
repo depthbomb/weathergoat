@@ -16,10 +16,10 @@ import type { IAlertsService } from '@services/alerts';
 import type { ISweeperService } from '@services/sweeper';
 
 export default class ReportAlertsJob extends BaseJob {
-	private readonly _logger: Logger;
-	private readonly _alerts: IAlertsService;
-	private readonly _sweeper: ISweeperService;
-	private readonly _webhookUsername = 'WeatherGoat#Alerts';
+	private readonly logger: Logger;
+	private readonly alerts: IAlertsService;
+	private readonly sweeper: ISweeperService;
+	private readonly webhookUsername = 'WeatherGoat#Alerts';
 
 	public constructor() {
 		super({
@@ -28,9 +28,9 @@ export default class ReportAlertsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._logger  = logger.child({ jobName: this.name });
-		this._alerts  = container.resolve('Alerts');
-		this._sweeper = container.resolve('Sweeper');
+		this.logger  = logger.child({ jobName: this.name });
+		this.alerts  = container.resolve('Alerts');
+		this.sweeper = container.resolve('Sweeper');
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -51,7 +51,7 @@ export default class ReportAlertsJob extends BaseJob {
 			}
 
 			try {
-				const alerts = await this._alerts.getActiveAlertsForZone(countyId);
+				const alerts = await this.alerts.getActiveAlertsForZone(countyId);
 				for (const alert of alerts.filter(a => a.isNotTest)) {
 					const alreadyReported = await db.sentAlert.findFirst({
 						where: {
@@ -67,7 +67,7 @@ export default class ReportAlertsJob extends BaseJob {
 					const description = codeBlock('md', alert.description);
 					const embed = new EmbedBuilder()
 						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
-						.setColor(this._getAlertSeverityColor(alert))
+						.setColor(this.getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
 						.addFields(
@@ -103,14 +103,14 @@ export default class ReportAlertsJob extends BaseJob {
 					const webhook = await this._getOrCreateWebhook(channel);
 					const sentMessage = await webhook.send({
 						content: shouldPingEveryone ? '@everyone' : '',
-						username: this._webhookUsername,
+						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
 						embeds: [embed]
 					});
 
 					if (autoCleanup) {
 						const expiresAt = alert.expires;
-						await this._sweeper.enqueueMessage(sentMessage, expiresAt);
+						await this.sweeper.enqueueMessage(sentMessage, expiresAt);
 					}
 
 					await db.sentAlert.create({
@@ -134,7 +134,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 							if (!expiredSentAlert) continue;
 
-							await this._sweeper.enqueueMessage(
+							await this.sweeper.enqueueMessage(
 								expiredSentAlert.guildId,
 								expiredSentAlert.channelId,
 								expiredSentAlert.messageId,
@@ -156,17 +156,17 @@ export default class ReportAlertsJob extends BaseJob {
 	private async _getOrCreateWebhook(channel: TextChannel) {
 		const reason   = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
-		let ourWebhook = webhooks.find(w => w.name === this._webhookUsername && w.client === channel.client);
+		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.client === channel.client);
 		if (!ourWebhook) {
-			ourWebhook = await channel.createWebhook({ name: this._webhookUsername, reason });
+			ourWebhook = await channel.createWebhook({ name: this.webhookUsername, reason });
 
-			this._logger.info('Created webhook', { name: this._webhookUsername, channel: channel.name } );
+			this.logger.info('Created webhook', { name: this.webhookUsername, channel: channel.name } );
 		}
 
 		return ourWebhook;
 	}
 
-	private _getAlertSeverityColor(alert: Alert) {
+	private getAlertSeverityColor(alert: Alert) {
 		switch (alert.severity) {
 			case 'Unknown':
 				return Color.SeverityUnknown;

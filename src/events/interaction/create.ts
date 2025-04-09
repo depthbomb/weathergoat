@@ -20,7 +20,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 	}
 
 	public async handle(interaction: Interaction) {
-		const command = this._getCommand(interaction);
+		const command = this.getCommand(interaction);
 		if (!command) {
 			return;
 		}
@@ -64,7 +64,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		}
 	}
 
-	private _getCommand(interaction: Interaction): Maybe<BaseCommand> {
+	private getCommand(interaction: Interaction): Maybe<BaseCommand> {
 		if (!('commandName' in interaction)) return;
 
 		return interaction.client.commands.get(interaction.commandName);

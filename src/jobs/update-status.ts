@@ -7,8 +7,8 @@ import type { WeatherGoat } from '@client';
 import type { IGithubService } from '@services/github';
 
 export default class UpdateStatusJob extends BaseJob {
-	private readonly _github: IGithubService;
-	private readonly _formatter: DurationFormatter;
+	private readonly github: IGithubService;
+	private readonly formatter: DurationFormatter;
 
 	public constructor() {
 		super({
@@ -17,13 +17,13 @@ export default class UpdateStatusJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this._github    = container.resolve('Github');
-		this._formatter = new DurationFormatter();
+		this.github    = container.resolve('Github');
+		this.formatter = new DurationFormatter();
 	}
 
 	public async execute(client: WeatherGoat<true>) {
-		const duration = this._formatter.format(client.uptime, 3);
-		const hash     = await this._github.getCurrentCommitHash(true);
+		const duration = this.formatter.format(client.uptime, 3);
+		const hash     = await this.github.getCurrentCommitHash(true);
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,

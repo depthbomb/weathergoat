@@ -43,14 +43,14 @@ export abstract class BaseCommand {
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 	public readonly preconditions: BasePrecondition[];
 
-	private _localStorage: AsyncLocalStorage<CommandContext>;
-	private _subcommandMap?: SubcommandMap;
+	private localStorage: AsyncLocalStorage<CommandContext>;
+	private subcommandMap?: SubcommandMap;
 
 	public constructor(options: CommandOptions) {
 		this.name          = options.data.name;
 		this.data          = options.data;
 		this.preconditions = options.preconditions ?? [];
-		this._localStorage = new AsyncLocalStorage();
+		this.localStorage = new AsyncLocalStorage();
 	}
 
 	/**
@@ -59,7 +59,7 @@ export abstract class BaseCommand {
 	 * @remarks Values will be `undefined` if the command was not called with `callHandler`.
 	 */
 	public get ctx() {
-		return this._localStorage.getStore();
+		return this.localStorage.getStore();
 	}
 
 	/**
@@ -68,7 +68,7 @@ export abstract class BaseCommand {
 	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 */
 	public async callHandler(interaction: ChatInputCommandInteraction): Promise<unknown> {
-		return this._localStorage.run({ interaction }, async () => await this.handle(interaction));
+		return this.localStorage.run({ interaction }, async () => await this.handle(interaction));
 	}
 
 	/**
@@ -96,12 +96,12 @@ export abstract class BaseCommand {
 	 * @see {@link createSubcommandMap}
 	 */
 	public async handleSubcommand(interaction: ChatInputCommandInteraction) {
-		if (!this._subcommandMap) {
+		if (!this.subcommandMap) {
 			throw new Error(`No subcommand map for command "${this.name}".`);
 		}
 
 		const subcommandName = interaction.options.getSubcommand(true);
-		const { handler, preconditions } = this._subcommandMap[subcommandName];
+		const { handler, preconditions } = this.subcommandMap[subcommandName];
 
 		if (preconditions) {
 			for (const precondition of preconditions) {
@@ -140,11 +140,11 @@ export abstract class BaseCommand {
 	 * defined in {@link CommandOptions.data}.
 	 */
 	public createSubcommandMap<T extends string>(map: SubcommandMap<T>) {
-		if (this._subcommandMap) {
+		if (this.subcommandMap) {
 			throw new Error('A subcommand map has already been defined for this command.');
 		}
 
-		this._subcommandMap = map;
+		this.subcommandMap = map;
 	}
 
 	/**
