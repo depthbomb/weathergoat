@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated';
 
 export default Prisma.defineExtension({
 	name: 'exists-extension',

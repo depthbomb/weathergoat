@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated';
 
 // Extensions
 import exists from './extensions/exists';
@@ -12,4 +12,4 @@ export const db = new PrismaClient()
 	.$extends(alertDestinationCountByGuild)
 	.$extends(forecastDestinationCountByGuild);
 
-export * from '@prisma/client';
+export * from './';
