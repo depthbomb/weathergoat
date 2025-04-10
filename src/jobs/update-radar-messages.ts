@@ -18,7 +18,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	public constructor() {
 		super({
 			name: 'update_radar_messages',
-			pattern: '*/4 * * * *',
+			pattern: '*/5 * * * *',
 			runImmediately: true
 		});
 
