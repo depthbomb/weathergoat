@@ -6,8 +6,8 @@ import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { logger, reportError } from '@logger';
 import { generateSnowflake } from '@snowflake';
-import { time, codeBlock, EmbedBuilder } from 'discord.js';
-import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
+import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { time, codeBlock, FileBuilder, ContainerBuilder, SeparatorBuilder, TextDisplayBuilder } from 'discord.js';
 import type { Logger } from 'winston';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@client';
@@ -65,34 +65,48 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					const description = codeBlock('md', alert.description);
-					const embed = new EmbedBuilder()
-						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
-						.setColor(this.getAlertSeverityColor(alert))
-						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
-						.setURL(alert.url)
-						.addFields(
-							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
-							{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
-							{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
-							{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
+					const container = new ContainerBuilder()
+						.setAccentColor(this.getAlertSeverityColor(alert))
+						.addFileComponents(
+							new FileBuilder().setURL(this.getAlertBanner(alert))
 						)
-						.setTimestamp();
+						.addTextDisplayComponents(
+							new TextDisplayBuilder().setContent(`# ${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.event} - ${alert.certainty}\n## ${alert.headline}\nEffective as of ${time(alert.effective, 'R')} and expires ${time(alert.expires, 'R')}`)
+						)
+						.addSeparatorComponents(
+							new SeparatorBuilder().setDivider(true)
+						);
+
+						if (description.length > 4096) {
+							container.addTextDisplayComponents(
+								new TextDisplayBuilder().setContent(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
+							);
+						} else {
+							container.addTextDisplayComponents(
+								new TextDisplayBuilder().setContent(description)
+							);
+						}
+
+						container.addTextDisplayComponents(
+							new TextDisplayBuilder().setContent(`### ${_('jobs.alerts.affectedAreasTitle')}\n${alert.areaDesc}`)
+						)
+						.addSeparatorComponents(
+							new SeparatorBuilder().setDivider(true)
+						);
 
 					if (alert.instruction) {
-						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
+						container
+							.addTextDisplayComponents(
+								new TextDisplayBuilder().setContent(`### ${_('jobs.alerts.instructionsTitle')}\n${codeBlock('md', alert.instruction)}`)
+							).addSeparatorComponents(
+								new SeparatorBuilder().setDivider(true)
+							);
 					}
 
 					if (radarImageUrl) {
-						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
-					}
-
-					if (
-						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
-						description.length > EmbedLimits.MaximumDescriptionLength
-					) {
-						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }));
-					} else {
-						embed.setDescription(description);
+						container.addFileComponents(
+							new FileBuilder().setURL(`${radarImageUrl}?v=${generateSnowflake()}`)
+						);
 					}
 
 					const shouldPingEveryone = !!(
@@ -100,12 +114,13 @@ export default class ReportAlertsJob extends BaseJob {
 						(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
 						pingOnSevere
 					);
-					const webhook = await this._getOrCreateWebhook(channel);
+					const webhook     = await this.getOrCreateWebhook(channel);
 					const sentMessage = await webhook.send({
 						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
-						embeds: [embed]
+						withComponents: true,
+						components: [container]
 					});
 
 					if (autoCleanup) {
@@ -153,14 +168,14 @@ export default class ReportAlertsJob extends BaseJob {
 		}
 	}
 
-	private async _getOrCreateWebhook(channel: TextChannel) {
-		const reason   = 'Required for weather alert reporting';
+	private async getOrCreateWebhook(channel: TextChannel) {
+		const reason = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
 		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.client === channel.client);
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name: this.webhookUsername, reason });
 
-			this.logger.info('Created webhook', { name: this.webhookUsername, channel: channel.name } );
+			this.logger.info('Created webhook', { name: this.webhookUsername, channel: channel.name });
 		}
 
 		return ourWebhook;
@@ -178,6 +193,21 @@ export default class ReportAlertsJob extends BaseJob {
 				return Color.SeveritySevere;
 			case 'Extreme':
 				return Color.SeverityExtreme;
+		}
+	}
+
+	private getAlertBanner(alert: Alert) {
+		switch (alert.severity) {
+			case 'Unknown':
+				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484748267622.png?size=4096';
+			case 'Minor':
+				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424486711197697.png?size=4096';
+			case 'Moderate':
+				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484551135314.png?size=4096';
+			case 'Severe':
+				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484307734620.png?size=4096';
+			case 'Extreme':
+				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484203003965.png?size=4096';
 		}
 	}
 }
