@@ -6,8 +6,8 @@ import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { logger, reportError } from '@logger';
 import { generateSnowflake } from '@snowflake';
-import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, codeBlock, FileBuilder, ContainerBuilder, SeparatorBuilder, TextDisplayBuilder } from 'discord.js';
+import { time, codeBlock, EmbedBuilder } from 'discord.js';
+import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@client';
@@ -65,48 +65,34 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					const description = codeBlock('md', alert.description);
-					const container = new ContainerBuilder()
-						.setAccentColor(this.getAlertSeverityColor(alert))
-						.addFileComponents(
-							new FileBuilder().setURL(this.getAlertBanner(alert))
+					const embed = new EmbedBuilder()
+						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
+						.setColor(this.getAlertSeverityColor(alert))
+						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
+						.setURL(alert.url)
+						.addFields(
+							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
+							{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
+							{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
+							{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
 						)
-						.addTextDisplayComponents(
-							new TextDisplayBuilder().setContent(`# ${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.event} - ${alert.certainty}\n## ${alert.headline}\nEffective as of ${time(alert.effective, 'R')} and expires ${time(alert.expires, 'R')}`)
-						)
-						.addSeparatorComponents(
-							new SeparatorBuilder().setDivider(true)
-						);
-
-						if (description.length > 4096) {
-							container.addTextDisplayComponents(
-								new TextDisplayBuilder().setContent(_('jobs.alerts.payloadTooLargePlaceholder', { alert }))
-							);
-						} else {
-							container.addTextDisplayComponents(
-								new TextDisplayBuilder().setContent(description)
-							);
-						}
-
-						container.addTextDisplayComponents(
-							new TextDisplayBuilder().setContent(`### ${_('jobs.alerts.affectedAreasTitle')}\n${alert.areaDesc}`)
-						)
-						.addSeparatorComponents(
-							new SeparatorBuilder().setDivider(true)
-						);
+						.setTimestamp();
 
 					if (alert.instruction) {
-						container
-							.addTextDisplayComponents(
-								new TextDisplayBuilder().setContent(`### ${_('jobs.alerts.instructionsTitle')}\n${codeBlock('md', alert.instruction)}`)
-							).addSeparatorComponents(
-								new SeparatorBuilder().setDivider(true)
-							);
+						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
 					}
 
 					if (radarImageUrl) {
-						container.addFileComponents(
-							new FileBuilder().setURL(`${radarImageUrl}?v=${generateSnowflake()}`)
-						);
+						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
+					}
+
+					if (
+						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
+						description.length > EmbedLimits.MaximumDescriptionLength
+					) {
+						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }));
+					} else {
+						embed.setDescription(description);
 					}
 
 					const shouldPingEveryone = !!(
@@ -119,8 +105,7 @@ export default class ReportAlertsJob extends BaseJob {
 						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
-						withComponents: true,
-						components: [container]
+						embeds: [embed]
 					});
 
 					if (autoCleanup) {
