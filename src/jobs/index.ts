@@ -52,5 +52,5 @@ export abstract class BaseJob {
 	 * @param client The bot {@link WeatherGoat|client}.
 	 * @param job The underlying {@link Cron} instance of the job.
 	 */
-	public abstract execute(client: WeatherGoat, job: Cron): Promise<unknown>;
+	public abstract execute(client: WeatherGoat, job: Cron): Promise<void>;
 }
