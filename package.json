@@ -10,22 +10,22 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
-		"@prisma/client": "^6.11.0",
+		"@prisma/client": "^6.14.0",
 		"@sapphire/discord.js-utilities": "^7.3.3",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
 		"@sapphire/time-utilities": "^1.7.14",
-		"@sentry/bun": "^9.34.0",
+		"@sentry/bun": "^9.46.0",
 		"bufferutil": "^4.0.9",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.4",
 		"cockatiel": "^3.2.1",
 		"croner": "^9.1.0",
-		"discord.js": "^14.21.0",
+		"discord.js": "^14.22.1",
 		"fejl": "^4.0.1",
-		"i18next": "^25.3.0",
+		"i18next": "^25.4.2",
 		"i18next-fs-backend": "^2.6.0",
 		"octokit": "^5.0.3",
 		"ufo": "^1.6.1",
@@ -35,9 +35,9 @@
 		"zlib-sync": "^0.1.10"
 	},
 	"devDependencies": {
-		"@types/bun": "latest",
-		"prisma": "^6.11.0",
-		"typescript": "latest"
+		"@types/bun": "1.2.21",
+		"prisma": "^6.14.0",
+		"typescript": "5.9.2"
 	},
 	"trustedDependencies": [
 		"@prisma/client",
