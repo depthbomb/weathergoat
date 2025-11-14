@@ -63,8 +63,8 @@ export default class LocationService implements ILocationService {
 	public isValidCoordinates(combinedCoordinatesOrLatitude: string, longitude?: Maybe<string>): boolean {
 		if (combinedCoordinatesOrLatitude.includes(',') || !longitude) {
 			const split = combinedCoordinatesOrLatitude.split(',');
-			const lat = split[0].trim();
-			const lon = split[1].trim();
+			const lat   = split[0].trim();
+			const lon   = split[1].trim();
 
 			return this.isValidCoordinates(lat, lon);
 		}

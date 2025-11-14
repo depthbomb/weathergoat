@@ -3,17 +3,17 @@ import { logger } from '@logger';
 import { container } from '@container';
 import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { Prisma } from '@db';
 import type { Logger } from 'winston';
 import type { Message } from 'discord.js';
 import type { IService } from '@services';
 import type { WeatherGoat } from '@client';
+import type { PromiseReturnType } from '@prisma/client';
 
 export interface ISweeperService extends IService {
 	/**
 	 * Returns all message records that should be sweeped at the current date.
 	 */
-	getDueMessages(): Promise<Prisma.PromiseReturnType<typeof db.volatileMessage.findMany>>;
+	getDueMessages(): Promise<PromiseReturnType<typeof db.volatileMessage.findMany>>;
 	/**
 	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
 	 * updated with the new time instead.
