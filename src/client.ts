@@ -20,7 +20,7 @@ type CommandModule = BaseModule<BaseCommand>;
 type WeatherGoatOptions = ClientOptions & {}
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Array<{ job: BaseJob; cron: Cron }>;
+	public readonly jobs: Set<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand>;
 
@@ -30,8 +30,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public constructor(options: WeatherGoatOptions) {
 		super(options);
 
-		this.jobs = [];
-		this.events = new Collection();
+		this.jobs     = new Set();
+		this.events   = new Collection();
 		this.commands = new Collection();
 
 		this.logger = logger.child({ logger: 'WeatherGoat' });
@@ -73,9 +73,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: JobModule = await import(file);
 
-			const job = new mod();
-			const name = job.name;
-			const pattern = job.pattern;
+			const job            = new mod();
+			const name           = job.name;
+			const pattern        = job.pattern;
 			const runImmediately = job.runImmediately ?? false;
 			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
@@ -84,7 +84,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				catch: (err) => reportError('Job error', err, { name })
 			});
 
-			this.jobs.push({ job, cron });
+			this.jobs.add({ job, cron });
 
 			this.once('clientReady', async () => {
 				try {
@@ -110,9 +110,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: EventModule = await import(file);
 
-			const event = new mod();
-			const name = event.name;
-			const once = event.once ?? false;
+			const event    = new mod();
+			const name     = event.name;
+			const once     = event.once ?? false;
 			const disabled = event.disabled ?? false;
 
 			if (disabled) continue;
