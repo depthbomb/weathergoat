@@ -1,18 +1,35 @@
-import type { CommandInteraction, InteractionReplyOptions } from 'discord.js';
+import type { CommandInteraction, InteractionReplyOptions, InteractionEditReplyOptions } from 'discord.js';
 
-export async function tryToRespond(interaction: CommandInteraction, options: string | InteractionReplyOptions) {
+type ReplyLike = string | InteractionReplyOptions | InteractionEditReplyOptions;
+
+export async function tryToRespond(interaction: CommandInteraction, options: ReplyLike) {
 	const { replied, deferred } = interaction;
 	if (deferred) {
-		return interaction.editReply(options);
+		if (typeof options === 'string' || 'files' in options || 'content' in options) {
+			return interaction.editReply(options as string | InteractionEditReplyOptions);
+		}
+
+		const editOpts: InteractionEditReplyOptions = {
+			content: (options as InteractionReplyOptions).content ?? null,
+		};
+
+		return interaction.editReply(editOpts);
 	}
 
 	if (replied) {
 		if (typeof options === 'string') {
-			return interaction.followUp({ content: options, fetchReply: true });
+			return interaction.followUp({ content: options, withResponse: true });
 		}
 
-		return interaction.followUp({ ...options, fetchReply: true });
+		return interaction.followUp({
+			...(options as InteractionReplyOptions),
+			withResponse: true,
+		});
 	}
 
-	return interaction.reply(options);
+	if (typeof options === 'string') {
+		return interaction.reply(options);
+	}
+
+	return interaction.reply(options as InteractionReplyOptions);
 }
