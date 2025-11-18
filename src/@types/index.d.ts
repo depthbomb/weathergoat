@@ -26,6 +26,6 @@ declare module 'discord.js' {
 	}
 
 	interface ClientEvents {
-		ready: [client: WeatherGoat<true>];
+		clientReady: [client: WeatherGoat<true>];
 	}
 }

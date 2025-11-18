@@ -1,12 +1,12 @@
 import { db } from '@db';
 import { logger } from '@logger';
+import { WeatherGoat } from '@client';
 import { container } from '@container';
 import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Message } from 'discord.js';
 import type { IService } from '@services';
-import type { WeatherGoat } from '@client';
 import type { PromiseReturnType } from '@prisma/client';
 
 export interface ISweeperService extends IService {
@@ -47,13 +47,13 @@ export interface ISweeperService extends IService {
 	sweepMessages(): Promise<number[]>;
 }
 
-export default class SweeperService implements ISweeperService {
+export class SweeperService implements ISweeperService {
 	private readonly logger: Logger;
 	private readonly client: WeatherGoat<true>;
 
 	public constructor() {
 		this.logger = logger.child({ service: 'Sweeper' });
-		this.client = container.resolve('WeatherGoat');
+		this.client = container.resolve<WeatherGoat<true>>(WeatherGoat);
 	}
 
 	public async getDueMessages() {

@@ -81,7 +81,7 @@ export class CacheStore {
 	}
 }
 
-export default class CacheService implements ICacheService {
+export class CacheService implements ICacheService {
 	private readonly stores: Collection<string, CacheStore>;
 
 	public constructor() {

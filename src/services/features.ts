@@ -21,7 +21,7 @@ class Feature {
 	}
 }
 
-export default class FeaturesService implements IFeaturesService {
+export class FeaturesService implements IFeaturesService {
 	private readonly logger: Logger;
 	private readonly features: Collection<string, Feature>;
 

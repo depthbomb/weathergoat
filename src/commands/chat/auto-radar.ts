@@ -3,6 +3,7 @@ import { _ } from '@i18n';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@snowflake';
+import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
@@ -36,7 +37,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			]
 		});
 
-		this.location = container.resolve('Location');
+		this.location = container.resolve(LocationService);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {

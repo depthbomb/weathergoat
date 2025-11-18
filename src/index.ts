@@ -7,15 +7,15 @@ import { container } from '@container';
 import { logger, reportError } from '@logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
-import cliService from '@services/cli';
-import httpService from '@services/http';
-import cacheService from '@services/cache';
-import alertsService from '@services/alerts';
-import githubService from '@services/github';
-import sweeperService from '@services/sweeper';
-import featuresService from '@services/features';
-import locationService from '@services/location';
-import forecastService from '@services/forecast';
+import { CliService } from '@services/cli';
+import { HttpService } from '@services/http';
+import { CacheService } from '@services/cache';
+import { AlertsService } from '@services/alerts';
+import { GithubService } from '@services/github';
+import { SweeperService } from '@services/sweeper';
+import { FeaturesService } from '@services/features';
+import { LocationService } from '@services/location';
+import { ForecastService } from '@services/forecast';
 
 logger.info('Booting', { mode: process.env.MODE });
 
@@ -40,23 +40,23 @@ const wg = new WeatherGoat({
 });
 
 await container
-	.registerValue('WeatherGoat', wg)
-	.register('Alerts', alertsService)
-	.register('Cache', cacheService)
-	.register('Cli', cliService)
-	.register('Features', featuresService)
-	.register('Forecast', forecastService)
-	.register('Github', githubService)
-	.register('Http', httpService)
-	.register('Location', locationService)
-	.register('Sweeper', sweeperService)
+	.registerValue(WeatherGoat, wg)
+	.registerClass(AlertsService)
+	.registerClass(CacheService)
+	.registerClass(CliService)
+	.registerClass(FeaturesService)
+	.registerClass(ForecastService)
+	.registerClass(GithubService)
+	.registerClass(HttpService)
+	.registerClass(LocationService)
+	.registerClass(SweeperService)
 	.init();
 
 if (process.argv.length > 2) {
-	const cli = container.resolve('Cli');
+	const cli = container.resolve(CliService);
 	await cli.run(process.argv.slice(2));
 } else {
-	const features = container.resolve('Features');
+	const features = container.resolve(FeaturesService);
 
 	features.set('disable_alert_reporting',        0.0, 'Alert reporting killswitch');
 	features.set('disable_forecast_reporting',     0.0, 'Forecast reporting killswitch');

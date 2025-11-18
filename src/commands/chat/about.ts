@@ -1,6 +1,7 @@
 import { _ } from '@i18n';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
+import { GithubService } from '@services/github';
 import { MessageLimits } from '@sapphire/discord-utilities';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -29,7 +30,7 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this.github    = container.resolve('Github');
+		this.github    = container.resolve(GithubService);
 		this.formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({

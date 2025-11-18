@@ -5,6 +5,8 @@ import { logger } from '@logger';
 import { Color } from '@constants';
 import { container } from '@container';
 import { generateSnowflake } from '@snowflake';
+import { LocationService } from '@services/location';
+import { ForecastService } from '@services/forecast';
 import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
@@ -28,8 +30,8 @@ export default class ReportForecastsJob extends BaseJob {
 
 		this.logger     = logger.child({ jobName: this.name });
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
-		this.location   = container.resolve('Location');
-		this.forecast   = container.resolve('Forecast');
+		this.location   = container.resolve(LocationService);
+		this.forecast   = container.resolve(ForecastService);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

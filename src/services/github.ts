@@ -1,5 +1,6 @@
 import { Octokit } from 'octokit';
 import { container } from '@container';
+import { CacheService } from './cache';
 import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
 import type { IService } from '@services';
 import type { CacheStore } from './cache';
@@ -20,7 +21,7 @@ export interface IGithubService extends IService {
 	getCommits(count?: number): Promise<Endpoints['GET /repos/{owner}/{repo}/commits']['response']['data']>;
 }
 
-export default class GithubService implements IGithubService {
+export class GithubService implements IGithubService {
 	private readonly octokit: Octokit;
 	private readonly cache: CacheStore;
 
@@ -29,7 +30,7 @@ export default class GithubService implements IGithubService {
 			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
 		}
 
-		this.cache   = container.resolve('Cache').getStore('github', { defaultTtl: '10 minutes' });
+		this.cache   = container.resolve(CacheService).getStore('github', { defaultTtl: '10 minutes' });
 		this.octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 

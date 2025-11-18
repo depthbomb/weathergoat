@@ -4,6 +4,7 @@ import { reportError } from '@logger';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@snowflake';
+import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
 import {
@@ -38,7 +39,7 @@ export default class ForecastCommand extends BaseCommand {
 			]
 		});
 
-		this.location = container.resolve('Location');
+		this.location = container.resolve(LocationService);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {

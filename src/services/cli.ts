@@ -6,7 +6,7 @@ export interface ICliService extends IService {
 	run(args: string[]): Promise<void>;
 }
 
-export default class CliService implements ICliService {
+export class CliService implements ICliService {
 	private readonly cli: Cli;
 
 	public constructor() {

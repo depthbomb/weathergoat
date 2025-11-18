@@ -1,3 +1,4 @@
+import { HttpService } from './http';
 import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
@@ -20,11 +21,11 @@ export interface IAlertsService extends IService {
 	getActiveAlertsForZone(zoneId: string): Promise<Alert[]>;
 }
 
-export default class AlertsService implements IAlertsService {
+export class AlertsService implements IAlertsService {
 	private readonly http: HttpClient;
 
 	public constructor() {
-		this.http = container.resolve('Http').getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
+		this.http = container.resolve(HttpService).getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
 	public async getActiveAlerts() {

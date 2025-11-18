@@ -1,5 +1,7 @@
+import { HttpService } from './http';
 import { container } from '@container';
 import { HTTPRequestError } from '@errors';
+import { LocationService } from './location';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HttpClient } from './http';
@@ -17,15 +19,15 @@ export interface IForecastService extends IService {
 	getForecastForCoordinates(latitude: string, longitude: string): Promise<GridpointForecastPeriod>;
 }
 
-export default class ForecastService implements IForecastService {
+export class ForecastService implements IForecastService {
 	private readonly http: HttpClient;
 	private readonly location: ILocationService;
 
 	public constructor() {
-		const httpService = container.resolve('Http');
+		const httpService = container.resolve(HttpService);
 
 		this.http     = httpService.getClient('forecasts');
-		this.location = container.resolve('Location');
+		this.location = container.resolve(LocationService);
 	}
 
 	public async getForecastForCoordinates(latitude: string, longitude: string) {

@@ -6,6 +6,8 @@ import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { logger, reportError } from '@logger';
 import { generateSnowflake } from '@snowflake';
+import { AlertsService } from '@services/alerts';
+import { SweeperService } from '@services/sweeper';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
@@ -29,8 +31,8 @@ export default class ReportAlertsJob extends BaseJob {
 		});
 
 		this.logger  = logger.child({ jobName: this.name });
-		this.alerts  = container.resolve('Alerts');
-		this.sweeper = container.resolve('Sweeper');
+		this.alerts  = container.resolve(AlertsService);
+		this.sweeper = container.resolve(SweeperService);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

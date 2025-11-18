@@ -1,4 +1,6 @@
+import { HttpService } from './http';
 import { Point } from '@models/Point';
+import { CacheService } from './cache';
 import { container } from '@container';
 import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
@@ -47,15 +49,15 @@ export interface ILocationService extends IService {
 	getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo>;
 }
 
-export default class LocationService implements ILocationService {
+export class LocationService implements ILocationService {
 	private readonly http: HttpClient;
 	private readonly cache: CacheStore;
 	private readonly coordinatePattern: RegExp;
 	private readonly coordinatesPattern: RegExp;
 
 	public constructor() {
-		this.http               = container.resolve('Http').getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this.cache              = container.resolve('Cache').getStore('locations', { defaultTtl: '1 week' });
+		this.http               = container.resolve(HttpService).getClient('location', { baseUrl: API_BASE_ENDPOINT });
+		this.cache              = container.resolve(CacheService).getStore('locations', { defaultTtl: '1 week' });
 		this.coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
 		this.coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}

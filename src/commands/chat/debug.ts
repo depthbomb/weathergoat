@@ -2,6 +2,7 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
+import { FeaturesService } from '@services/features';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
 import type { IFeaturesService } from '@services/features';
@@ -22,7 +23,6 @@ export default class DebugCommand extends BaseCommand {
 					.setName('domain')
 					.setDescription('The domain in which to print')
 					.addChoices(
-						{ name: 'Services', value: 'services' },
 						{ name: 'Jobs', value: 'jobs' },
 						{ name: 'Features', value: 'features' },
 					)
@@ -38,7 +38,7 @@ export default class DebugCommand extends BaseCommand {
 			]
 		});
 
-		this.features = container.resolve('Features');
+		this.features = container.resolve(FeaturesService);
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },
@@ -54,13 +54,6 @@ export default class DebugCommand extends BaseCommand {
 		const domain = interaction.options.getString('domain', true) as 'services' | 'jobs' | 'features';
 		let json: string = '';
 		switch (domain) {
-			case 'services':
-				const services = [];
-				for (const key of container.services.keys()) {
-					services.push(key);
-				}
-				json = JSON.stringify(services, null, 4);
-				break;
 			case 'jobs':
 				const jobs = Array.from(interaction.client.jobs.values());
 				json = JSON.stringify(jobs.map(({ job, cron }) => ({

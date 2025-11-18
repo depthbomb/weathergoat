@@ -3,6 +3,7 @@ import { _ } from '@i18n';
 import { Color } from '@constants';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
+import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
@@ -53,7 +54,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this.location = container.resolve('Location');
+		this.location = container.resolve(LocationService);
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },

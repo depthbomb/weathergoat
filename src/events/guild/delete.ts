@@ -14,10 +14,8 @@ export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 	}
 
 	public async handle(guild: Guild) {
-		/**
-		 * Clean up database records that we no longer need if we are no longer operating inside of
-		 * the related guild.
-		 */
+		// Clean up database records that we no longer need if we are no longer operating inside of
+		// the related guild.
 
 		const guildId = guild.id;
 		const where   = { guildId };

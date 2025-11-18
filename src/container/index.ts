@@ -1,86 +1,159 @@
-import type { WeatherGoat } from '@client';
-import type {
-	IService,
-	ICliService,
-	IHttpService,
-	ICacheService,
-	IAlertsService,
-	IGithubService,
-	ISweeperService,
-	IFeaturesService,
-	IForecastService,
-	ILocationService,
-} from '@services';
+export type Token<T> = new (...args: any[]) => T;
 
-type Service = {
-	WeatherGoat: WeatherGoat;
-	// Services
-	Alerts: IAlertsService;
-	Cache: ICacheService;
-	Cli: ICliService;
-	Features: IFeaturesService;
-	Forecast: IForecastService;
-	Github: IGithubService;
-	Http: IHttpService;
-	Location: ILocationService;
-	Sweeper: ISweeperService;
-};
+export type Provider<T> =
+	| { type: 'class'; value: new (c: Container) => T }
+	| { type: 'factory'; value: (c: Container) => T }
+	| { type: 'value'; value: T };
 
-type ServiceModule = new(container: Container) => IService;
+export class Container {
+	private disposed  = false;
+	private providers = new Map<Token<any>, Provider<any>>();
+	private instances = new Map<Token<any>, any>();
+	private edges     = new Map<Token<any>, Set<Token<any>>>();
+	private resolving = new Set<Token<any>>();
 
-class Container {
-	public readonly values: Map<string, unknown>;
-	public readonly modules: Map<string, ServiceModule>;
-	public readonly services: Map<string, IService>;
-
-	public constructor() {
-		this.values   = new Map();
-		this.modules  = new Map();
-		this.services = new Map();
+	public getProviders() {
+		return this.providers;
 	}
 
-	public register<Name extends keyof Service>(name: Name, serviceModule: unknown) {
-		this.modules.set(name, serviceModule as ServiceModule);
-
+	public registerClass<T>(ctor: new (c: Container) => T) {
+		this.providers.set(ctor, { type: 'class', value: ctor });
 		return this;
 	}
 
-	public registerValue<Name extends keyof Service>(name: Name, value: any) {
-		this.values.set(name, value);
-
+	public registerFactory<T>(token: Token<T>, factory: (c: Container) => T) {
+		this.providers.set(token, { type: 'factory', value: factory });
 		return this;
 	}
 
-	public resolve<Name extends keyof Service, ResolvedService extends Service[Name]>(name: Name): ResolvedService {
-		if (this.values.has(name)) {
-			return this.values.get(name) as ResolvedService;
+	public registerValue<T>(token: Token<T>, value: T) {
+		this.providers.set(token, { type: 'value', value });
+		this.instances.set(token, value);
+		return this;
+	}
+
+	public resolve<T>(token: Token<T>): T;
+	public resolve<T>(token: Token<T>, options: { lazy: true }): () => T;
+	public resolve<T>(token: Token<T>, options?: { lazy?: boolean }): any {
+		if (options?.lazy) {
+			let cached: T | undefined;
+			return () => (cached ??= this.resolve(token));
 		}
 
-		if (this.services.has(name)) {
-			return this.services.get(name) as ResolvedService;
+		if (this.disposed) {
+			throw new Error(`Cannot resolve '${token.name}'; container is disposed`);
 		}
 
-		const mod = this.modules.get(name);
-		if (!mod) {
-			throw new Error(`Service not registered: ${name}`);
+		if (this.instances.has(token)) {
+			return this.instances.get(token);
 		}
 
-		const service = new mod(this);
+		if (this.resolving.has(token)) {
+			const chain = [...this.resolving, token].map(t => t.name).join(' → ');
+			throw new Error(`Cyclic dependency detected: ${chain}`);
+		}
 
-		this.services.set(name, service);
+		const provider = this.providers.get(token);
+		if (!provider) {
+			throw new Error(`Service not registered: ${token.name}`);
+		}
 
-		return service as ResolvedService;
+		this.resolving.add(token);
+		const before = new Set(this.resolving);
+
+		let instance: T;
+
+		try {
+			switch (provider.type) {
+				case 'class':
+					instance = new provider.value(this);
+					break;
+				case 'factory':
+					instance = provider.value(this);
+					break;
+				case 'value':
+					instance = provider.value;
+					break;
+			}
+		} finally {
+			this.resolving.delete(token);
+		}
+
+		const after = new Set(this.resolving);
+		const deps = [...before]
+			.filter(d => d !== token && !after.has(d))
+			.filter(d => this.instances.has(d));
+
+		this.edges.set(token, new Set(deps));
+		this.instances.set(token, instance);
+
+		return instance;
+	}
+
+	private topoSort(): Token<any>[] {
+		const inDegree = new Map<Token<any>, number>();
+
+		for (const key of this.instances.keys()) {
+			inDegree.set(key, 0);
+		}
+
+		for (const [node, deps] of this.edges) {
+			for (const dep of deps) {
+				inDegree.set(node, (inDegree.get(node) ?? 0) + 1);
+			}
+		}
+
+		const queue: Token<any>[] = [];
+		for (const [node, deg] of inDegree) {
+			if (deg === 0) queue.push(node);
+		}
+
+		const order: Token<any>[] = [];
+
+		while (queue.length) {
+			const node = queue.shift()!;
+			order.push(node);
+
+			for (const [n, deps] of this.edges) {
+				if (deps.has(node)) {
+					const newDeg = (inDegree.get(n) ?? 0) - 1;
+					inDegree.set(n, newDeg);
+					if (newDeg === 0) queue.push(n);
+				}
+			}
+		}
+
+		if (order.length !== this.instances.size) {
+			throw new Error('Cycle detected during topological sort');
+		}
+
+		return order;
 	}
 
 	public async init() {
-		for (const [_, service] of this.services) {
-			await service.init?.();
+		if (this.disposed) {
+			throw new Error('Cannot init container; already disposed');
+		}
+
+		for (const token of this.instances.keys()) {
+			if (!this.edges.has(token)) {
+				this.edges.set(token, new Set());
+			}
+		}
+
+		const order = this.topoSort();
+
+		for (const token of order) {
+			await this.instances.get(token)?.init?.();
 		}
 	}
 
 	public async dispose() {
-		for (const [_, service] of this.services) {
-			await service.dispose?.();
+		if (this.disposed) return;
+		this.disposed = true;
+
+		for (const instance of this.instances.values()) {
+			await instance.dispose?.();
 		}
 	}
 }

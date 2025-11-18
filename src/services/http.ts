@@ -120,7 +120,7 @@ export class HttpClient {
 	}
 }
 
-export default class HttpService implements IHttpService {
+export class HttpService implements IHttpService {
 	private readonly logger: Logger;
 	private readonly clients: Collection<string, HttpClient>;
 
