@@ -154,7 +154,7 @@ export default class ReportAlertsJob extends BaseJob {
 	}
 
 	private async getOrCreateWebhook(channel: TextChannel) {
-		const reason = 'Required for weather alert reporting';
+		const reason   = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
 		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.client === channel.client);
 		if (!ourWebhook) {
@@ -178,21 +178,6 @@ export default class ReportAlertsJob extends BaseJob {
 				return Color.SeveritySevere;
 			case 'Extreme':
 				return Color.SeverityExtreme;
-		}
-	}
-
-	private getAlertBanner(alert: Alert) {
-		switch (alert.severity) {
-			case 'Unknown':
-				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484748267622.png?size=4096';
-			case 'Minor':
-				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424486711197697.png?size=4096';
-			case 'Moderate':
-				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484551135314.png?size=4096';
-			case 'Severe':
-				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484307734620.png?size=4096';
-			case 'Extreme':
-				return 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484203003965.png?size=4096';
 		}
 	}
 }

@@ -50,7 +50,7 @@ export default class DebugCommand extends BaseCommand {
 	}
 
 	private async _handlePrintSubcommand(interaction: ChatInputCommandInteraction) {
-		const domain = interaction.options.getString('domain', true) as 'services' | 'jobs' | 'features';
+		const domain = interaction.options.getString('domain', true) as 'jobs' | 'features';
 		let json: string = '';
 		switch (domain) {
 			case 'jobs':

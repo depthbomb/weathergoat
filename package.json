@@ -5,6 +5,7 @@
 	"scripts": {
 		"start": "bun src/index.ts",
 		"generate-client": "prisma generate",
+		"generate-messages": "bun scripts/generate-messages.ts assets/messages.json src/lib/messages.generated.ts",
 		"migrate:d": "prisma migrate dev",
 		"migrate:p": "prisma migrate deploy"
 	},

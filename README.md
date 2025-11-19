@@ -24,5 +24,6 @@ MAX_FORECAST_DESTINATIONS_PER_GUILD=5
 ```
 2. Run migrations with `bun migrate:p`
    - This won't do anything if there are no pending migrations
-3. Register application commands globally with `bun start mc create` or in specific guilds with `bun start mc create <guild_id_1> <guild_id_2> <etc...>`
-4. Run the bot with `bun start`
+3. Run `bun generate-messages` at least once and after any edit to _assets/messages.json_ to generate message helpers
+4. Register application commands globally with `bun start mc create` or in specific guilds with `bun start mc create <guild_id_1> <guild_id_2> <etc...>`
+5. Run the bot with `bun start`
