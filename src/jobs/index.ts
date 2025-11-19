@@ -1,5 +1,5 @@
 import type { Cron } from 'croner';
-import type { WeatherGoat } from '@client';
+import type { WeatherGoat } from '@lib/client';
 
 type JobOptions = {
 	/**

@@ -1,7 +1,7 @@
 import { HttpService } from './http';
 import { container } from '@container';
-import { HTTPRequestError } from '@errors';
 import { LocationService } from './location';
+import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HttpClient } from './http';

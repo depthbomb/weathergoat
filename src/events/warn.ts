@@ -1,5 +1,5 @@
-import { logger } from '@logger';
 import { BaseEvent } from '@events';
+import { logger } from '@lib/logger';
 import type { Logger } from 'winston';
 
 export default class WarnEvent extends BaseEvent<'warn'> {

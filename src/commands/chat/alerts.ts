@@ -5,8 +5,8 @@ import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isValidSnowflake, generateSnowflake } from '@snowflake';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
+import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
 	codeBlock,
 	ChannelType,
@@ -18,12 +18,11 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { HTTPRequestError } from '@errors';
-import type { ILocationService } from '@services/location';
+import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends BaseCommand {
-	private readonly location: ILocationService;
+	private readonly location;
 
 	public constructor() {
 		super({

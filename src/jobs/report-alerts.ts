@@ -3,24 +3,22 @@ import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { container } from '@container';
-import { HTTPRequestError } from '@errors';
-import { logger, reportError } from '@logger';
-import { generateSnowflake } from '@snowflake';
+import { HTTPRequestError } from '@lib/errors';
 import { AlertsService } from '@services/alerts';
+import { logger, reportError } from '@lib/logger';
+import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Alert } from '@models/Alert';
-import type { WeatherGoat } from '@client';
+import type { WeatherGoat } from '@lib/client';
 import type { TextChannel } from 'discord.js';
-import type { IAlertsService } from '@services/alerts';
-import type { ISweeperService } from '@services/sweeper';
 
 export default class ReportAlertsJob extends BaseJob {
 	private readonly logger: Logger;
-	private readonly alerts: IAlertsService;
-	private readonly sweeper: ISweeperService;
+	private readonly alerts;
+	private readonly sweeper;
 	private readonly webhookUsername = 'WeatherGoat#Alerts';
 
 	public constructor() {

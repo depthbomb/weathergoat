@@ -1,7 +1,7 @@
 import { db } from '@db';
 import initI18n from '@i18n';
 import { Cron } from 'croner';
-import { logger, reportError } from '@logger';
+import { logger, reportError } from '@lib/logger';
 import { Client, Collection } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
@@ -33,7 +33,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.events   = new Collection();
 		this.commands = new Collection();
 
-		this.logger = logger.child({ logger: 'WeatherGoat' });
+		this.logger            = logger.child({ logger: 'WeatherGoat' });
 		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 

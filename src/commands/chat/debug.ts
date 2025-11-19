@@ -5,11 +5,10 @@ import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
-import type { IFeaturesService } from '@services/features';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class DebugCommand extends BaseCommand {
-	private readonly features: IFeaturesService;
+	private readonly features;
 
 	public constructor() {
 		super({

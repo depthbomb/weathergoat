@@ -3,28 +3,30 @@ if (!process.versions.bun) {
 }
 
 import '@abraham/reflection';
-import { WeatherGoat } from '@client';
+import { WeatherGoat } from '@lib/client';
 import { container } from '@container';
-import { logger, reportError } from '@logger';
+import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
-import { CliService } from '@services/cli';
-import { HttpService } from '@services/http';
-import { CacheService } from '@services/cache';
-import { AlertsService } from '@services/alerts';
-import { GithubService } from '@services/github';
-import { SweeperService } from '@services/sweeper';
-import { FeaturesService } from '@services/features';
-import { LocationService } from '@services/location';
-import { ForecastService } from '@services/forecast';
+import {
+	CliService,
+	HttpService,
+	CacheService,
+	AlertsService,
+	GithubService,
+	SweeperService,
+	FeaturesService,
+	LocationService,
+	ForecastService
+} from '@services';
 
 async function main() {
 	logger.info('Booting', { mode: process.env.MODE });
 
 	if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
-		const { init } = await import('@sentry/bun');
+		const { init: initSentry } = await import('@sentry/bun');
 
-		init({ dsn: process.env.SENTRY_DSN });
+		initSentry({ dsn: process.env.SENTRY_DSN });
 	}
 
 	const wg = new WeatherGoat({

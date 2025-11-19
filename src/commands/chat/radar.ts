@@ -1,7 +1,7 @@
 import { _ } from '@i18n';
 import { Color } from '@constants';
 import { BaseCommand } from '@commands';
-import { generateSnowflake } from '@snowflake';
+import { generateSnowflake } from '@lib/snowflake';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 

@@ -1,5 +1,5 @@
 import { fetch } from 'bun';
-import { logger } from '@logger';
+import { logger } from '@lib/logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';

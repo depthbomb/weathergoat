@@ -1,9 +1,9 @@
 import { _ } from '@i18n';
 import { Color } from '@constants';
 import { EmbedBuilder } from 'discord.js';
-import { MaxDestinationError } from '@errors';
+import { MaxDestinationError } from '@lib/errors';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
-import type { WeatherGoatError } from '@errors';
+import type { WeatherGoatError } from '@lib/errors';
 import type { PreconditionError } from '@preconditions';
 
 function createErrorEmbed(message: string, footerText?: string) {

@@ -1,4 +1,4 @@
-import { logger } from '@logger';
+import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
 import { plainToInstance } from 'class-transformer';
 import type { Logger } from 'winston';

@@ -1,15 +1,15 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { logger } from '@logger';
 import { Color } from '@constants';
-import { generateSnowflake } from '@snowflake';
+import { logger } from '@lib/logger';
+import { generateSnowflake } from '@lib/snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { Cron } from 'croner';
 import type { Logger } from 'winston';
-import type { WeatherGoat } from '@client';
+import type { WeatherGoat } from '@lib/client';
 
 export default class UpdateRadarMessagesJob extends BaseJob {
 	private readonly logger: Logger;

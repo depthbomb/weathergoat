@@ -4,11 +4,10 @@ import { container } from '@container';
 import { GithubService } from '@services/github';
 import { DurationFormatter } from '@sapphire/time-utilities';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
-import type { WeatherGoat } from '@client';
-import type { IGithubService } from '@services/github';
+import type { WeatherGoat } from '@lib/client';
 
 export default class UpdateStatusJob extends BaseJob {
-	private readonly github: IGithubService;
+	private readonly github: GithubService;
 	private readonly formatter: DurationFormatter;
 
 	public constructor() {

@@ -1,6 +1,6 @@
 import { HttpService } from './http';
 import { container } from '@container';
-import { HTTPRequestError } from '@errors';
+import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';

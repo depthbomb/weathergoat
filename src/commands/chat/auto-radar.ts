@@ -2,10 +2,10 @@ import { db } from '@db';
 import { _ } from '@i18n';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
-import { generateSnowflake } from '@snowflake';
+import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
 	ChannelType,
 	ButtonStyle,
@@ -16,12 +16,11 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes,
 } from 'discord.js';
-import type { HTTPRequestError } from '@errors';
-import type { ILocationService } from '@services/location';
+import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AutoRadarCommand extends BaseCommand {
-	private readonly location: ILocationService;
+	private readonly location;
 
 	public constructor() {
 		super({

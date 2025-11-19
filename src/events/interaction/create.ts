@@ -1,10 +1,10 @@
 import { BaseEvent } from '@events';
-import { isWeatherGoatError } from '@errors';
-import { logger, reportError } from '@logger';
 import { Stopwatch } from '@sapphire/stopwatch';
+import { isWeatherGoatError } from '@lib/errors';
+import { logger, reportError } from '@lib/logger';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@messages';
+import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/messages';
 import type { Maybe } from '#types';
 import type { Logger } from 'winston';
 import type { Interaction } from 'discord.js';

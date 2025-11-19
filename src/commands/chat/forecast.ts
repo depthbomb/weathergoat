@@ -1,12 +1,12 @@
 import { db } from '@db';
 import { _ } from '@i18n';
-import { reportError } from '@logger';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
-import { generateSnowflake } from '@snowflake';
+import { reportError } from '@lib/logger';
+import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@errors';
+import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
 	time,
 	ChannelType,
@@ -18,12 +18,11 @@ import {
 	SlashCommandBuilder,
 	DiscordjsErrorCodes
 } from 'discord.js';
-import type { HTTPRequestError } from '@errors';
-import type { ILocationService } from '@services/location';
+import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastCommand extends BaseCommand {
-	private readonly location: ILocationService;
+	private readonly location;
 
 	public constructor() {
 		super({
@@ -81,7 +80,7 @@ export default class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
-				const forecastJob    = interaction.client.jobs.find(j => j.job.name === 'report_forecasts')!;
+				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === 'report_forecasts')!;
 				const initialMessage = await channel.send({
 					content: _('commands.forecasts.placeholderMessage', { location: info, time: time(forecastJob.cron.nextRun()!, 'R') }),
 					flags: MessageFlags.SuppressNotifications

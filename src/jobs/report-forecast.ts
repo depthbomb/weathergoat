@@ -1,25 +1,23 @@
 import { db } from '@db';
 import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { logger } from '@logger';
+import { logger } from '@lib/logger';
 import { Color } from '@constants';
 import { container } from '@container';
-import { generateSnowflake } from '@snowflake';
+import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { ForecastService } from '@services/forecast';
 import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import type { Logger } from 'winston';
-import type { WeatherGoat } from '@client';
-import type { ILocationService } from '@services/location';
-import type { IForecastService } from '@services/forecast';
+import type { WeatherGoat } from '@lib/client';
 
 export default class ReportForecastsJob extends BaseJob {
 	private readonly logger: Logger;
 	private readonly errorCodes: number[];
-	private readonly location: ILocationService;
-	private readonly forecast: IForecastService;
+	private readonly location: LocationService;
+	private readonly forecast: ForecastService;
 
 	public constructor() {
 		super({

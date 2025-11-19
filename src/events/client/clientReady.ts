@@ -1,7 +1,7 @@
-import { logger } from '@logger';
 import { BaseEvent } from '@events';
+import { logger } from '@lib/logger';
 import type { Logger } from 'winston';
-import type { WeatherGoat } from '@client';
+import type { WeatherGoat } from '@lib/client';
 
 export default class ClientReadyEvent extends BaseEvent<'clientReady'> {
 	private readonly logger: Logger;

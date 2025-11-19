@@ -2,7 +2,7 @@ import { HttpService } from './http';
 import { Point } from '@models/Point';
 import { CacheService } from './cache';
 import { container } from '@container';
-import { HTTPRequestError } from '@errors';
+import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import type { HttpClient } from './http';

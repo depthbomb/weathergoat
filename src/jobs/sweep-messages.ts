@@ -1,13 +1,12 @@
 import { BaseJob } from '@jobs';
-import { logger } from '@logger';
+import { logger } from '@lib/logger';
 import { container } from '@container';
 import { SweeperService } from '@services/sweeper';
 import type { Logger } from 'winston';
-import type { ISweeperService } from '@services/sweeper';
 
 export default class SweepMessagesJob extends BaseJob {
 	private readonly logger: Logger;
-	private readonly sweeper: ISweeperService;
+	private readonly sweeper: SweeperService;
 
 	public constructor() {
 		super({

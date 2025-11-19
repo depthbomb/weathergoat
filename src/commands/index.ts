@@ -1,6 +1,6 @@
-import { InvalidPermissionsError } from '@errors';
 import { tryToRespond } from '@utils/interactions';
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { InvalidPermissionsError } from '@lib/errors';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { BasePrecondition } from '@preconditions';
 import type {
