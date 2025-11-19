@@ -1,6 +1,5 @@
 import { Collection} from 'discord.js';
 import { Duration } from '@sapphire/time-utilities';
-import type { IService } from '@services';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
 type CacheStoreOptions = {
@@ -19,19 +18,6 @@ type GetCacheStoreOptions = Omit<CacheStoreOptions, 'defaultTtl'> & {
 	 */
 	defaultTtl?: string;
 };
-
-export interface ICacheService extends IService {
-	/**
-	 * Returns a cache store.
-	 *
-	 * @param name The name of the cache store.
-	 *
-	 * @remarks
-	 *
-	 * If a store does not exist by the provided {@link name} then it is created.
-	 */
-	getStore(name: string, options?: GetCacheStoreOptions): CacheStore;
-}
 
 export class CacheStore {
 	private readonly defaultTtl: string;
@@ -81,13 +67,22 @@ export class CacheStore {
 	}
 }
 
-export class CacheService implements ICacheService {
+export class CacheService {
 	private readonly stores: Collection<string, CacheStore>;
 
 	public constructor() {
 		this.stores = new Collection();
 	}
 
+	/**
+	 * Returns a cache store.
+	 *
+	 * @param name The name of the cache store.
+	 *
+	 * @remarks
+	 *
+	 * If a store does not exist by the provided {@link name} then it is created.
+	 */
 	public getStore(name: string, options?: GetCacheStoreOptions) {
 		return this.stores.ensure(name, () => new CacheStore({
 			defaultTtl: options?.defaultTtl ?? '99 years'

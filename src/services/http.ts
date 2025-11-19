@@ -8,7 +8,6 @@ import { DurationFormatter } from '@sapphire/time-utilities';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
 import type { Logger } from 'winston';
 import type { QueryObject } from 'ufo';
-import type { IService } from '@services';
 import type { RetryPolicy } from 'cockatiel';
 
 type HttpClientOptions = {
@@ -37,16 +36,6 @@ type CreateHttpClientOptions = Omit<HttpClientOptions, 'name' | 'retry'> & {
 };
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
-
-export interface IHttpService extends IService {
-	/**
-	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
-	 *
-	 * @param name The name to identify the HTTP client.
-	 * @param options Options to use when creating the HTTP client.
-	 */
-	getClient(name: string, options?: CreateHttpClientOptions): HttpClient;
-}
 
 export class HttpClient {
 	private readonly name: string;
@@ -120,7 +109,7 @@ export class HttpClient {
 	}
 }
 
-export class HttpService implements IHttpService {
+export class HttpService {
 	private readonly logger: Logger;
 	private readonly clients: Collection<string, HttpClient>;
 
@@ -129,6 +118,12 @@ export class HttpService implements IHttpService {
 		this.clients = new Collection();
 	}
 
+	/**
+	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
+	 *
+	 * @param name The name to identify the HTTP client.
+	 * @param options Options to use when creating the HTTP client.
+	 */
 	public getClient(name: string, options?: CreateHttpClientOptions) {
 		if (this.clients.has(name)) {
 			return this.clients.get(name)!;

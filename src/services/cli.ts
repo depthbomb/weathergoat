@@ -1,12 +1,7 @@
 import { Cli } from 'clipanion';
 import { CommandManagerCommand } from '@cli/commands/CommandManager';
-import type { IService } from '@services';
 
-export interface ICliService extends IService {
-	run(args: string[]): Promise<void>;
-}
-
-export class CliService implements ICliService {
+export class CliService {
 	private readonly cli: Cli;
 
 	public constructor() {

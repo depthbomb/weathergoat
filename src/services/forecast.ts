@@ -5,23 +5,10 @@ import { LocationService } from './location';
 import { plainToClass } from 'class-transformer';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HttpClient } from './http';
-import type { IService } from '@services';
-import type { ILocationService } from './location';
-import type { GridpointForecastPeriod } from '@models/GridpointForecastPeriod';
 
-export interface IForecastService extends IService {
-	/**
-	 * Retrieves the latest forecast period for the provided coordinates.
-	 *
-	 * @param latitude The latitude of the location.
-	 * @param longitude The longitude of the location.
-	 */
-	getForecastForCoordinates(latitude: string, longitude: string): Promise<GridpointForecastPeriod>;
-}
-
-export class ForecastService implements IForecastService {
+export class ForecastService {
 	private readonly http: HttpClient;
-	private readonly location: ILocationService;
+	private readonly location: LocationService;
 
 	public constructor() {
 		const httpService = container.resolve(HttpService);
@@ -30,6 +17,12 @@ export class ForecastService implements IForecastService {
 		this.location = container.resolve(LocationService);
 	}
 
+	/**
+	 * Retrieves the latest forecast period for the provided coordinates.
+	 *
+	 * @param latitude The latitude of the location.
+	 * @param longitude The longitude of the location.
+	 */
 	public async getForecastForCoordinates(latitude: string, longitude: string) {
 		const info = await this.location.getInfoFromCoordinates(latitude, longitude);
 		const res  = await this.http.get(info.forecastUrl);

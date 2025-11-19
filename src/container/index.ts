@@ -129,33 +129,6 @@ export class Container {
 
 		return order;
 	}
-
-	public async init() {
-		if (this.disposed) {
-			throw new Error('Cannot init container; already disposed');
-		}
-
-		for (const token of this.instances.keys()) {
-			if (!this.edges.has(token)) {
-				this.edges.set(token, new Set());
-			}
-		}
-
-		const order = this.topoSort();
-
-		for (const token of order) {
-			await this.instances.get(token)?.init?.();
-		}
-	}
-
-	public async dispose() {
-		if (this.disposed) return;
-		this.disposed = true;
-
-		for (const instance of this.instances.values()) {
-			await instance.dispose?.();
-		}
-	}
 }
 
 export const container = new Container();

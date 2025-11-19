@@ -1,16 +1,7 @@
 import { logger } from '@logger';
 import { Collection } from 'discord.js';
 import { plainToInstance } from 'class-transformer';
-import type { Maybe } from '#types';
 import type { Logger } from 'winston';
-import type { IService } from '@services';
-
-export interface IFeaturesService extends IService {
-	set(name: string, fraction: number, description?: string): IFeaturesService;
-	get(name: string): Maybe<Feature>;
-	isFeatureEnabled(name: string, defaultValue?: boolean): boolean;
-	all(): Feature[];
-}
 
 class Feature {
 	public name!: string;
@@ -21,7 +12,7 @@ class Feature {
 	}
 }
 
-export class FeaturesService implements IFeaturesService {
+export class FeaturesService {
 	private readonly logger: Logger;
 	private readonly features: Collection<string, Feature>;
 

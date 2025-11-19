@@ -41,18 +41,16 @@ async function main() {
 		partials: [Partials.Message, Partials.Channel]
 	});
 
-	await container
-		.registerValue(WeatherGoat, wg)
-		.registerClass(AlertsService)
-		.registerClass(CacheService)
-		.registerClass(CliService)
-		.registerClass(FeaturesService)
-		.registerClass(ForecastService)
-		.registerClass(GithubService)
-		.registerClass(HttpService)
-		.registerClass(LocationService)
-		.registerClass(SweeperService)
-		.init();
+	container.registerValue(WeatherGoat, wg)
+             .registerClass(AlertsService)
+             .registerClass(CacheService)
+             .registerClass(CliService)
+             .registerClass(FeaturesService)
+             .registerClass(ForecastService)
+             .registerClass(GithubService)
+             .registerClass(HttpService)
+             .registerClass(LocationService)
+             .registerClass(SweeperService);
 
 	if (process.argv.length > 2) {
 		const cli = container.resolve(CliService);

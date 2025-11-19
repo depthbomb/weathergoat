@@ -6,48 +6,9 @@ import { Duration } from '@sapphire/time-utilities';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Message } from 'discord.js';
-import type { IService } from '@services';
 import type { PromiseReturnType } from '@prisma/client';
 
-export interface ISweeperService extends IService {
-	/**
-	 * Returns all message records that should be sweeped at the current date.
-	 */
-	getDueMessages(): Promise<PromiseReturnType<typeof db.volatileMessage.findMany>>;
-	/**
-	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
-	 * updated with the new time instead.
-	 *
-	 * @param guildId The ID of the guild that the message is in.
-	 * @param channelId The ID of the channel that the message is in.
-	 * @param messageId The ID of the message.
-	 * @param expires The duration string (for example `1 day`) that the message should last for or
-	 * the {@link Date} in which the message should be sweeped.
-	 */
-	enqueueMessage(guildId: string, channelId: string, messageId: string, expires: string | Date): Promise<void>;
-	/**
-	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
-	 * updated with the new time instead.
-	 *
-	 * @param message The message.
-	 * @param expires The duration string (for example `1 day`) that the message should last for or
-	 * the {@link Date} in which the message should be sweeped.
-	 */
-	enqueueMessage(message: Message<boolean>, expires: string | Date): Promise<void>;
-	/**
-	 * Iterates and deletes volatile messages and their corresponding database record if they should
-	 * be sweeped at the current date.
-	 *
-	 * @returns An array with the following structure: `[sweepCount, errorCount]`.
-	 *
-	 * @remark `errorCount` merely refers to the number of errors as the result of a message not
-	 * being retrieved properly from the Discord API. This can happen for various reasons and is
-	 * usually through no fault of our own. The corresponding database record is deleted regardless.
-	 */
-	sweepMessages(): Promise<number[]>;
-}
-
-export class SweeperService implements ISweeperService {
+export class SweeperService {
 	private readonly logger: Logger;
 	private readonly client: WeatherGoat<true>;
 
@@ -56,28 +17,48 @@ export class SweeperService implements ISweeperService {
 		this.client = container.resolve<WeatherGoat<true>>(WeatherGoat);
 	}
 
-	public async getDueMessages() {
+	/**
+	 * Returns all message records that should be sweeped at the current date.
+	 */
+	public getDueMessages(): Promise<PromiseReturnType<typeof db.volatileMessage.findMany>> {
 		const now = new Date();
-		const messages = await db.volatileMessage.findMany({
+		return db.volatileMessage.findMany({
 			where: {
 				expiresAt: { lte: now }
 			}
 		});
-
-		return messages;
 	}
 
-	public async enqueueMessage(arg1: string | Message<boolean>, arg2: string, arg3?: string, arg4?: string | Date) {
+	/**
+	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
+	 * updated with the new time instead.
+	 *
+	 * @param guildId The ID of the guild that the message is in.
+	 * @param channelId The ID of the channel that the message is in.
+	 * @param messageId The ID of the message.
+	 * @param expires The duration string (e.g. `1 day`) or Date when the message should be swept.
+	 */
+	public async enqueueMessage(guildId: string, channelId: string, messageId: string, expires: string | Date): Promise<void>;
+	/**
+	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
+	 * updated with the new time instead.
+	 *
+	 * @param message The message.
+	 * @param expires The duration string (e.g. `1 day`) or Date when the message should be swept.
+	 */
+	public async enqueueMessage(message: Message<boolean>, expires: string | Date): Promise<void>;
+	public async enqueueMessage(arg1: string | Message<boolean>, arg2: string | Date, arg3?: string, arg4?: string | Date): Promise<void> {
 		let guildId: string;
 		let channelId: string;
 		let messageId: string;
 		let expiresAt: Date;
+
 		if (typeof arg1 === 'string') {
 			// arg1 = guildId, arg2 = channelId, arg3 = messageId, arg4 = expires
 			guildId = arg1;
-			channelId = arg2;
+			channelId = arg2 as string;
 			messageId = arg3!;
-			expiresAt = typeof arg4! === 'string' ? new Duration(arg4!).fromNow : arg4!;
+			expiresAt = typeof arg4 === 'string' ? new Duration(arg4).fromNow : arg4!;
 		} else {
 			// arg1 = message, arg2 = expires
 			if (!arg1.guildId) {
@@ -108,15 +89,22 @@ export class SweeperService implements ISweeperService {
 		});
 	}
 
-	public async sweepMessages() {
+	/**
+	 * Iterates and deletes volatile messages and their corresponding DB record if they should
+	 * be swept now.
+	 *
+	 * @returns A tuple: [sweepCount, errorCount]
+	 */
+	public async sweepMessages(): Promise<number[]> {
 		let sweepCount = 0;
 		let errorCount = 0;
 		const messages = await this.getDueMessages();
+
 		for (const { id, channelId, messageId } of messages) {
 			try {
 				const channel = await this.client.channels.fetch(channelId);
 				if (isTextChannel(channel)) {
-					const message = await channel?.messages.fetch(messageId);
+					const message = await channel.messages.fetch(messageId);
 					if (message) {
 						await message.delete();
 						sweepCount++;
@@ -133,3 +121,4 @@ export class SweeperService implements ISweeperService {
 		return [sweepCount, errorCount];
 	}
 }
+

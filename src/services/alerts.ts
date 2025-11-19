@@ -5,29 +5,17 @@ import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { AlertCollection } from '@models/AlertCollection';
 import type { HttpClient } from './http';
-import type { IService } from '@services';
-import type { Alert } from '@models/Alert';
 
-export interface IAlertsService extends IService {
-	/**
-	 * Retrieves all active weather alerts.
-	 */
-	getActiveAlerts(): Promise<Alert[]>;
-	/**
-	 * Retrieves weather alerts for a zone.
-	 *
-	 * @param zoneId The ID of the zone to retrieve alerts of.
-	 */
-	getActiveAlertsForZone(zoneId: string): Promise<Alert[]>;
-}
-
-export class AlertsService implements IAlertsService {
+export class AlertsService {
 	private readonly http: HttpClient;
 
 	public constructor() {
 		this.http = container.resolve(HttpService).getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
+	/**
+	 * Retrieves all active weather alerts.
+	 */
 	public async getActiveAlerts() {
 		const res = await this.http.get('/alerts/active');
 
@@ -39,6 +27,11 @@ export class AlertsService implements IAlertsService {
 		return data.alerts;
 	}
 
+	/**
+	 * Retrieves weather alerts for a zone.
+	 *
+	 * @param zoneId The ID of the zone to retrieve alerts of.
+	 */
 	public async getActiveAlertsForZone(zoneId: string) {
 		const res = await this.http.get(`/alerts/active/zone/${zoneId}`);
 
