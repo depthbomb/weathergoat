@@ -1,9 +1,8 @@
 import { time } from 'discord.js';
-import { BasePrecondition } from '@preconditions';
-import { Duration } from '@sapphire/time-utilities';
-import { PreconditionResult } from '@preconditions';
+import { Duration } from '@sapphire/duration';
 import { RateLimitManager } from '@sapphire/ratelimits';
 import { isGuildBasedChannel } from '@sapphire/discord.js-utilities';
+import { BasePrecondition, PreconditionResult } from '@preconditions';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 type CooldownPreconditionOptions = {

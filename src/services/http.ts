@@ -4,7 +4,7 @@ import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
 import { BOT_USER_AGENT } from '@constants';
-import { DurationFormatter } from '@sapphire/time-utilities';
+import { DurationFormatter } from '@sapphire/duration';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
 import type { Logger } from 'winston';
 import type { QueryObject } from 'ufo';

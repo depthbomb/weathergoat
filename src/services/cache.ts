@@ -1,18 +1,18 @@
 import { Collection} from 'discord.js';
-import { Duration } from '@sapphire/time-utilities';
+import { Duration } from '@sapphire/duration';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
 type CacheStoreOptions = {
 	/**
-	 * The default _time to live_ for stored items. Attempting to retrieve an item passed its
-	 * time to live will result in it being removed from the cache and `null` being returned.
+	 * The default _time to live_ for stored items. Attempting to retrieve an item after its time to
+	 * live will result in it being removed from the cache and `null` being returned.
 	 */
 	defaultTtl: string;
 };
 type GetCacheStoreOptions = Omit<CacheStoreOptions, 'defaultTtl'> & {
 	/**
-	 * The default _time to live_ for stored items. Attempting to retrieve an item passed its
-	 * time to live will result in it being removed from the cache and `null` being returned.
+	 * The default _time to live_ for stored items. Attempting to retrieve an item after its time to
+	 * live will result in it being removed from the cache and `null` being returned.
 	 *
 	 * @default '99 years'
 	 */
@@ -81,7 +81,7 @@ export class CacheService {
 	 *
 	 * @remarks
 	 *
-	 * If a store does not exist by the provided {@link name} then it is created.
+	 * If a store does not exist by the provided {@link name} then it will be created.
 	 */
 	public getStore(name: string, options?: GetCacheStoreOptions) {
 		return this.stores.ensure(name, () => new CacheStore({

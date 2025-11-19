@@ -2,7 +2,7 @@ import { db } from '@db';
 import { logger } from '@lib/logger';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
-import { Duration } from '@sapphire/time-utilities';
+import { Duration } from '@sapphire/duration';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
 import type { Message } from 'discord.js';
