@@ -89,46 +89,6 @@ export class Container {
 
 		return instance;
 	}
-
-	private topoSort(): Token<any>[] {
-		const inDegree = new Map<Token<any>, number>();
-
-		for (const key of this.instances.keys()) {
-			inDegree.set(key, 0);
-		}
-
-		for (const [node, deps] of this.edges) {
-			for (const dep of deps) {
-				inDegree.set(node, (inDegree.get(node) ?? 0) + 1);
-			}
-		}
-
-		const queue: Token<any>[] = [];
-		for (const [node, deg] of inDegree) {
-			if (deg === 0) queue.push(node);
-		}
-
-		const order: Token<any>[] = [];
-
-		while (queue.length) {
-			const node = queue.shift()!;
-			order.push(node);
-
-			for (const [n, deps] of this.edges) {
-				if (deps.has(node)) {
-					const newDeg = (inDegree.get(n) ?? 0) - 1;
-					inDegree.set(n, newDeg);
-					if (newDeg === 0) queue.push(n);
-				}
-			}
-		}
-
-		if (order.length !== this.instances.size) {
-			throw new Error('Cycle detected during topological sort');
-		}
-
-		return order;
-	}
 }
 
 export const container = new Container();

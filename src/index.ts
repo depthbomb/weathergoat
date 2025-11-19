@@ -9,6 +9,7 @@ import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
 
 import {
+	ApiService,
 	CliService,
 	HttpService,
 	CacheService,
@@ -44,6 +45,7 @@ async function main() {
 	});
 
 	container.registerValue(WeatherGoat, wg)
+             .registerClass(ApiService)
              .registerClass(AlertsService)
              .registerClass(CacheService)
              .registerClass(CliService)
@@ -68,7 +70,10 @@ async function main() {
 
 		await wg.login(process.env.BOT_TOKEN);
 
+		const server = container.resolve(ApiService);
+
 		for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
+			await server.stop();
 			await wg.destroy();
 			process.exit(0);
 		});
@@ -76,6 +81,7 @@ async function main() {
 		for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
 			if (err.code !== 'ABORT_ERR') {
 				reportError('Unhandled error', err);
+				await server.stop();
 				await wg.destroy();
 			}
 
