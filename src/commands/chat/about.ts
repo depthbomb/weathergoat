@@ -1,4 +1,4 @@
-import { _ } from '@i18n';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { GithubService } from '@services/github';
@@ -8,11 +8,10 @@ import { CooldownPrecondition } from '@preconditions/cooldown';
 import { REPO, Color, REPO_NAME, REPO_OWNER } from '@constants';
 import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { IGithubService } from '@services/github';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends BaseCommand {
-	private readonly github: IGithubService;
+	private readonly github: GithubService;
 	private readonly formatter: DurationFormatter;
 
 	public constructor() {
@@ -62,7 +61,7 @@ export default class AboutCommand extends BaseCommand {
 		).join('\n');
 
 		if (response.length > MessageLimits.MaximumLength) {
-			await interaction.editReply(_('commands.about.responseTooLong', { repo: REPO }));
+			await interaction.editReply(msg.$commandsAboutResponseTooLong(REPO));
 		} else {
 			await interaction.editReply(response);
 		}
@@ -72,23 +71,23 @@ export default class AboutCommand extends BaseCommand {
 		const bunCommitSha = Bun.revision.slice(0, 7);
 		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${Bun.revision.slice(0, 7)}`;
 		const embed = new EmbedBuilder()
-			.setTitle(_('commands.about.myStatsTitle'))
+			.setTitle(msg.$commandsAboutMyStatsTitle())
 			.setColor(Color.Primary)
 			.addFields(
 				{
-					name: _('commands.about.uptimeTitle'),
-					value: `- ${_('commands.about.applicationPrefix')} ${this.formatter.format(interaction.client.uptime ?? 0)}\n- ${_('commands.about.systemPrefix')} ${this.formatter.format(uptime() * 1_000)}`
+					name: msg.$commandsAboutUptimeTitle(),
+					value: `- ${msg.$commandsAboutApplicationPrefix()} ${this.formatter.format(interaction.client.uptime ?? 0)}\n- ${msg.$commandsAboutSystemPrefix()} ${this.formatter.format(uptime() * 1_000)}`
 				},
 				{
-					name: _('commands.about.runtimeTitle'),
+					name: msg.$commandsAboutRuntimeTitle(),
 					value: `Bun ${Bun.version} ([${bunCommitSha}](${bunCommitUrl}))`
 				},
 				{
-					name: _('commands.about.systemTitle'),
+					name: msg.$commandsAboutSystemTitle(),
 					value: `${version()} (${platform()}) ${arch()}`
 				},
 				{
-					name: _('commands.about.hostNameTitle'),
+					name: msg.$commandsAboutHostNameTitle(),
 					value: hostname()
 				}
 			);

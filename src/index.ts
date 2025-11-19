@@ -3,8 +3,8 @@ if (!process.versions.bun) {
 }
 
 import '@abraham/reflection';
-import { WeatherGoat } from '@lib/client';
 import { container } from '@container';
+import { WeatherGoat } from '@lib/client';
 import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
 

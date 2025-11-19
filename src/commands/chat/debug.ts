@@ -1,5 +1,5 @@
 import { db } from '@db';
-import { _ } from '@i18n';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
@@ -8,7 +8,7 @@ import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class DebugCommand extends BaseCommand {
-	private readonly features;
+	private readonly features: FeaturesService;
 
 	public constructor() {
 		super({
@@ -94,7 +94,7 @@ export default class DebugCommand extends BaseCommand {
 		const buf = Buffer.from(json, 'utf8');
 		const attachment = new AttachmentBuilder(buf, {
 			name: 'dump.json',
-			description: _('commands.debug.dumpDescription', { date })
+			description: msg.$commandsDebugDumpDescription(date)
 		});
 
 		await interaction.editReply({ files: [attachment] })

@@ -1,6 +1,6 @@
 import { db } from '@db';
-import { _ } from '@i18n';
 import { Color } from '@constants';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { LocationService } from '@services/location';
@@ -22,7 +22,7 @@ import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AlertsCommand extends BaseCommand {
-	private readonly location;
+	private readonly location: LocationService;
 
 	public constructor() {
 		super({
@@ -78,17 +78,17 @@ export default class AlertsCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, _('commands.alerts.err.maxDestinationsReached'), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, msg.$commandsAlertsErrMaxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply(_('common.err.invalidLatOrLon'));
+			return interaction.reply(msg.$errInvalidLatOrLon());
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ latitude, longitude, channelId: channel.id });
 		if (exists) {
-			return interaction.editReply(_('commands.alerts.err.destExists'));
+			return interaction.editReply(msg.$commandsAlertsErrDestExists());
 		}
 
 		try {
@@ -97,16 +97,16 @@ export default class AlertsCommand extends BaseCommand {
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel(_('common.yes'))
+						.setLabel(msg.$yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel(_('common.no'))
+						.setLabel(msg.$no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
 			const initialReply = await interaction.editReply({
-				content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
+				content: msg.$coordLocationAskConfirmation(latitude, longitude, info.location),
 				components: [row]
 			});
 
@@ -130,10 +130,7 @@ export default class AlertsCommand extends BaseCommand {
 				});
 
 				return interaction.editReply({
-					content: _('commands.alerts.destCreated', {
-						channel,
-						destination
-					}),
+					content: msg.$commandsAlertsDestCreated(channel.toString(), destination.snowflake),
 					components: []
 				});
 			} else {
@@ -141,30 +138,30 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+				return interaction.editReply({ content: msg.$errLocationQueryHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+				return interaction.editReply({ content: msg.$promptTimedOut(), components: [] });
 			}
 
-			return interaction.editReply({ content: _('common.err.unknown'), components: [] });
+			return interaction.editReply({ content: msg.$errUnknown(), components: [] });
 		}
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
 		const snowflake = interaction.options.getString('snowflake', true);
 		if (!isValidSnowflake(snowflake)) {
-			return interaction.reply(_('common.err.invalidSnowflake', { snowflake }));
+			return interaction.reply(msg.$errInvalidSnowflake(snowflake));
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ snowflake });
 		if (!exists) {
-			return interaction.editReply(_('commands.alerts.err.noDestBySnowflake', { snowflake }));
+			return interaction.editReply(msg.$commandsAlertsErrNoDestBySnowflake(snowflake));
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
-		await interaction.editReply(_('commands.alerts.destRemoved'));
+		await interaction.editReply(msg.$commandsAlertsDestRemoved());
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
@@ -186,12 +183,12 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(_('common.err.noDestinations', { type: 'alert' }));
+			return interaction.editReply(msg.$errNoDestinations('alert'));
 		}
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
-			.setTitle(_('commands.alerts.listEmbedTitle'));
+			.setTitle(msg.$commandsAlertsListEmbedTitle());
 
 		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const info    = await this.location.getInfoFromCoordinates(latitude, longitude);
@@ -199,7 +196,7 @@ export default class AlertsCommand extends BaseCommand {
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					_('common.reportingTo', { channel }),
+					msg.$reportingTo(channel!.toString()),
 					codeBlock('json', JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4))
 				].join('\n')
 			});

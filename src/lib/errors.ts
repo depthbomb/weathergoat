@@ -1,12 +1,12 @@
 import { MakeErrorClass } from 'fejl';
 import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';
 
-export type WeatherGoatError = InvalidPermissionsError | HTTPRequestError | MaxDestinationError;
+export type WeatherGoatError = InvalidPermissionsError | HTTPRequestError | MaxDestinationError | GuildOnlyInvocationInNonGuildError;
 
-export class InvalidPermissionsError extends MakeErrorClass('You do not have permission to perform this action.') {}
-export class GuildOnlyInvocationInNonGuildError extends MakeErrorClass('This command may only be called in a guild.') {}
-export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>('An error occurred while making an HTTP request.') {}
-export class MaxDestinationError extends MakeErrorClass<{ max: number; }>('You have reached the maximum amount of destinations.') {}
+export class InvalidPermissionsError extends MakeErrorClass() {}
+export class GuildOnlyInvocationInNonGuildError extends MakeErrorClass() {}
+export class HTTPRequestError extends MakeErrorClass<{ code: number; status: string; }>() {}
+export class MaxDestinationError extends MakeErrorClass<{ max: number; }>() {}
 
 /**
  * Returns `true` if the {@link error} is a WeatherGoat-specific error and `false` otherwise.
@@ -15,9 +15,9 @@ export class MaxDestinationError extends MakeErrorClass<{ max: number; }>('You h
  */
 export function isWeatherGoatError<T extends WeatherGoatError>(err: unknown): err is T {
 	return err instanceof InvalidPermissionsError ||
-			err instanceof GuildOnlyInvocationInNonGuildError ||
-			err instanceof HTTPRequestError ||
-			err instanceof MaxDestinationError;
+           err instanceof GuildOnlyInvocationInNonGuildError ||
+           err instanceof HTTPRequestError ||
+           err instanceof MaxDestinationError;
 }
 
 /**

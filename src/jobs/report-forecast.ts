@@ -1,8 +1,8 @@
 import { db } from '@db';
-import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
-import { logger } from '@lib/logger';
 import { Color } from '@constants';
+import { msg } from '@lib/messages';
+import { logger } from '@lib/logger';
 import { container } from '@container';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
@@ -66,18 +66,18 @@ export default class ReportForecastsJob extends BaseJob {
 				const forecast = await this.forecast.getForecastForCoordinates(latitude, longitude);
 				const location = await this.location.getInfoFromCoordinates(latitude, longitude);
 				const embed = new EmbedBuilder()
-					.setTitle('⛅ ' + _('jobs.forecasts.embedTitle', { forecast, location }))
+					.setTitle('⛅ ' + msg.$jobsForecastsEmbedTitle(forecast.name, location.location))
 					.setColor(Color.Primary)
 					.setThumbnail(forecast.getIcon('large'))
 					.setDescription(forecast.detailedForecast)
-					.addFields({ name: _('jobs.forecasts.atAGlanceTitle'), value: forecast.shortForecast })
+					.addFields({ name: msg.$jobsForecastsAtAGlanceTitle(), value: forecast.shortForecast })
 					.setTimestamp();
 
 				if (radarImageUrl) {
 					embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 				}
 
-				await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
+				await message.edit({ content: msg.$deleteToDeleteSubheading(), embeds: [embed] });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

@@ -1,7 +1,7 @@
 import { db } from '@db';
-import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { HTTPRequestError } from '@lib/errors';
 import { AlertsService } from '@services/alerts';
@@ -17,8 +17,8 @@ import type { TextChannel } from 'discord.js';
 
 export default class ReportAlertsJob extends BaseJob {
 	private readonly logger: Logger;
-	private readonly alerts;
-	private readonly sweeper;
+	private readonly alerts: AlertsService;
+	private readonly sweeper: SweeperService;
 	private readonly webhookUsername = 'WeatherGoat#Alerts';
 
 	public constructor() {
@@ -66,20 +66,20 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const description = codeBlock('md', alert.description);
 					const embed = new EmbedBuilder()
-						.setTitle(`${alert.isUpdate ? '🔁 ' + _('jobs.alerts.updateTag') : '🚨'} ${alert.headline}`)
+						.setTitle(`${alert.isUpdate ? '🔁 ' + msg.$jobsAlertsUpdateTag() : '🚨'} ${alert.headline}`)
 						.setColor(this.getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
 						.addFields(
-							{ name: _('jobs.alerts.certaintyTitle'), value: alert.certainty, inline: true },
-							{ name: _('jobs.alerts.effectiveTitle'), value: time(alert.effective, 'R'), inline: true },
-							{ name: _('jobs.alerts.expiresTitle'), value: time(alert.expires, 'R'), inline: true },
-							{ name: _('jobs.alerts.affectedAreasTitle'), value: alert.areaDesc }
+							{ name: msg.$jobsAlertsCertaintyTitle(), value: alert.certainty, inline: true },
+							{ name: msg.$jobsAlertsEffectiveTitle(), value: time(alert.effective, 'R'), inline: true },
+							{ name: msg.$jobsAlertsExpiresTitle(), value: time(alert.expires, 'R'), inline: true },
+							{ name: msg.$jobsAlertsAffectedAreasTitle(), value: alert.areaDesc }
 						)
 						.setTimestamp();
 
 					if (alert.instruction) {
-						embed.addFields({ name: _('jobs.alerts.instructionsTitle'), value: codeBlock('md', alert.instruction) });
+						embed.addFields({ name: msg.$jobsAlertsInstructionsTitle(), value: codeBlock('md', alert.instruction) });
 					}
 
 					if (radarImageUrl) {
@@ -90,7 +90,7 @@ export default class ReportAlertsJob extends BaseJob {
 						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
 						description.length > EmbedLimits.MaximumDescriptionLength
 					) {
-						embed.setDescription(_('jobs.alerts.payloadTooLargePlaceholder', { alert }));
+						embed.setDescription(msg.$jobsAlertsPayloadTooLargePlaceholder(alert.url));
 					} else {
 						embed.setDescription(description);
 					}

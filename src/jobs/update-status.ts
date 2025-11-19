@@ -1,5 +1,5 @@
-import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { GithubService } from '@services/github';
 import { DurationFormatter } from '@sapphire/time-utilities';
@@ -29,7 +29,7 @@ export default class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: _('jobs.status.activity', { duration, hash }),
+					name: msg.$jobsStatusActivity(duration, hash),
 					type: ActivityType.Custom
 				}
 			]

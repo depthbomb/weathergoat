@@ -1,5 +1,5 @@
 import { db } from '@db';
-import { _ } from '@i18n';
+import { msg } from '@lib/messages';
 import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
@@ -22,7 +22,7 @@ import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class ForecastCommand extends BaseCommand {
-	private readonly location;
+	private readonly location: LocationService;
 
 	public constructor() {
 		super({
@@ -51,10 +51,10 @@ export default class ForecastCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, _('commands.forecasts.err.maxDestinationsReached'), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, msg.$commandsForecastsErrMaxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply(_('common.err.invalidLatOrLon'));
+			return interaction.reply(msg.$errInvalidLatOrLon());
 		}
 
 		await interaction.deferReply();
@@ -65,16 +65,16 @@ export default class ForecastCommand extends BaseCommand {
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel(_('common.yes'))
+						.setLabel(msg.$yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel(_('common.no'))
+						.setLabel(msg.$no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
 			const initialReply = await interaction.editReply({
-				content: _('common.coordLocationAskConfirmation', { latitude, longitude, info }),
+				content: msg.$coordLocationAskConfirmation(latitude, longitude, info.location),
 				components: [row]
 			});
 
@@ -82,7 +82,7 @@ export default class ForecastCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === 'report_forecasts')!;
 				const initialMessage = await channel.send({
-					content: _('commands.forecasts.placeholderMessage', { location: info, time: time(forecastJob.cron.nextRun()!, 'R') }),
+					content: msg.$commandsForecastsPlaceholderMessage(info.location, time(forecastJob.cron.nextRun()!, 'R')),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();
@@ -99,18 +99,18 @@ export default class ForecastCommand extends BaseCommand {
 					}
 				});
 
-				await interaction.editReply({ content: _('commands.forecasts.destCreated', { channel }), components: [] });
+				await interaction.editReply({ content: msg.$commandsForecastsDestCreated(channel.toString()), components: [] });
 			} else {
 				await initialReply.delete();
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				await interaction.editReply({ content: _('common.err.locationQueryHttpError', { err }), components: [] });
+				await interaction.editReply({ content: msg.$errLocationQueryHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: _('common.promptTimedOut'), components: [] });
+				await interaction.editReply({ content: msg.$promptTimedOut(), components: [] });
 			} else {
 				reportError('Error creating forecast destination', err);
-				await interaction.editReply({ content: _('common.err.unknown'), components: [] });
+				await interaction.editReply({ content: msg.$errUnknown(), components: [] });
 			}
 		}
 	}

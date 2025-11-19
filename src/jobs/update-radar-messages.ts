@@ -1,7 +1,7 @@
 import { db } from '@db';
-import { _ } from '@i18n';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
+import { msg } from '@lib/messages';
 import { logger } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -49,15 +49,15 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 
 				const embed = new EmbedBuilder()
 					.setColor(Color.Primary)
-					.setTitle(_('jobs.radar.embedTitle', { location }))
-					.setFooter({ text: _('jobs.radar.embedFooter', { radarStation }) })
+					.setTitle(msg.$jobsRadarEmbedTitle(location))
+					.setFooter({ text: msg.$jobsRadarEmbedFooter(radarStation) })
 					.setImage(`${radarImageUrl}?${generateSnowflake()}`)
 					.addFields(
-						{ name: _('jobs.radar.lastUpdatedTitle'), value: time(new Date(), 'R'), inline: true },
-						{ name: _('jobs.radar.nextUpdateTitle'), value: time(job.nextRun()!, 'R'), inline: true },
+						{ name: msg.$jobsRadarLastUpdatedTitle(), value: time(new Date(), 'R'), inline: true },
+						{ name: msg.$jobsRadarNextUpdateTitle(), value: time(job.nextRun()!, 'R'), inline: true },
 					);
 
-				await message.edit({ content: _('common.deleteToDeleteSubheading'), embeds: [embed] });
+				await message.edit({ content: msg.$deleteToDeleteSubheading(), embeds: [embed] });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

@@ -1,8 +1,7 @@
 import { db } from '@db';
-import initI18n from '@i18n';
 import { Cron } from 'croner';
-import { logger, reportError } from '@lib/logger';
 import { Client, Collection } from 'discord.js';
+import { logger, reportError } from '@lib/logger';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
@@ -38,7 +37,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async login(token?: string | undefined) {
-		await initI18n();
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();

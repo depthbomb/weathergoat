@@ -25,8 +25,6 @@
 		"croner": "^9.1.0",
 		"discord.js": "^14.25.0",
 		"fejl": "^4.0.1",
-		"i18next": "^25.6.2",
-		"i18next-fs-backend": "^2.6.1",
 		"octokit": "^5.0.5",
 		"ufo": "^1.6.1",
 		"utf-8-validate": "^6.0.5",
