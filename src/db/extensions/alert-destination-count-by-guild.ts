@@ -1,4 +1,4 @@
-import { Prisma } from '../generated';
+import { Prisma } from '../generated/client';
 
 export default Prisma.defineExtension({
 	name: 'alert-destination-count-by-guild-extension',

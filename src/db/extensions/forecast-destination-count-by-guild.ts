@@ -1,4 +1,4 @@
-import { Prisma } from '../generated';
+import { Prisma } from '../generated/client';
 
 export default Prisma.defineExtension({
 	name: 'forecast-destination-count-by-guild-extension',
