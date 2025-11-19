@@ -124,7 +124,7 @@ export abstract class BaseCommand {
 	public assertPermissions(interaction: ChatInputCommandInteraction, permissions: PermissionResolvable, message?: string) {
 		const { channel, member } = interaction;
 
-		message ??= 'You do not shave permission to use this command.';
+		message ??= 'You do not have permission to use this command.';
 
 		return InvalidPermissionsError.assert(
 			isGuildBasedChannel(channel) && isGuildMember(member) && member.permissions.has(permissions),
