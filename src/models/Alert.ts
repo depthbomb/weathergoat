@@ -1,6 +1,5 @@
 import { withQuery } from 'ufo';
 import { Type } from 'class-transformer';
-import { Geocode } from '@models/Geocode';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
 import type { Nullable } from '#types';
@@ -11,7 +10,6 @@ export class Alert {
 	public affectedZones!: string[];
 	@Type(() => AlertReference)
 	public references!: AlertReference[];
-	public geocode!: Geocode;
 	@Type(() => Date)
 	public sent!: Date;
 	@Type(() => Date)
