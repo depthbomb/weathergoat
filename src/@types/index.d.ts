@@ -9,6 +9,7 @@ declare module 'bun' {
 		MODE: 'production' | 'development';
 		BOT_ID: string;
 		BOT_TOKEN: string;
+		DATABASE_URL: string;
 		SENTRY_DSN?: string;
 		GITHUB_ACCESS_TOKEN?: string;
 		MAX_RADAR_MESSAGES_PER_GUILD: number;

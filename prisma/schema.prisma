@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../.data/weathergoat.db"
 }
 
 model AlertDestination {
