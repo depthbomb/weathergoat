@@ -29,8 +29,8 @@ export default class ReportAlertsJob extends BaseJob {
 		});
 
 		this.logger  = logger.child({ jobName: this.name });
-		this.alerts  = container.resolve(AlertsService);
-		this.sweeper = container.resolve(SweeperService);
+		this.alerts  = container.get(AlertsService);
+		this.sweeper = container.get(SweeperService);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

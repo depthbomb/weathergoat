@@ -1,5 +1,6 @@
 import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
+import { injectable } from '@needle-di/core';
 import { plainToInstance } from 'class-transformer';
 import type { Logger } from 'winston';
 
@@ -12,6 +13,7 @@ class Feature {
 	}
 }
 
+@injectable()
 export class FeaturesService {
 	private readonly logger: Logger;
 	private readonly features: Collection<string, Feature>;

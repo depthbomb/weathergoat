@@ -4,6 +4,7 @@ import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
 import { joinURL, withQuery } from 'ufo';
 import { BOT_USER_AGENT } from '@constants';
+import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
 import type { Logger } from 'winston';
@@ -109,6 +110,7 @@ export class HttpClient {
 	}
 }
 
+@injectable()
 export class HttpService {
 	private readonly logger: Logger;
 	private readonly clients: Collection<string, HttpClient>;

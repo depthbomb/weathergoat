@@ -1,19 +1,22 @@
 import { Octokit } from 'octokit';
-import { container } from '@container';
 import { CacheService } from './cache';
+import { inject, injectable } from '@needle-di/core';
 import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
 import type { CacheStore } from './cache';
 
+@injectable()
 export class GithubService {
 	private readonly octokit: Octokit;
-	private readonly cache: CacheStore;
+	private readonly store: CacheStore;
 
-	public constructor() {
+	public constructor(
+		private readonly cache = inject(CacheService)
+	) {
 		if (!process.env.GITHUB_ACCESS_TOKEN) {
 			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
 		}
 
-		this.cache   = container.resolve(CacheService).getStore('github', { defaultTtl: '10 minutes' });
+		this.store   = this.cache.getStore('github', { defaultTtl: '10 minutes' });
 		this.octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
 	}
 
@@ -24,8 +27,8 @@ export class GithubService {
 	 */
 	public async getCurrentCommitHash(short?: boolean) {
 		const cacheKey = 'commit-hash_' + short;
-		if (this.cache.has(cacheKey)) {
-			return this.cache.get<string>(cacheKey)!;
+		if (this.store.has(cacheKey)) {
+			return this.store.get<string>(cacheKey)!;
 		}
 
 		const res = await this._getAllCommits();
@@ -36,7 +39,7 @@ export class GithubService {
 		const { sha } = res.data[0];
 		const hash = short ? sha.slice(0, 7) : sha;
 
-		this.cache.set(cacheKey, hash);
+		this.store.set(cacheKey, hash);
 
 		return hash;
 	}

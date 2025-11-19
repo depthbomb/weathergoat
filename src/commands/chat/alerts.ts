@@ -53,7 +53,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this.location = container.resolve(LocationService);
+		this.location = container.get(LocationService);
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },

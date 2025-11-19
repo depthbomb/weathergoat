@@ -5,6 +5,7 @@ import { container } from '@container';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
+import { inject, injectable } from '@needle-di/core';
 import type { HttpClient } from './http';
 import type { CacheStore } from './cache';
 
@@ -19,15 +20,19 @@ type CoordinateInfo = {
 	radarImageUrl: string;
 };
 
+@injectable()
 export class LocationService {
-	private readonly http: HttpClient;
-	private readonly cache: CacheStore;
+	private readonly client: HttpClient;
+	private readonly store: CacheStore;
 	private readonly coordinatePattern: RegExp;
 	private readonly coordinatesPattern: RegExp;
 
-	public constructor() {
-		this.http               = container.resolve(HttpService).getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this.cache              = container.resolve(CacheService).getStore('locations', { defaultTtl: '1 week' });
+	public constructor(
+		private readonly http  = inject(HttpService),
+		private readonly cache = inject(CacheService),
+	) {
+		this.client             = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });
+		this.store              = this.cache.getStore('locations', { defaultTtl: '1 week' });
 		this.coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
 		this.coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}
@@ -69,11 +74,11 @@ export class LocationService {
 	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
 		const cacheKey = latitude + longitude;
 
-		if (this.cache.has(cacheKey)) {
-			return this.cache.get<CoordinateInfo>(cacheKey)!;
+		if (this.store.has(cacheKey)) {
+			return this.store.get<CoordinateInfo>(cacheKey)!;
 		}
 
-		const res = await this.http.get(`/points/${latitude},${longitude}`);
+		const res = await this.client.get(`/points/${latitude},${longitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, {
 			code: res.status,
@@ -94,7 +99,7 @@ export class LocationService {
 			radarImageUrl: data.radarImageUrl
 		};
 
-		this.cache.set(cacheKey, info);
+		this.store.set(cacheKey, info);
 		return info;
 	}
 }

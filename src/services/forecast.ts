@@ -1,20 +1,21 @@
 import { HttpService } from './http';
-import { container } from '@container';
 import { LocationService } from './location';
 import { HTTPRequestError } from '@lib/errors';
 import { plainToClass } from 'class-transformer';
+import { inject, injectable } from '@needle-di/core';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HttpClient } from './http';
 
+@injectable()
 export class ForecastService {
-	private readonly http: HttpClient;
-	private readonly location: LocationService;
+	private readonly client: HttpClient;
 
-	public constructor() {
-		const httpService = container.resolve(HttpService);
+	public constructor(
+		private readonly httpService = inject(HttpService),
+		private readonly location    = inject(LocationService)
+	) {
 
-		this.http     = httpService.getClient('forecasts');
-		this.location = container.resolve(LocationService);
+		this.client = this.httpService.getClient('forecasts');
 	}
 
 	/**
@@ -25,7 +26,7 @@ export class ForecastService {
 	 */
 	public async getForecastForCoordinates(latitude: string, longitude: string) {
 		const info = await this.location.getInfoFromCoordinates(latitude, longitude);
-		const res  = await this.http.get(info.forecastUrl);
+		const res  = await this.client.get(info.forecastUrl);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

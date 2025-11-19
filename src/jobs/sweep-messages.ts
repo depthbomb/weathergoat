@@ -16,7 +16,7 @@ export default class SweepMessagesJob extends BaseJob {
 		});
 
 		this.logger  = logger.child({ jobName: this.name });
-		this.sweeper = container.resolve(SweeperService);
+		this.sweeper = container.get(SweeperService);
 	}
 
 	public async execute() {

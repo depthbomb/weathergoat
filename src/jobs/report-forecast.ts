@@ -28,8 +28,8 @@ export default class ReportForecastsJob extends BaseJob {
 
 		this.logger     = logger.child({ jobName: this.name });
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
-		this.location   = container.resolve(LocationService);
-		this.forecast   = container.resolve(ForecastService);
+		this.location   = container.get(LocationService);
+		this.forecast   = container.get(ForecastService);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

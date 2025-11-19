@@ -1,4 +1,5 @@
 import { Collection} from 'discord.js';
+import { injectable } from '@needle-di/core';
 import { Duration } from '@sapphire/duration';
 
 type CacheItem<T> = { value: T; ttl: Duration; };
@@ -67,6 +68,7 @@ export class CacheStore {
 	}
 }
 
+@injectable()
 export class CacheService {
 	private readonly stores: Collection<string, CacheStore>;
 

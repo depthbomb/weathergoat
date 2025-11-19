@@ -36,7 +36,7 @@ export default class AutoRadarCommand extends BaseCommand {
 			]
 		});
 
-		this.location = container.resolve(LocationService);
+		this.location = container.get(LocationService);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {

@@ -1,6 +1,8 @@
 import { Cli } from 'clipanion';
+import { injectable } from '@needle-di/core';
 import { CommandManagerCommand } from '@cli/commands/CommandManager';
 
+@injectable()
 export class CliService {
 	private readonly cli: Cli;
 

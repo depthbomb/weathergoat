@@ -44,23 +44,23 @@ async function main() {
 		partials: [Partials.Message, Partials.Channel]
 	});
 
-	container.registerValue(WeatherGoat, wg)
-             .registerClass(ApiService)
-             .registerClass(AlertsService)
-             .registerClass(CacheService)
-             .registerClass(CliService)
-             .registerClass(FeaturesService)
-             .registerClass(ForecastService)
-             .registerClass(GithubService)
-             .registerClass(HttpService)
-             .registerClass(LocationService)
-             .registerClass(SweeperService);
+	container.bind({ provide: WeatherGoat, useValue: wg })
+             .bind(ApiService)
+             .bind(AlertsService)
+             .bind(CacheService)
+             .bind(CliService)
+             .bind(FeaturesService)
+             .bind(ForecastService)
+             .bind(GithubService)
+             .bind(HttpService)
+             .bind(LocationService)
+             .bind(SweeperService);
 
 	if (process.argv.length > 2) {
-		const cli = container.resolve(CliService);
+		const cli = container.get(CliService);
 		await cli.run(process.argv.slice(2));
 	} else {
-		const features = container.resolve(FeaturesService);
+		const features = container.get(FeaturesService);
 
 		features.set('disable_alert_reporting',        0.0, 'Alert reporting killswitch');
 		features.set('disable_forecast_reporting',     0.0, 'Forecast reporting killswitch');
@@ -70,7 +70,7 @@ async function main() {
 
 		await wg.login(process.env.BOT_TOKEN);
 
-		const server = container.resolve(ApiService);
+		const server = container.get(ApiService);
 
 		for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
 			await server.stop();

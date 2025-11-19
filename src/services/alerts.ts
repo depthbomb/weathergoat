@@ -1,23 +1,26 @@
 import { HttpService } from './http';
-import { container } from '@container';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
+import { inject, injectable } from '@needle-di/core';
 import { AlertCollection } from '@models/AlertCollection';
 import type { HttpClient } from './http';
 
+@injectable()
 export class AlertsService {
-	private readonly http: HttpClient;
+	private readonly client: HttpClient;
 
-	public constructor() {
-		this.http = container.resolve(HttpService).getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
+	public constructor(
+		private readonly http = inject(HttpService)
+	) {
+		this.client = this.http.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}
 
 	/**
 	 * Retrieves all active weather alerts.
 	 */
 	public async getActiveAlerts() {
-		const res = await this.http.get('/alerts/active');
+		const res = await this.client.get('/alerts/active');
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
@@ -33,7 +36,7 @@ export class AlertsService {
 	 * @param zoneId The ID of the zone to retrieve alerts of.
 	 */
 	public async getActiveAlertsForZone(zoneId: string) {
-		const res = await this.http.get(`/alerts/active/zone/${zoneId}`);
+		const res = await this.client.get(`/alerts/active/zone/${zoneId}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

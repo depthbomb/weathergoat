@@ -17,7 +17,7 @@ export default class UpdateStatusJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.github    = container.resolve(GithubService);
+		this.github    = container.get(GithubService);
 		this.formatter = new DurationFormatter();
 	}
 

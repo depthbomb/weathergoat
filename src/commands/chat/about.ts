@@ -29,7 +29,7 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this.github    = container.resolve(GithubService);
+		this.github    = container.get(GithubService);
 		this.formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({

@@ -37,7 +37,7 @@ export default class DebugCommand extends BaseCommand {
 			]
 		});
 
-		this.features = container.resolve(FeaturesService);
+		this.features = container.get(FeaturesService);
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },
