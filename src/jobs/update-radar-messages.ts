@@ -9,12 +9,12 @@ import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { Cron } from 'croner';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class UpdateRadarMessagesJob extends BaseJob {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly errorCodes: number[];
 
 	public constructor() {
@@ -24,7 +24,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger     = logger.child({ jobName: this.name });
+		this.logger     = logger.child().withPrefix(`[Job::${this.name}]`);
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
@@ -35,7 +35,9 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
-					this.logger.warn('Radar channel is not a text channel, deleting record', { guildId, channelId, messageId, location });
+					this.logger
+						.withMetadata({ guildId, channelId, messageId, location })
+						.warn('Radar channel is not a text channel, deleting record');
 
 					await db.autoRadarMessage.delete({ where: { id } });
 					continue;
@@ -43,7 +45,9 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 
 				const message = await channel.messages.fetch(messageId);
 				if (!message.editable) {
-					logger.warn('Auto radar message is not editable, deleting record', { guildId, channelId, messageId });
+					this.logger
+						.withMetadata({ guildId, channelId, messageId })
+						.warn('Auto radar message is not editable, deleting record');
 
 					await db.autoRadarMessage.delete({ where: { id } });
 					continue;
@@ -64,7 +68,9 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
 					if (isDiscordAPIErrorCode(err, this.errorCodes)) {
-						this.logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, location, code, message });
+						this.logger
+							.withMetadata({ guildId, channelId, messageId, location, code, message })
+							.error('Could not fetch required resource(s), deleting corresponding record');
 
 						await db.autoRadarMessage.delete({ where: { id } });
 					}

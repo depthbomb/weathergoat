@@ -6,7 +6,7 @@ import { logger, reportError } from '@lib/logger';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
 import type { ClientEvents, ClientOptions } from 'discord.js';
@@ -22,7 +22,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand>;
 
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly moduleFilePattern: RegExp;
 
 	public constructor(options: WeatherGoatOptions) {
@@ -32,7 +32,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.events   = new Collection();
 		this.commands = new Collection();
 
-		this.logger            = logger.child({ logger: 'WeatherGoat' });
+		this.logger            = logger.child().withPrefix('[Client]');
 		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
@@ -59,10 +59,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		await db.$disconnect();
 		await super.destroy();
-
-		if (!logger.closed) {
-			logger.close();
-		}
 	}
 
 	/**
@@ -83,7 +79,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const cron = new Cron(pattern, async self => await job.execute(this, self), {
 				name,
 				paused: true,
-				protect: (job) => this.logger.warn('Job overrun', { name, calledAt: job.currentRun()?.getDate() }),
+				protect: (job) => this.logger.withMetadata({ name, calledAt: job.currentRun()?.getDate() }).warn('Job overrun'),
 				catch: (err) => reportError('Job error', err, { name })
 			});
 
@@ -101,11 +97,11 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				}
 			});
 
-			this.logger.info('Registered job', {
+			this.logger.withMetadata({
 				name,
 				pattern,
 				runImmediately,
-			});
+			}).info('Registered job');
 		}
 	}
 
@@ -132,7 +128,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.events.set(name, event);
 
-			this.logger.info('Registered event', { name, once });
+			this.logger.withMetadata({ name, once }).info('Registered event');
 		}
 	}
 
@@ -151,7 +147,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.commands.set(command.name, command);
 
-			this.logger.info('Registered command', { name: command.name });
+			this.logger.withMetadata({ name: command.name }).info('Registered command');
 		}
 	}
 }

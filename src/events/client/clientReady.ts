@@ -1,20 +1,20 @@
 import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 export default class ClientReadyEvent extends BaseEvent<'clientReady'> {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor() {
 		super({ name: 'clientReady' });
 
-		this.logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
 	}
 
 	public async handle(client: WeatherGoat<true>) {
 		const { readyAt } = client;
 
-		this.logger.info('Logged in to Discord', { readyAt });
+		this.logger.withMetadata({ readyAt }).info('Logged in to Discord');
 	}
 }

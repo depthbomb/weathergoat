@@ -1,16 +1,16 @@
 import { db } from '@db';
 import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { Guild } from 'discord.js';
 
 export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor() {
 		super({ name: 'guildDelete' });
 
-		this.logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
 	}
 
 	public async handle(guild: Guild) {
@@ -20,10 +20,10 @@ export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 		const guildId = guild.id;
 		const where   = { guildId };
 
-		this.logger.info('No longer operating in a guild, cleaning up database', {
+		this.logger.withMetadata({
 			name: guild.name,
 			guildId
-		});
+		}).info('No longer operating in a guild, cleaning up database');
 
 		await db.alertDestination.deleteMany({ where });
 		await db.forecastDestination.deleteMany({ where });

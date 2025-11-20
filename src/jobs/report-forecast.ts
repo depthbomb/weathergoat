@@ -10,12 +10,12 @@ import { inject, injectable } from '@needle-di/core';
 import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class ReportForecastsJob extends BaseJob {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly errorCodes: number[];
 
 	public constructor(
@@ -28,7 +28,7 @@ export default class ReportForecastsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger     = logger.child({ jobName: this.name });
+		this.logger = logger.child().withPrefix(`[Job::${this.name}]`);
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
@@ -49,7 +49,9 @@ export default class ReportForecastsJob extends BaseJob {
 				const guild   = await client.guilds.fetch(guildId);
 				const channel = await guild?.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
-					logger.warn('Forecast destination channel is missing or not a text channel, deleting record', { guildId, channelId, messageId });
+					this.logger
+						.withMetadata({ guildId, channelId, messageId })
+						.warn('Forecast destination channel is missing or not a text channel, deleting record');
 
 					await db.forecastDestination.delete({ where: { messageId } });
 					continue;
@@ -57,7 +59,9 @@ export default class ReportForecastsJob extends BaseJob {
 
 				const message = await channel.messages.fetch(messageId);
 				if (!message.editable) {
-					logger.warn('Forecast destination message is not editable, deleting record', { guildId, channelId, messageId });
+					this.logger
+						.withMetadata({ guildId, channelId, messageId })
+						.warn('Forecast destination message is not editable, deleting record');
 
 					await db.forecastDestination.delete({ where: { messageId } });
 					continue;
@@ -82,7 +86,9 @@ export default class ReportForecastsJob extends BaseJob {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
 					if (isDiscordAPIErrorCode(err, this.errorCodes)) {
-						this.logger.error('Could not fetch required resource(s), deleting corresponding record', { guildId, channelId, messageId, code, message });
+						this.logger
+							.withMetadata({ guildId, channelId, messageId, code, message })
+							.error('Could not fetch required resource(s), deleting corresponding record');
 
 						await db.forecastDestination.delete({ where: { id } });
 					}

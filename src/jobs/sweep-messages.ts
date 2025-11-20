@@ -2,11 +2,11 @@ import { BaseJob } from '@jobs';
 import { logger } from '@lib/logger';
 import { SweeperService } from '@services/sweeper';
 import { inject, injectable } from '@needle-di/core';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 
 @injectable()
 export default class SweepMessagesJob extends BaseJob {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor(
 		private readonly sweeper = inject(SweeperService)
@@ -17,13 +17,13 @@ export default class SweepMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger = logger.child({ jobName: this.name });
+		this.logger = logger.child().withPrefix(`[Job::${this.name}]`);
 	}
 
 	public async execute() {
 		const [sweepCount, errorCount] = await this.sweeper.sweepMessages();
 		if (sweepCount || errorCount) {
-			this.logger.info('Finished sweeping messages', { sweepCount, errorCount });
+			this.logger.withMetadata({ sweepCount, errorCount }).info('Finished sweeping messages');
 		}
 	}
 }

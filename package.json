@@ -11,6 +11,10 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
+		"@loglayer/plugin-redaction": "^2.1.11",
+		"@loglayer/plugin-sprintf": "^2.1.11",
+		"@loglayer/transport-log-file-rotation": "^2.1.12",
+		"@loglayer/transport-simple-pretty-terminal": "^2.2.13",
 		"@needle-di/core": "^1.1.0",
 		"@prisma/adapter-libsql": "^7.0.0",
 		"@prisma/client": "^7.0.0",
@@ -28,11 +32,11 @@
 		"croner": "^9.1.0",
 		"discord.js": "^14.25.0",
 		"fejl": "^4.0.1",
+		"loglayer": "^8.0.2",
 		"octokit": "^5.0.5",
+		"serialize-error": "^12.0.0",
 		"ufo": "^1.6.1",
 		"utf-8-validate": "^6.0.5",
-		"winston": "^3.18.3",
-		"winston-daily-rotate-file": "^5.0.0",
 		"zlib-sync": "^0.1.10"
 	},
 	"devDependencies": {

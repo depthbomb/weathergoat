@@ -2,6 +2,7 @@ if (!process.versions.bun) {
 	throw new Error('WeatherGoat requires the Bun runtime to operate.');
 }
 
+import '@extensions';
 import '@abraham/reflection';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
@@ -22,7 +23,7 @@ import {
 } from '@services';
 
 async function main() {
-	logger.info('Booting', { mode: process.env.MODE });
+	logger.withMetadata({ mode: process.env.MODE }).info('Booting');
 
 	if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
 		const { init: initSentry } = await import('@sentry/bun');

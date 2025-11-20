@@ -2,7 +2,7 @@ import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
 import { injectable } from '@needle-di/core';
 import { plainToInstance } from 'class-transformer';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 
 class Feature {
 	public name!: string;
@@ -15,11 +15,11 @@ class Feature {
 
 @injectable()
 export class FeaturesService {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly features: Collection<string, Feature>;
 
 	public constructor() {
-		this.logger = logger.child({ service: 'Features' });
+		this.logger   = logger.child().withPrefix(FeaturesService.name.bracketWrap());
 		this.features = new Collection();
 	}
 
@@ -28,7 +28,7 @@ export class FeaturesService {
 
 		this.features.set(name, plainToInstance(Feature, obj));
 
-		this.logger.info('Created feature flag', { name, fraction, description });
+		this.logger.withMetadata({ name, fraction, description }).info('Created feature flag');
 
 		return this;
 	}

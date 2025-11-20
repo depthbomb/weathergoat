@@ -6,17 +6,17 @@ import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/messages';
 import type { Maybe } from '#types';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { Interaction } from 'discord.js';
 import type { BaseCommand } from '@commands';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor() {
 		super({ name: 'interactionCreate' });
 
-		this.logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
 	}
 
 	public async handle(interaction: Interaction) {
@@ -53,7 +53,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					await tryToRespond(interaction, INTERACTION_ERROR());
 				}
 			} finally {
-				this.logger.silly(`Interaction completed in ${sw.toString()}`);
+				this.logger.debug(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
 			try {

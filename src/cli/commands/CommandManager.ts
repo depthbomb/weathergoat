@@ -4,7 +4,7 @@ import { WeatherGoat } from '@lib/client';
 import { REST, Routes } from 'discord.js';
 import { Option, Command } from 'clipanion';
 import { Stopwatch } from '@sapphire/stopwatch';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { BaseContext } from 'clipanion';
 
 export class CommandManagerCommand extends Command<BaseContext> {
@@ -13,12 +13,12 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public action = Option.String<'create' | 'delete'>({ required: true });
 	public guilds = Option.Rest();
 
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor() {
 		super();
 
-		this.logger = logger.child({ cliCommand: CommandManagerCommand.paths.join(',') });
+		this.logger = logger.child().withPrefix(`[CLI::${CommandManagerCommand.paths.join(',')}]`);
 	}
 
 	public async execute() {
@@ -43,10 +43,10 @@ export class CommandManagerCommand extends Command<BaseContext> {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body });
 
-						this.logger.info('Registered commands in guild', { guildId });
+						this.logger.withMetadata({ guildId }).info('Registered commands in guild');
 					}
 
-					this.logger.info(`Finished Registering commands in guilds`, { guildCount: this.guilds.length });
+					this.logger.withMetadata({ guildCount: this.guilds.length }).info('Finished Registering commands in guilds');
 				}
 				break;
 			case 'delete':
@@ -58,10 +58,10 @@ export class CommandManagerCommand extends Command<BaseContext> {
 					for (const guildId of this.guilds) {
 						await rest.put(Routes.applicationGuildCommands(botId, guildId), { body: [] });
 
-						this.logger.info('Deleted command in guild', { guildId });
+						this.logger.withMetadata({ guildId }).info('Deleted command in guild');
 					}
 
-					this.logger.info('Finished deleting commands in guilds', { guildCount: this.guilds.length });
+					this.logger.withMetadata({ guildCount: this.guilds.length }).info('Finished deleting commands in guilds');
 				}
 				break;
 			default:
@@ -70,7 +70,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				break;
 		}
 
-		this.logger.info('Operation finished', { elapsed: sw.stop().toString() });
+		this.logger.withMetadata({ elapsed: sw.stop().toString() }).info('Operation finished');
 
 		return exitCode;
 	}

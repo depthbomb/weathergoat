@@ -1,9 +1,9 @@
 import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 
 export default class DebugEvent extends BaseEvent<'debug'> {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor() {
 		super({
@@ -11,7 +11,7 @@ export default class DebugEvent extends BaseEvent<'debug'> {
 			disabled: process.env.MODE === 'production'
 		});
 
-		this.logger = logger.child({ discordEvent: this.name });
+		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
 	}
 
 	public async handle(message: string) {

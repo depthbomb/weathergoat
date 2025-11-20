@@ -7,7 +7,7 @@ import { BOT_USER_AGENT } from '@constants';
 import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';
 
@@ -44,7 +44,7 @@ export class HttpClient {
 	private readonly baseUrl?: string;
 	private readonly retryPolicy: RetryPolicy;
 	private readonly durationFormatter: DurationFormatter;
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	private requestNum = 0;
 
@@ -57,7 +57,7 @@ export class HttpClient {
 			backoff: new ConstantBackoff(1_000)
 		});
 		this.durationFormatter = new DurationFormatter();
-		this.logger            = logger.child({ httpClient: this.name });
+		this.logger            = logger.child().withPrefix(`[HTTP::${this.name}]`);
 	}
 
 	public async get(url: string | URL, options?: GETOptions) {
@@ -85,7 +85,12 @@ export class HttpClient {
 
 		const requestId = `${this.name}-${this.requestNum}`;
 
-		this.logger.silly('Making HTTP request', { requestId, method: init?.method, url: requestUrl, retry: this.retry });
+		this.logger.withMetadata({
+			requestId,
+			method: init?.method,
+			url: requestUrl,
+			retry: this.retry
+		}).debug('Making HTTP request');
 
 		const startTime = hrtime.bigint();
 
@@ -98,11 +103,11 @@ export class HttpClient {
 
 		const endTime = hrtime.bigint();
 
-		this.logger.silly('Finished HTTP request', {
+		this.logger.withMetadata({
 			requestId,
 			status: `${res.status} - ${res.statusText}`,
 			elapsed: this.durationFormatter.format(Number((endTime - startTime) / 1000000n))
-		});
+		}).debug('Finished HTTP request');
 
 		this.requestNum++;
 
@@ -112,11 +117,11 @@ export class HttpClient {
 
 @injectable()
 export class HttpService {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly clients: Collection<string, HttpClient>;
 
 	public constructor() {
-		this.logger  = logger.child({ service: 'Http' });
+		this.logger  = logger.child().withPrefix(HttpService.name.bracketWrap());
 		this.clients = new Collection();
 	}
 
@@ -136,7 +141,7 @@ export class HttpService {
 		const client  = new HttpClient({ name, baseUrl, retry });
 
 		this.clients.set(name, client);
-		this.logger.info('Created HTTP client', { name, ...options });
+		this.logger.withMetadata({ name, ...options }).info('Created HTTP client');
 
 		return client;
 	}

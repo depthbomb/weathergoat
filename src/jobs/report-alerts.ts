@@ -10,14 +10,14 @@ import { SweeperService } from '@services/sweeper';
 import { inject, injectable } from '@needle-di/core';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@lib/client';
 import type { TextChannel } from 'discord.js';
 
 @injectable()
 export default class ReportAlertsJob extends BaseJob {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;
 
 	public constructor(
@@ -30,7 +30,7 @@ export default class ReportAlertsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger = logger.child({ jobName: this.name });
+		this.logger = logger.child().withPrefix(`[Job::${this.name}]`);
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -160,7 +160,7 @@ export default class ReportAlertsJob extends BaseJob {
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name: this.webhookUsername, reason });
 
-			this.logger.info('Created webhook', { name: this.webhookUsername, channel: channel.name });
+			this.logger.withMetadata({ name: this.webhookUsername, channel: channel.name }).info('Created webhook');
 		}
 
 		return ourWebhook;

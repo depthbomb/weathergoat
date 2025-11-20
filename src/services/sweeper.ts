@@ -4,18 +4,18 @@ import { WeatherGoat } from '@lib/client';
 import { Duration } from '@sapphire/duration';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import type { Logger } from 'winston';
+import type { LogLayer } from 'loglayer';
 import type { Message } from 'discord.js';
 import type { PromiseReturnType } from '@prisma/client';
 
 @injectable()
 export class SweeperService {
-	private readonly logger: Logger;
+	private readonly logger: LogLayer;
 
 	public constructor(
 		private readonly bot = inject(WeatherGoat)
 	) {
-		this.logger = logger.child({ service: 'Sweeper' });
+		this.logger = logger.child().withPrefix(SweeperService.name.bracketWrap());
 	}
 
 	/**
@@ -113,7 +113,7 @@ export class SweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				this.logger.error('Error while deleting volatile message', err, { id, channelId, messageId });
+				this.logger.withMetadata({ id, channelId, messageId, err }).error('Error while deleting volatile message');
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}
