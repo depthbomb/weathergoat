@@ -137,7 +137,7 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: msg.$errLocationQueryHttpError(err.code, err.status), components: [] });
+				return interaction.editReply({ content: msg.$errLocationQueryHTTPError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				return interaction.editReply({ content: msg.$promptTimedOut(), components: [] });
 			}

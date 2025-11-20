@@ -12,7 +12,7 @@ import { Partials, GatewayIntentBits } from 'discord.js';
 import {
 	ApiService,
 	CliService,
-	HttpService,
+	HTTPService,
 	CacheService,
 	AlertsService,
 	GithubService,
@@ -53,7 +53,7 @@ async function main() {
              .bind(FeaturesService)
              .bind(ForecastService)
              .bind(GithubService)
-             .bind(HttpService)
+             .bind(HTTPService)
              .bind(LocationService)
              .bind(SweeperService);
 

@@ -4,7 +4,7 @@
 		"guildOnly": "This action can only be performed inside a server channel.",
 		"noDestinations": "There are no {type:string} destinations in this server.",
 		"tooManyDestinations": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
-		"locationQueryHttpError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
+		"locationQueryHTTPError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
 		"invalidSnowflake": "The provided [snowflake](https://en.wikipedia.org/wiki/Snowflake_ID) `{snowflake:string}` is invalid.",
 		"unknown": "An unknown error has occurred"
 	},

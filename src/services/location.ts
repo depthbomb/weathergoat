@@ -1,4 +1,4 @@
-import { HttpService } from './http';
+import { HTTPService } from './http';
 import { Point } from '@models/Point';
 import { CacheService } from './cache';
 import { container } from '@container';
@@ -6,7 +6,7 @@ import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { inject, injectable } from '@needle-di/core';
-import type { HttpClient } from './http';
+import type { HTTPClient } from './http';
 import type { CacheStore } from './cache';
 
 type CoordinateInfo = {
@@ -22,13 +22,13 @@ type CoordinateInfo = {
 
 @injectable()
 export class LocationService {
-	private readonly client: HttpClient;
+	private readonly client: HTTPClient;
 	private readonly store: CacheStore;
 	private readonly coordinatePattern: RegExp;
 	private readonly coordinatesPattern: RegExp;
 
 	public constructor(
-		private readonly http  = inject(HttpService),
+		private readonly http  = inject(HTTPService),
 		private readonly cache = inject(CacheService),
 	) {
 		this.client             = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });

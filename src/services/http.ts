@@ -11,7 +11,7 @@ import type { LogLayer } from 'loglayer';
 import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';
 
-type HttpClientOptions = {
+type HTTPClientOptions = {
 	/**
 	 * The name of this HTTP client.
 	 */
@@ -27,7 +27,7 @@ type HttpClientOptions = {
 	 */
 	retry: boolean;
 };
-type CreateHttpClientOptions = Omit<HttpClientOptions, 'name' | 'retry'> & {
+type CreateHTTPClientOptions = Omit<HTTPClientOptions, 'name' | 'retry'> & {
 	/**
 	 * Whether to use a retry policy to retry failed requests.
 	 *
@@ -38,7 +38,7 @@ type CreateHttpClientOptions = Omit<HttpClientOptions, 'name' | 'retry'> & {
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
-export class HttpClient {
+export class HTTPClient {
 	private readonly name: string;
 	private readonly retry: boolean;
 	private readonly baseUrl?: string;
@@ -48,7 +48,7 @@ export class HttpClient {
 
 	private requestNum = 0;
 
-	public constructor(options: HttpClientOptions) {
+	public constructor(options: HTTPClientOptions) {
 		this.name        = options.name;
 		this.retry       = options.retry;
 		this.baseUrl     = options.baseUrl;
@@ -116,29 +116,29 @@ export class HttpClient {
 }
 
 @injectable()
-export class HttpService {
+export class HTTPService {
 	private readonly logger: LogLayer;
-	private readonly clients: Collection<string, HttpClient>;
+	private readonly clients: Collection<string, HTTPClient>;
 
 	public constructor() {
-		this.logger  = logger.child().withPrefix(HttpService.name.bracketWrap());
+		this.logger  = logger.child().withPrefix(HTTPService.name.bracketWrap());
 		this.clients = new Collection();
 	}
 
 	/**
-	 * Retrieves an {@link HttpClient} instance, or creates one if it doesn't exist.
+	 * Retrieves an {@link HTTPClient} instance, or creates one if it doesn't exist.
 	 *
 	 * @param name The name to identify the HTTP client.
 	 * @param options Options to use when creating the HTTP client.
 	 */
-	public getClient(name: string, options?: CreateHttpClientOptions) {
+	public getClient(name: string, options?: CreateHTTPClientOptions) {
 		if (this.clients.has(name)) {
 			return this.clients.get(name)!;
 		}
 
 		const retry   = options?.retry ?? true;
 		const baseUrl = options?.baseUrl;
-		const client  = new HttpClient({ name, baseUrl, retry });
+		const client  = new HTTPClient({ name, baseUrl, retry });
 
 		this.clients.set(name, client);
 		this.logger.withMetadata({ name, ...options }).info('Created HTTP client');

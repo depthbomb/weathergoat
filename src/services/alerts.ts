@@ -1,17 +1,17 @@
-import { HttpService } from './http';
+import { HTTPService } from './http';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { inject, injectable } from '@needle-di/core';
 import { AlertCollection } from '@models/AlertCollection';
-import type { HttpClient } from './http';
+import type { HTTPClient } from './http';
 
 @injectable()
 export class AlertsService {
-	private readonly client: HttpClient;
+	private readonly client: HTTPClient;
 
 	public constructor(
-		private readonly http = inject(HttpService)
+		private readonly http = inject(HTTPService)
 	) {
 		this.client = this.http.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
 	}

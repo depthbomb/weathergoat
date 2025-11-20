@@ -57,7 +57,7 @@ export default class AboutCommand extends BaseCommand {
 		const response = messages.map(
 			msg => {
 				const commitUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${msg.sha.slice(0, 7)}`;
-				`${time(new Date(msg.commit.author!.date!), 'R')} [${msg.commit.message}](${commitUrl}) - [${msg.commit.author?.name}](${msg.author?.html_url})`
+				`${time(new Date(msg.commit.author!.date!), 'R')} ${msg.commit.message.toHyperlink(commitUrl)} - ${msg.commit.author?.name?.toHyperlink(msg.author?.html_url!)}`
 			}
 		).join('\n');
 
@@ -81,7 +81,7 @@ export default class AboutCommand extends BaseCommand {
 				},
 				{
 					name: msg.$commandsAboutRuntimeTitle(),
-					value: `Bun ${Bun.version} ([${bunCommitSha}](${bunCommitUrl}))`
+					value: `Bun ${Bun.version} (${bunCommitSha.toHyperlink(bunCommitUrl)})`
 				},
 				{
 					name: msg.$commandsAboutSystemTitle(),
