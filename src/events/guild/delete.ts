@@ -20,10 +20,7 @@ export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 		const guildId = guild.id;
 		const where   = { guildId };
 
-		this.logger.withMetadata({
-			name: guild.name,
-			guildId
-		}).info('No longer operating in a guild, cleaning up database');
+		this.logger.withMetadata({ name: guild.name, guildId }).info('No longer operating in a guild, cleaning up database');
 
 		await db.alertDestination.deleteMany({ where });
 		await db.forecastDestination.deleteMany({ where });

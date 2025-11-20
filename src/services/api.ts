@@ -1,6 +1,8 @@
 import { serve } from 'bun';
+import { injectable } from '@needle-di/core';
 import type { Server } from 'bun';
 
+@injectable()
 export class ApiService {
 	private readonly server: Server<undefined>;
 

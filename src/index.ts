@@ -8,19 +8,7 @@ import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
-
-import {
-	ApiService,
-	CliService,
-	HTTPService,
-	CacheService,
-	AlertsService,
-	GithubService,
-	SweeperService,
-	FeaturesService,
-	LocationService,
-	ForecastService
-} from '@services';
+import { ApiService, CliService, FeaturesService } from '@services';
 
 async function main() {
 	logger.withMetadata({ mode: process.env.MODE }).info('Booting');
@@ -45,17 +33,7 @@ async function main() {
 		partials: [Partials.Message, Partials.Channel]
 	});
 
-	container.bind({ provide: WeatherGoat, useValue: wg })
-             .bind(ApiService)
-             .bind(AlertsService)
-             .bind(CacheService)
-             .bind(CliService)
-             .bind(FeaturesService)
-             .bind(ForecastService)
-             .bind(GithubService)
-             .bind(HTTPService)
-             .bind(LocationService)
-             .bind(SweeperService);
+	container.bind({ provide: WeatherGoat, useValue: wg });
 
 	if (process.argv.length > 2) {
 		const cli = container.get(CliService);
