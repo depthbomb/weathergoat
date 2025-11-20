@@ -113,7 +113,10 @@ export class SweeperService {
 				}
 			} catch (err) {
 				errorCount++;
-				this.logger.withMetadata({ id, channelId, messageId, err }).error('Error while deleting volatile message');
+				this.logger
+					.withError(err)
+					.withMetadata({ id, channelId, messageId })
+					.error('Error while deleting volatile message');
 			} finally {
 				await db.volatileMessage.delete({ where: { id } });
 			}

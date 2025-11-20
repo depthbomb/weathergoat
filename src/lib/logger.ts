@@ -33,10 +33,5 @@ export const logger = new LogLayer({
 
 export function reportError(message: string, err: unknown, metadata?: object) {
 	captureException(err);
-
-	if (metadata) {
-		logger.withMetadata({ err, ...metadata }).fatal(message);
-	} else {
-		logger.withMetadata({ err }).fatal(message);
-	}
+	logger.withError(err).withMetadata(metadata).fatal(message);
 }
