@@ -1,16 +1,17 @@
 import { db } from '@db';
 import { msg } from '@lib/messages';
-import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
+import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
+@injectable()
 export default class DebugCommand extends BaseCommand {
-	private readonly features: FeaturesService;
-
-	public constructor() {
+	public constructor(
+		private readonly features = inject(FeaturesService)
+	) {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('debug')
@@ -36,8 +37,6 @@ export default class DebugCommand extends BaseCommand {
 				new OwnerPrecondition()
 			]
 		});
-
-		this.features = container.get(FeaturesService);
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
 			print: { handler: this._handlePrintSubcommand },

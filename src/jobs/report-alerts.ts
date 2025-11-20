@@ -2,12 +2,12 @@ import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
-import { container } from '@container';
 import { HTTPRequestError } from '@lib/errors';
 import { AlertsService } from '@services/alerts';
 import { logger, reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
+import { inject, injectable } from '@needle-di/core';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Logger } from 'winston';
@@ -15,22 +15,22 @@ import type { Alert } from '@models/Alert';
 import type { WeatherGoat } from '@lib/client';
 import type { TextChannel } from 'discord.js';
 
+@injectable()
 export default class ReportAlertsJob extends BaseJob {
 	private readonly logger: Logger;
-	private readonly alerts: AlertsService;
-	private readonly sweeper: SweeperService;
-	private readonly webhookUsername = 'WeatherGoat#Alerts';
+	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;
 
-	public constructor() {
+	public constructor(
+		private readonly alerts = inject(AlertsService),
+		private readonly sweeper = inject(SweeperService)
+	) {
 		super({
 			name: 'report_alerts',
 			pattern: '*/30 * * * * *',
 			runImmediately: true
 		});
 
-		this.logger  = logger.child({ jobName: this.name });
-		this.alerts  = container.get(AlertsService);
-		this.sweeper = container.get(SweeperService);
+		this.logger = logger.child({ jobName: this.name });
 	}
 
 	public async execute(client: WeatherGoat<true>) {

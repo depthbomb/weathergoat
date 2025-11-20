@@ -3,23 +3,25 @@ import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { logger } from '@lib/logger';
-import { container } from '@container';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { ForecastService } from '@services/forecast';
+import { inject, injectable } from '@needle-di/core';
 import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import type { Logger } from 'winston';
 import type { WeatherGoat } from '@lib/client';
 
+@injectable()
 export default class ReportForecastsJob extends BaseJob {
 	private readonly logger: Logger;
 	private readonly errorCodes: number[];
-	private readonly location: LocationService;
-	private readonly forecast: ForecastService;
 
-	public constructor() {
+	public constructor(
+		private readonly location = inject(LocationService),
+		private readonly forecast = inject(ForecastService),
+	) {
 		super({
 			name: 'report_forecasts',
 			pattern: '0 * * * *',
@@ -28,8 +30,6 @@ export default class ReportForecastsJob extends BaseJob {
 
 		this.logger     = logger.child({ jobName: this.name });
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
-		this.location   = container.get(LocationService);
-		this.forecast   = container.get(ForecastService);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

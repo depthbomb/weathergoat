@@ -1,7 +1,7 @@
 import { msg } from '@lib/messages';
-import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { GithubService } from '@services/github';
+import { inject, injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { MessageLimits } from '@sapphire/discord-utilities';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -10,11 +10,13 @@ import { arch, uptime, version, platform, hostname } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
+@injectable()
 export default class AboutCommand extends BaseCommand {
-	private readonly github: GithubService;
 	private readonly formatter: DurationFormatter;
 
-	public constructor() {
+	public constructor(
+		private readonly github = inject(GithubService)
+	) {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('about')
@@ -29,7 +31,6 @@ export default class AboutCommand extends BaseCommand {
 			)
 		});
 
-		this.github    = container.get(GithubService);
 		this.formatter = new DurationFormatter();
 
 		this.createSubcommandMap<'changelog' | 'stats'>({

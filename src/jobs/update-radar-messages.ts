@@ -3,6 +3,7 @@ import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { logger } from '@lib/logger';
+import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
@@ -11,6 +12,7 @@ import type { Cron } from 'croner';
 import type { Logger } from 'winston';
 import type { WeatherGoat } from '@lib/client';
 
+@injectable()
 export default class UpdateRadarMessagesJob extends BaseJob {
 	private readonly logger: Logger;
 	private readonly errorCodes: number[];

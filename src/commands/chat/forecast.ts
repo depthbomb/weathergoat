@@ -1,10 +1,10 @@
 import { db } from '@db';
 import { msg } from '@lib/messages';
-import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
+import { inject, injectable } from '@needle-di/core';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
@@ -21,10 +21,11 @@ import {
 import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
+@injectable()
 export default class ForecastCommand extends BaseCommand {
-	private readonly location: LocationService;
-
-	public constructor() {
+	public constructor(
+		private readonly location = inject(LocationService)
+	) {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('forecasts')
@@ -37,8 +38,6 @@ export default class ForecastCommand extends BaseCommand {
 				new CooldownPrecondition({ duration: '5s', global: true })
 			]
 		});
-
-		this.location = container.get(LocationService);
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {

@@ -1,9 +1,9 @@
 import { db } from '@db';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
-import { container } from '@container';
 import { BaseCommand } from '@commands';
 import { LocationService } from '@services/location';
+import { inject, injectable } from '@needle-di/core';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
@@ -21,10 +21,11 @@ import {
 import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
+@injectable()
 export default class AlertsCommand extends BaseCommand {
-	private readonly location: LocationService;
-
-	public constructor() {
+	public constructor(
+		private readonly location = inject(LocationService)
+	) {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('alerts')
@@ -52,8 +53,6 @@ export default class AlertsCommand extends BaseCommand {
 				new CooldownPrecondition({ duration: '3s', global: true })
 			]
 		});
-
-		this.location = container.get(LocationService);
 
 		this.createSubcommandMap<'add' | 'remove' | 'list'>({
 			add: { handler: this._handleAddSubcommand },

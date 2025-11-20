@@ -1,22 +1,23 @@
 import { BaseJob } from '@jobs';
 import { logger } from '@lib/logger';
-import { container } from '@container';
 import { SweeperService } from '@services/sweeper';
+import { inject, injectable } from '@needle-di/core';
 import type { Logger } from 'winston';
 
+@injectable()
 export default class SweepMessagesJob extends BaseJob {
 	private readonly logger: Logger;
-	private readonly sweeper: SweeperService;
 
-	public constructor() {
+	public constructor(
+		private readonly sweeper = inject(SweeperService)
+	) {
 		super({
 			name: 'sweep_messages',
 			pattern: '* * * * *',
 			runImmediately: true
 		});
 
-		this.logger  = logger.child({ jobName: this.name });
-		this.sweeper = container.get(SweeperService);
+		this.logger = logger.child({ jobName: this.name });
 	}
 
 	public async execute() {
