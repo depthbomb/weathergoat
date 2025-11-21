@@ -2,7 +2,7 @@
 	<img src="./art/hero.png" alt="WeatherGoat Banner" title="WeatherGoat">
 </div>
 
-A Discord bot for reporting weather alerts and hourly forecasts to channels. Built with [Bun](https://bun.sh/), [Discord.js](https://discord.js.org/), [Prisma](https://www.prisma.io/), and the [National Weather Service API](https://www.weather.gov/documentation/services-web-api).
+A Discord bot for reporting weather alerts and hourly forecasts to channels. Built with [Bun](https://bun.sh), [Discord.js](https://discord.js.org), [Prisma](https://www.prisma.io/orm), and the [National Weather Service API](https://www.weather.gov/documentation/services-web-api).
 
 ## Self-hosting/development
 
