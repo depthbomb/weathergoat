@@ -1,4 +1,5 @@
 import { db } from '@db';
+import { env } from '@env';
 import { msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
@@ -41,7 +42,7 @@ export default class ForecastCommand extends BaseCommand {
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		const maxCount  = process.env.MAX_FORECAST_DESTINATIONS_PER_GUILD;
+		const maxCount  = env.get('MAX_FORECAST_DESTINATIONS_PER_GUILD');
 		const guildId   = interaction.guildId!;
 		const latitude  = interaction.options.getString('latitude', true);
 		const longitude = interaction.options.getString('longitude', true);

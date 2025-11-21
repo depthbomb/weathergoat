@@ -1,3 +1,4 @@
+import { env } from '@env';
 import { Octokit } from 'octokit';
 import { CacheService } from './cache';
 import { inject, injectable } from '@needle-di/core';
@@ -12,12 +13,8 @@ export class GithubService {
 	public constructor(
 		private readonly cache = inject(CacheService)
 	) {
-		if (!process.env.GITHUB_ACCESS_TOKEN) {
-			throw new Error('Missing GITHUB_ACCESS_TOKEN environment variable');
-		}
-
 		this.store   = this.cache.getStore('github', { defaultTtl: '10 minutes' });
-		this.octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN, userAgent: BOT_USER_AGENT });
+		this.octokit = new Octokit({ auth: env.get('GITHUB_ACCESS_TOKEN'), userAgent: BOT_USER_AGENT });
 	}
 
 	/**

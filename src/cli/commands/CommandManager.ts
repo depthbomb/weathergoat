@@ -1,3 +1,4 @@
+import { env } from '@env';
 import { logger } from '@lib/logger';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
@@ -26,8 +27,8 @@ export class CommandManagerCommand extends Command<BaseContext> {
 
 		const sw     = new Stopwatch();
 		const global = this.guilds.length === 0;
-		const rest   = new REST().setToken(process.env.BOT_TOKEN);
-		const botId  = process.env.BOT_ID;
+		const rest   = new REST().setToken(env.get('BOT_TOKEN'));
+		const botId  = env.get('BOT_ID');
 
 		switch (this.action) {
 			case 'create':

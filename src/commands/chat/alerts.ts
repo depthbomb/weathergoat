@@ -1,4 +1,5 @@
 import { db } from '@db';
+import { env } from '@env';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
@@ -66,7 +67,7 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
-		const maxCount     = process.env.MAX_ALERT_DESTINATIONS_PER_GUILD;
+		const maxCount     = env.get('MAX_ALERT_DESTINATIONS_PER_GUILD');
 		const guildId      = interaction.guildId;
 		const latitude     = interaction.options.getString('latitude', true);
 		const longitude    = interaction.options.getString('longitude', true);

@@ -1,5 +1,6 @@
 generator client {
   provider     = "prisma-client"
+  runtime      = "bun"
   output       = "../src/db/generated"
   moduleFormat = "esm"
 }

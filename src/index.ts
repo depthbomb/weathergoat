@@ -4,6 +4,7 @@ if (!process.versions.bun) {
 
 import '@extensions';
 import '@abraham/reflection';
+import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { logger, reportError } from '@lib/logger';
@@ -11,12 +12,15 @@ import { Partials, GatewayIntentBits } from 'discord.js';
 import { ApiService, CliService, FeaturesService } from '@services';
 
 async function main() {
-	logger.withMetadata({ mode: process.env.MODE }).info('Booting');
+	const mode      = env.get('MODE');
+	const sentryDSN = env.get('SENTRY_DSN');
 
-	if (process.env.SENTRY_DSN && process.env.MODE === 'production') {
+	logger.withMetadata({ mode }).info('Booting');
+
+	if (sentryDSN && mode === 'production') {
 		const { init: initSentry } = await import('@sentry/bun');
 
-		initSentry({ dsn: process.env.SENTRY_DSN });
+		initSentry({ dsn: sentryDSN });
 	}
 
 	const wg = new WeatherGoat({
@@ -47,7 +51,7 @@ async function main() {
 		features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
 		features.set('disable_status_updating',        0.0, 'Status updating killswitch');
 
-		await wg.login(process.env.BOT_TOKEN);
+		await wg.login(env.get('BOT_TOKEN'));
 
 		const server = container.get(ApiService);
 

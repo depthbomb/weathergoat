@@ -1,3 +1,4 @@
+import { env } from '@env';
 import { BaseEvent } from '@events';
 import { logger } from '@lib/logger';
 import type { LogLayer } from 'loglayer';
@@ -8,7 +9,7 @@ export default class DebugEvent extends BaseEvent<'debug'> {
 	public constructor() {
 		super({
 			name: 'debug',
-			disabled: process.env.MODE === 'production'
+			disabled: env.get('MODE') === 'production'
 		});
 
 		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
