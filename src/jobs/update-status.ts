@@ -9,6 +9,25 @@ import type { WeatherGoat } from '@lib/client';
 @injectable()
 export default class UpdateStatusJob extends BaseJob {
 	private readonly formatter: DurationFormatter;
+	private readonly emoji = [
+		'🌪️',
+		'☀️',
+		'🌤️',
+		'⛅',
+		'🌥️',
+		'☁️',
+		'🌦️',
+		'🌧️',
+		'⛈️',
+		'🌩️',
+		'🌨️',
+		'❄️',
+		'💨',
+		'☔',
+		'☂️',
+		'🌫️',
+		'🌊'
+	] as const;
 
 	public constructor(
 		private readonly github = inject(GithubService)
@@ -30,10 +49,14 @@ export default class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: msg.$jobsStatusActivity(duration, hash.slice(0, 7)),
+					name: msg.$jobsStatusActivity(this.pickRandomEmoji(), duration, hash.slice(0, 7)),
 					type: ActivityType.Custom
 				}
 			]
 		});
+	}
+
+	private pickRandomEmoji() {
+		return this.emoji[Math.floor(Math.random() * this.emoji.length)];
 	}
 }

@@ -99,7 +99,7 @@
 			"nextUpdateTitle": "Next Update"
 		},
 		"status": {
-			"activity": "Forecasting for {duration:string} (commit: {hash:string})"
+			"activity": "{emoji:string} Forecasting for {duration:string} (commit: {hash:string})"
 		}
 	}
 }
