@@ -15,6 +15,7 @@ BOT_TOKEN=token_here
 
 DATABASE_URL=file:./.data/weathergoat.db
 REDIS_URL=redis://localhost:6379
+REDIS_PREFIX=wg
 
 # optional
 SENTRY_DSN=https://1234.ingest.us.sentry.io/5678

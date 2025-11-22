@@ -5,26 +5,44 @@ import { Duration } from '@sapphire/duration';
 
 @injectable()
 export class RedisService {
+	private readonly prefix: string;
 	private readonly client: RedisClient;
 
 	public constructor() {
+		this.prefix = env.get('REDIS_PREFIX') ?? 'wg';
 		this.client = new RedisClient(env.get('REDIS_URL'));
 	}
 
 	public async get(key: string) {
-		return this.client.get(key);
+		return this.client.get(
+			this.getPrefixedKey(key)
+		);
 	}
 
 	public async set(key: string, value: unknown, ttl?: string) {
 		if (ttl) {
 			const duration = new Duration(ttl);
-			return this.client.set(key, value, 'PX', duration.offset);
+			return this.client.set(
+				this.getPrefixedKey(key),
+				value,
+				'PX',
+				duration.offset
+			);
 		}
 
-		return this.client.set(key, value);
+		return this.client.set(
+			this.getPrefixedKey(key),
+			value
+		);
 	}
 
 	public async has(key: string) {
-		return this.client.exists(key);
+		return this.client.exists(
+			this.getPrefixedKey(key)
+		);
+	}
+
+	private getPrefixedKey(key: string) {
+		return `${this.prefix}:${key}`
 	}
 }

@@ -42,7 +42,7 @@ export class GithubService {
 			hash = sha;
 		}
 
-		await this.redis.set(cacheKey, hash, '10m');
+		await this.redis.set(cacheKey, hash, '1m');
 
 		return hash;
 	}
