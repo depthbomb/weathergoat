@@ -1,21 +1,22 @@
 import { db } from '@db';
+import { env } from '@env';
 import { Cron } from 'croner';
 import { container } from '@container';
 import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
+import { Partials, GatewayIntentBits } from 'discord.js';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import type { BaseJob } from '@jobs';
 import type { LogLayer } from 'loglayer';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
-import type { ClientEvents, ClientOptions } from 'discord.js';
+import type { ClientEvents } from 'discord.js';
 
 type BaseModule<T>      = { default: new() => T };
 type JobModule          = BaseModule<BaseJob>;
 type EventModule        = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule      = BaseModule<BaseCommand>;
-type WeatherGoatOptions = ClientOptions & {};
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Set<{ job: BaseJob; cron: Cron }>;
@@ -25,8 +26,20 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly logger: LogLayer;
 	private readonly moduleFilePattern: RegExp;
 
-	public constructor(options: WeatherGoatOptions) {
-		super(options);
+	public constructor() {
+		super({
+			shards: 'auto',
+			presence: {
+				status: 'dnd'
+			},
+			intents: [
+				GatewayIntentBits.Guilds,
+				GatewayIntentBits.GuildMembers,
+				GatewayIntentBits.GuildMessages,
+				GatewayIntentBits.GuildWebhooks
+			],
+			partials: [Partials.Message, Partials.Channel]
+		});
 
 		this.jobs     = new Set();
 		this.events   = new Collection();
@@ -36,12 +49,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
-	public async login(token?: string | undefined) {
+	public async start() {
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();
 
-		const res = await super.login(token);
+		const res = await this.login(env.get('BOT_TOKEN'));
 
 		await this.application?.fetch();
 

@@ -8,7 +8,6 @@ import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { logger, reportError } from '@lib/logger';
-import { Partials, GatewayIntentBits } from 'discord.js';
 import { ApiService, CliService, FeaturesService } from '@services';
 
 async function main() {
@@ -23,21 +22,7 @@ async function main() {
 		initSentry({ dsn: sentryDSN });
 	}
 
-	const wg = new WeatherGoat({
-		shards: 'auto',
-		presence: {
-			status: 'dnd'
-		},
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMembers,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.GuildWebhooks
-		],
-		partials: [Partials.Message, Partials.Channel]
-	});
-
-	container.bind({ provide: WeatherGoat, useValue: wg });
+	container.bind(WeatherGoat);
 
 	if (process.argv.length > 2) {
 		const cli = container.get(CliService);
@@ -51,11 +36,12 @@ async function main() {
 		features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
 		features.set('disable_status_updating',        0.0, 'Status updating killswitch');
 
-		await wg.login(env.get('BOT_TOKEN'));
+		const wg = container.get(WeatherGoat);
+		await wg.start();
 
 		const server = container.get(ApiService);
 
-		for (const sig of ['SIGINT', 'SIGHUP', 'SIGTERM', 'SIGQUIT']) process.on(sig, async () => {
+		process.once('beforeExit', async () => {
 			await server.stop();
 			await wg.destroy();
 			process.exit(0);
