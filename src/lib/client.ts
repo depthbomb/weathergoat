@@ -1,7 +1,8 @@
-import { db } from '@db';
 import { env } from '@env';
 import { Cron } from 'croner';
 import { container } from '@container';
+import { inject } from '@needle-di/core';
+import { RedisService } from '@services';
 import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';
@@ -13,10 +14,10 @@ import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
 import type { ClientEvents } from 'discord.js';
 
-type BaseModule<T>      = { default: new() => T };
-type JobModule          = BaseModule<BaseJob>;
-type EventModule        = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule      = BaseModule<BaseCommand>;
+type BaseModule<T> = { default: new() => T };
+type JobModule     = BaseModule<BaseJob>;
+type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule = BaseModule<BaseCommand>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Set<{ job: BaseJob; cron: Cron }>;
@@ -26,7 +27,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly logger: LogLayer;
 	private readonly moduleFilePattern: RegExp;
 
-	public constructor() {
+	public constructor(
+		private readonly redis = inject(RedisService)
+	) {
 		super({
 			shards: 'auto',
 			presence: {
@@ -70,7 +73,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			}
 		}
 
-		await db.$disconnect();
+		this.redis.close();
+
 		await super.destroy();
 	}
 

@@ -42,6 +42,10 @@ export class RedisService {
 		);
 	}
 
+	public close() {
+		this.client.close();
+	}
+
 	private getPrefixedKey(key: string) {
 		return `${this.prefix}:${key}`
 	}
