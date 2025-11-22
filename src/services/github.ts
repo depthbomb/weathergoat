@@ -32,7 +32,6 @@ export class GithubService {
 
 		const hasGit = Bun.which('git') !== null;
 		if (hasGit) {
-			console.log('using git command to retrieve commit');
 			hash = (await Bun.$`git rev-parse HEAD`.text()).trim();
 		} else {
 			const res = await this._getAllCommits();

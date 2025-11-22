@@ -12,8 +12,8 @@ import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
 import type { Alert } from '@models/Alert';
-import type { WeatherGoat } from '@lib/client';
 import type { TextChannel } from 'discord.js';
+import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class ReportAlertsJob extends BaseJob {

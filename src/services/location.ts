@@ -73,7 +73,6 @@ export class LocationService {
 	 */
 	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
 		const cacheKey = latitude + longitude;
-
 		if (this.store.has(cacheKey)) {
 			return this.store.get<CoordinateInfo>(cacheKey)!;
 		}
