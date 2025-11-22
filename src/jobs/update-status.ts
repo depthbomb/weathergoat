@@ -24,13 +24,13 @@ export default class UpdateStatusJob extends BaseJob {
 
 	public async execute(client: WeatherGoat<true>) {
 		const duration = this.formatter.format(client.uptime, 3);
-		const hash     = await this.github.getCurrentCommitHash(true);
+		const hash     = await this.github.getCurrentCommitHash();
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: msg.$jobsStatusActivity(duration, hash),
+					name: msg.$jobsStatusActivity(duration, hash.slice(0, 7)),
 					type: ActivityType.Custom
 				}
 			]

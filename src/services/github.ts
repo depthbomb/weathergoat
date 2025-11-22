@@ -22,19 +22,28 @@ export class GithubService {
 	 *
 	 * @param short Whether to return the hash in a shortened format.
 	 */
-	public async getCurrentCommitHash(short?: boolean) {
-		const cacheKey = 'commit-hash_' + short;
+	public async getCurrentCommitHash() {
+		const cacheKey = 'commit-hash';
 		if (this.store.has(cacheKey)) {
 			return this.store.get<string>(cacheKey)!;
 		}
 
-		const res = await this._getAllCommits();
-		if (!res) {
-			throw new Error('Could not retrieve project commits from GitHub API');
-		}
+		let hash: string;
 
-		const { sha } = res.data[0];
-		const hash = short ? sha.slice(0, 7) : sha;
+		const hasGit = Bun.which('git') !== null;
+		if (hasGit) {
+			console.log('using git command to retrieve commit');
+			hash = (await Bun.$`git rev-parse HEAD`.text()).trim();
+		} else {
+			const res = await this._getAllCommits();
+			if (!res) {
+				throw new Error('Could not retrieve project commits from GitHub API');
+			}
+
+			const { sha } = res.data[0];
+
+			hash = sha;
+		}
 
 		this.store.set(cacheKey, hash);
 
