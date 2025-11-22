@@ -66,7 +66,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 				}
 				break;
 			default:
-				this.logger.error('Invalid action', this.action);
+				this.logger.withMetadata({ action: this.action }).error('Invalid action');
 				exitCode = 1;
 				break;
 		}
