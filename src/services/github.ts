@@ -1,19 +1,16 @@
 import { env } from '@env';
 import { Octokit } from 'octokit';
-import { CacheService } from './cache';
+import { RedisService } from './redis';
 import { inject, injectable } from '@needle-di/core';
 import { REPO_NAME, REPO_OWNER, BOT_USER_AGENT } from '@constants';
-import type { CacheStore } from './cache';
 
 @injectable()
 export class GithubService {
 	private readonly octokit: Octokit;
-	private readonly store: CacheStore;
 
 	public constructor(
-		private readonly cache = inject(CacheService)
+		private readonly redis = inject(RedisService)
 	) {
-		this.store   = this.cache.getStore('github', { defaultTtl: '10 minutes' });
 		this.octokit = new Octokit({ auth: env.get('GITHUB_ACCESS_TOKEN'), userAgent: BOT_USER_AGENT });
 	}
 
@@ -24,8 +21,9 @@ export class GithubService {
 	 */
 	public async getCurrentCommitHash() {
 		const cacheKey = 'commit-hash';
-		if (this.store.has(cacheKey)) {
-			return this.store.get<string>(cacheKey)!;
+		const cached   = await this.redis.get(cacheKey);
+		if (cached) {
+			return cached;
 		}
 
 		let hash: string;
@@ -44,7 +42,7 @@ export class GithubService {
 			hash = sha;
 		}
 
-		this.store.set(cacheKey, hash);
+		await this.redis.set(cacheKey, hash, '10m');
 
 		return hash;
 	}

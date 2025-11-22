@@ -1,13 +1,11 @@
 import { HTTPService } from './http';
 import { Point } from '@models/Point';
-import { CacheService } from './cache';
-import { container } from '@container';
+import { RedisService } from './redis';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { plainToClass } from 'class-transformer';
 import { inject, injectable } from '@needle-di/core';
 import type { HTTPClient } from './http';
-import type { CacheStore } from './cache';
 
 type CoordinateInfo = {
 	latitude: string;
@@ -23,16 +21,14 @@ type CoordinateInfo = {
 @injectable()
 export class LocationService {
 	private readonly client: HTTPClient;
-	private readonly store: CacheStore;
 	private readonly coordinatePattern: RegExp;
 	private readonly coordinatesPattern: RegExp;
 
 	public constructor(
 		private readonly http  = inject(HTTPService),
-		private readonly cache = inject(CacheService),
+		private readonly redis = inject(RedisService),
 	) {
 		this.client             = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this.store              = this.cache.getStore('locations', { defaultTtl: '1 week' });
 		this.coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
 		this.coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
 	}
@@ -73,8 +69,9 @@ export class LocationService {
 	 */
 	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
 		const cacheKey = latitude + longitude;
-		if (this.store.has(cacheKey)) {
-			return this.store.get<CoordinateInfo>(cacheKey)!;
+		const cached   = await this.redis.get(cacheKey);
+		if (cached) {
+			return JSON.parse(cached) as CoordinateInfo;
 		}
 
 		const res = await this.client.get(`/points/${latitude},${longitude}`);
@@ -98,7 +95,8 @@ export class LocationService {
 			radarImageUrl: data.radarImageUrl
 		};
 
-		this.store.set(cacheKey, info);
+		await this.redis.set(cacheKey, JSON.stringify(info), '1w');
+
 		return info;
 	}
 }
