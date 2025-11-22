@@ -34,5 +34,5 @@ export const logger = new LogLayer({
 export function reportError(message: string, err: unknown, metadata?: object) {
 	console.error(err);
 	captureException(err);
-	logger.errorOnly(err);
+	logger.withError(err).withMetadata(metadata).fatal(message);
 }
