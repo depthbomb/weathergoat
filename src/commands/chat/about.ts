@@ -56,11 +56,11 @@ export default class AboutCommand extends BaseCommand {
 		const messages = await this.github.getCommits(10);
 		const response = messages.map(
 			msg => {
-				const commitUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${msg.sha.slice(0, 7)}`;
-				`${time(new Date(msg.commit.author!.date!), 'R')} ${msg.commit.message.toHyperlink(commitUrl)} - ${msg.commit.author?.name?.toHyperlink(msg.author?.html_url!)}`
+				const commitUrl = `<https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${msg.sha.slice(0, 7)}>`;
+				const authorUrl = `<${msg.author?.html_url!}>`;
+				return `${time(new Date(msg.commit.author!.date!), 'R')} ${msg.commit.message.toHyperlink(commitUrl)} - ${msg.commit.author?.name?.toHyperlink(authorUrl)}`
 			}
 		).join('\n');
-
 		if (response.length > MessageLimits.MaximumLength) {
 			await interaction.editReply(msg.$commandsAboutResponseTooLong(REPO));
 		} else {
