@@ -7,12 +7,7 @@ export class CliService {
 	private readonly cli: Cli;
 
 	public constructor() {
-		this.cli = new Cli({
-			binaryLabel: 'WeatherGoat CLI',
-			binaryVersion: '0.0.0',
-			binaryName: process.argv[0]
-		});
-
+		this.cli = new Cli({ binaryName: process.argv[0] });
 		this.cli.register(CommandManagerCommand);
 	}
 

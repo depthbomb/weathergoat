@@ -11,6 +11,7 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
+		"@depthbomb/node-common": "^1.2.0",
 		"@depthbomb/env": "^0.3.1",
 		"@loglayer/plugin-redaction": "^2.1.11",
 		"@loglayer/plugin-sprintf": "^2.1.11",

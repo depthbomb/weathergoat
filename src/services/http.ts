@@ -6,7 +6,7 @@ import { joinURL, withQuery } from 'ufo';
 import { BOT_USER_AGENT } from '@constants';
 import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
-import { retry, handleResultType, ConstantBackoff } from 'cockatiel';
+import { retry, ConstantBackoff, handleResultType } from 'cockatiel';
 import type { LogLayer } from 'loglayer';
 import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';

@@ -1,6 +1,5 @@
-import { serve } from 'bun';
+import { serve, type Server } from 'bun';
 import { injectable } from '@needle-di/core';
-import type { Server } from 'bun';
 
 @injectable()
 export class ApiService {
@@ -10,7 +9,7 @@ export class ApiService {
 		this.server = serve({
 			port: 3001,
 			routes: {
-				'/health': new Response('OK', { status: 204 })
+				'/health': new Response('OK'),
 			}
 		});
 	}

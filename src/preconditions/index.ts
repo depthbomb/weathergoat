@@ -1,5 +1,5 @@
 import { MakeErrorClass } from 'fejl';
-import type { Nullable } from '#types';
+import type { Nullable } from '@depthbomb/node-common';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export const enum CheckResult {

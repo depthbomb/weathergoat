@@ -5,10 +5,10 @@ import { logger, reportError } from '@lib/logger';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/messages';
-import type { Maybe } from '#types';
 import type { LogLayer } from 'loglayer';
-import type { Interaction } from 'discord.js';
 import type { BaseCommand } from '@commands';
+import type { Interaction } from 'discord.js';
+import type { Maybe } from '@depthbomb/node-common';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	private readonly logger: LogLayer;
