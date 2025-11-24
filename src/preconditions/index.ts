@@ -83,7 +83,7 @@ export abstract class BasePrecondition {
 }
 
 /**
- * Returns `true` if the {@link error} is a {@link PreconditionError} and `false` otherwise.
+ * Returns `true` if the {@link err|error} is a {@link PreconditionError} and `false` otherwise.
  *
  * @param err The {@link Error} to check
  */

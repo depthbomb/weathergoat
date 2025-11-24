@@ -149,7 +149,7 @@ function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string
 	console.log(`Generated TypeScript file: ${outputFilePath}`);
 }
 
-const inputFile = process.argv[2] || 'translations.json';
+const inputFile  = process.argv[2] || 'translations.json';
 const outputFile = process.argv[3] || 'translations.ts';
 
 generateTypeScriptFromJSON(inputFile, outputFile);

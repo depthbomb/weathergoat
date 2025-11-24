@@ -6,7 +6,6 @@ import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
 import type { Message } from 'discord.js';
-import type { PromiseReturnType } from '@prisma/client';
 
 @injectable()
 export class SweeperService {
@@ -21,7 +20,7 @@ export class SweeperService {
 	/**
 	 * Returns all message records that should be sweeped at the current date.
 	 */
-	public getDueMessages(): Promise<PromiseReturnType<typeof db.volatileMessage.findMany>> {
+	public getDueMessages() {
 		const now = new Date();
 		return db.volatileMessage.findMany({
 			where: {
@@ -96,7 +95,7 @@ export class SweeperService {
 	 *
 	 * @returns A tuple: [sweepCount, errorCount]
 	 */
-	public async sweepMessages(): Promise<number[]> {
+	public async sweepMessages() {
 		let sweepCount = 0;
 		let errorCount = 0;
 		const messages = await this.getDueMessages();
@@ -122,7 +121,7 @@ export class SweeperService {
 			}
 		}
 
-		return [sweepCount, errorCount];
+		return [sweepCount, errorCount] as const;
 	}
 }
 
