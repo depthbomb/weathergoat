@@ -22,15 +22,13 @@ type CoordinateInfo = {
 export class LocationService {
 	private readonly client: HTTPClient;
 	private readonly coordinatePattern: RegExp;
-	private readonly coordinatesPattern: RegExp;
 
 	public constructor(
 		private readonly http  = inject(HTTPService),
 		private readonly redis = inject(RedisService),
 	) {
-		this.client             = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });
-		this.coordinatePattern  = /^(-?\d+(?:\.\d+)?)$/;
-		this.coordinatesPattern = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/;
+		this.client            = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });
+		this.coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
 	}
 
 	/**
