@@ -1,5 +1,6 @@
-import { serve, type Server } from 'bun';
+import { serve } from 'bun';
 import { injectable } from '@needle-di/core';
+import type { Server } from 'bun';
 
 @injectable()
 export class ApiService {
