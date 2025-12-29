@@ -28,10 +28,7 @@ export class GithubService {
 
 		let hash: string;
 
-		const hasGit = Bun.which('git') !== null;
-		if (hasGit) {
-			hash = (await Bun.$`git rev-parse HEAD`.text()).trim();
-		} else {
+		const getHashFromCommits = async () => {
 			const res = await this._getAllCommits();
 			if (!res) {
 				throw new Error('Could not retrieve project commits from GitHub API');
@@ -39,7 +36,18 @@ export class GithubService {
 
 			const { sha } = res.data[0];
 
-			hash = sha;
+			return sha;
+		};
+
+		const hasGit = Bun.which('git') !== null;
+		if (hasGit) {
+			try {
+				hash = (await Bun.$`git -c safe.directory='*' rev-parse HEAD`.text()).trim();
+			} catch {
+				hash = await getHashFromCommits();
+			}
+		} else {
+			hash = await getHashFromCommits();
 		}
 
 		await this.redis.set(cacheKey, hash, '5m');
