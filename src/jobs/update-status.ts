@@ -1,7 +1,6 @@
 import { BaseJob } from '@jobs';
 import { msg } from '@lib/messages';
-import { GithubService } from '@services/github';
-import { inject, injectable } from '@needle-di/core';
+import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -29,9 +28,7 @@ export default class UpdateStatusJob extends BaseJob {
 		'🌊'
 	] as const;
 
-	public constructor(
-		private readonly github = inject(GithubService)
-	) {
+	public constructor() {
 		super({
 			name: 'update_status',
 			pattern: '*/15 * * * * *',
@@ -43,13 +40,12 @@ export default class UpdateStatusJob extends BaseJob {
 
 	public async execute(client: WeatherGoat<true>) {
 		const duration = this.formatter.format(client.uptime, 3);
-		const hash     = await this.github.getCurrentCommitHash();
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: msg.$jobsStatusActivity(this.pickRandomEmoji(), duration, hash.slice(0, 7)),
+					name: msg.$jobsStatusActivity(this.pickRandomEmoji(), duration),
 					type: ActivityType.Custom
 				}
 			]
