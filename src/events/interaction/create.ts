@@ -8,7 +8,7 @@ import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/m
 import type { LogLayer } from 'loglayer';
 import type { BaseCommand } from '@commands';
 import type { Interaction } from 'discord.js';
-import type { Maybe } from '@depthbomb/node-common';
+import type { Maybe } from '@depthbomb/common/types';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	private readonly logger: LogLayer;

@@ -2,7 +2,7 @@ import { withQuery } from 'ufo';
 import { Type } from 'class-transformer';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
-import type { Nullable } from '@depthbomb/node-common';
+import type { Nullable } from '@depthbomb/common/types';
 
 export class Alert {
 	public id!: string;
