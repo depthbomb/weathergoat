@@ -18,15 +18,15 @@
 		"@loglayer/transport-log-file-rotation": "^2.1.16",
 		"@loglayer/transport-simple-pretty-terminal": "^2.3.1",
 		"@needle-di/core": "^1.1.0",
-		"@prisma/adapter-libsql": "^7.2.0",
-		"@prisma/client": "^7.2.0",
+		"@prisma/adapter-libsql": "^7.3.0",
+		"@prisma/client": "^7.3.0",
 		"@sapphire/discord.js-utilities": "^7.3.3",
 		"@sapphire/duration": "^1.2.0",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
-		"@sentry/bun": "^10.34.0",
+		"@sentry/bun": "^10.36.0",
 		"bufferutil": "^4.1.0",
 		"class-transformer": "^0.5.1",
 		"clipanion": "^4.0.0-rc.4",
@@ -36,13 +36,13 @@
 		"fejl": "^4.0.1",
 		"loglayer": "^8.4.0",
 		"octokit": "^5.0.5",
-		"serialize-error": "^13.0.0",
+		"serialize-error": "^13.0.1",
 		"ufo": "^1.6.3",
 		"utf-8-validate": "^6.0.6"
 	},
 	"devDependencies": {
 		"@types/bun": "1.3.6",
-		"prisma": "^7.2.0",
+		"prisma": "^7.3.0",
 		"typescript": "5.9.3"
 	}
 }
