@@ -21,6 +21,8 @@ model AlertDestination {
   autoCleanup   Boolean @default(true)
   radarImageUrl String?
   pingOnSevere  Boolean @default(false)
+
+  @@index([guildId])
 }
 
 model AutoRadarMessage {
@@ -32,6 +34,8 @@ model AutoRadarMessage {
   location      String
   radarStation  String
   radarImageUrl String
+
+  @@index([guildId])
 }
 
 model ForecastDestination {
@@ -43,6 +47,8 @@ model ForecastDestination {
   channelId     String
   messageId     String  @unique
   radarImageUrl String?
+
+  @@index([guildId])
 }
 
 model SentAlert {
@@ -52,6 +58,8 @@ model SentAlert {
   channelId String
   messageId String
   json      String?
+
+  @@index([guildId, channelId, alertId])
 }
 
 model VolatileMessage {
@@ -60,4 +68,7 @@ model VolatileMessage {
   channelId String
   messageId String   @unique
   expiresAt DateTime
+
+  @@index([guildId])
+  @@index([expiresAt])
 }
