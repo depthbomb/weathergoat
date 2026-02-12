@@ -38,6 +38,16 @@ type CreateHTTPClientOptions = Omit<HTTPClientOptions, 'name' | 'retry'> & {
 type RequestOptions = RequestInit & { query?: QueryObject };
 type GETOptions = Omit<RequestOptions, 'method'>;
 
+const RETRYABLE_STATUS_CODES = new Set([
+	408, // Request Timeout
+	425, // Too Early
+	429, // Too Many Requests
+	500, // Internal Server Error
+	502, // Bad Gateway
+	503, // Service Unavailable
+	504, // Gateway Timeout
+]);
+
 export class HTTPClient {
 	private readonly name: string;
 	private readonly retry: boolean;
@@ -52,7 +62,7 @@ export class HTTPClient {
 		this.name        = options.name;
 		this.retry       = options.retry;
 		this.baseUrl     = options.baseUrl;
-		this.retryPolicy = retry(handleResultType(Response, (res) => res.status > 399), {
+		this.retryPolicy = retry(handleResultType(Response, res => RETRYABLE_STATUS_CODES.has(res.status)), {
 			maxAttempts: 10,
 			backoff: new ConstantBackoff(1_000)
 		});
