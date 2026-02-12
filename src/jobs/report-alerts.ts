@@ -44,23 +44,40 @@ export default class ReportAlertsJob extends BaseJob {
 				pingOnSevere: true,
 			}
 		});
-		for (const { countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
-			const channel = await client.channels.fetch(channelId);
-			if (!isTextChannel(channel)) {
-				continue;
-			}
+		const countyAlerts = new Map<string, Alert[]>();
 
+		for (const { countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
 			try {
-				const alerts = await this.alerts.getActiveAlertsForZone(countyId);
-				for (const alert of alerts.filter(a => a.isNotTest)) {
-					const alreadyReported = await db.sentAlert.findFirst({
-						where: {
-							alertId: alert.id,
-							guildId: channel.guildId,
-							channelId
-						}
-					});
-					if (alreadyReported) {
+				const channel = await client.channels.fetch(channelId);
+				if (!isTextChannel(channel)) {
+					continue;
+				}
+
+				let alerts = countyAlerts.get(countyId);
+				if (!alerts) {
+					alerts = (await this.alerts.getActiveAlertsForZone(countyId)).filter(a => a.isNotTest);
+					countyAlerts.set(countyId, alerts);
+				}
+				if (!alerts.length) {
+					continue;
+				}
+
+				const existing = await db.sentAlert.findMany({
+					where: {
+						alertId: { in: alerts.map(a => a.id) },
+						guildId: channel.guildId,
+						channelId
+					},
+					select: {
+						alertId: true
+					}
+				});
+				const reportedIDs         = new Set(existing.map(({ alertId }) => alertId));
+				const expiredReferenceIDs = new Set<string>();
+				const webhook             = await this.getOrCreateWebhook(channel);
+
+				for (const alert of alerts) {
+					if (reportedIDs.has(alert.id)) {
 						continue;
 					}
 
@@ -100,7 +117,6 @@ export default class ReportAlertsJob extends BaseJob {
 						(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
 						pingOnSevere
 					);
-					const webhook     = await this.getOrCreateWebhook(channel);
 					const sentMessage = await webhook.send({
 						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
@@ -122,25 +138,48 @@ export default class ReportAlertsJob extends BaseJob {
 							json: alert.json
 						}
 					});
+					expiredReferenceIDs.add(alert.id);
 
 					// Enqueue expired alert messages to be deleted immediately
 					if (alert.expiredReferences) {
 						for (const expiredReference of alert.expiredReferences) {
-							const expiredSentAlert = await db.sentAlert.findFirst({
-								where: {
-									alertId: expiredReference.alertId
-								}
-							});
-
-							if (!expiredSentAlert) continue;
-
-							await this.sweeper.enqueueMessage(
-								expiredSentAlert.guildId,
-								expiredSentAlert.channelId,
-								expiredSentAlert.messageId,
-								new Date()
-							);
+							expiredReferenceIDs.add(expiredReference.alertId);
 						}
+					}
+				}
+
+				if (expiredReferenceIDs.size) {
+					const expiredSentAlerts = await db.sentAlert.findMany({
+						where: {
+							alertId: {
+								in: [...expiredReferenceIDs]
+							}
+						},
+						select: {
+							alertId: true,
+							guildId: true,
+							channelId: true,
+							messageId: true
+						}
+					});
+
+					const firstByAlertID = new Map<string, typeof expiredSentAlerts[number]>();
+					for (const sent of expiredSentAlerts) {
+						if (!firstByAlertID.has(sent.alertId)) {
+							firstByAlertID.set(sent.alertId, sent);
+						}
+					}
+
+					for (const alertId of expiredReferenceIDs) {
+						const expiredSentAlert = firstByAlertID.get(alertId);
+						if (!expiredSentAlert) continue;
+
+						await this.sweeper.enqueueMessage(
+							expiredSentAlert.guildId,
+							expiredSentAlert.channelId,
+							expiredSentAlert.messageId,
+							new Date()
+						);
 					}
 				}
 			} catch (err) {
