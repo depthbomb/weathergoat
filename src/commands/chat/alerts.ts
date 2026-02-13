@@ -148,14 +148,20 @@ export default class AlertsCommand extends BaseCommand {
 	}
 
 	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
-		const snowflake = interaction.options.getString('snowflake', true);
-		if (!isValidSnowflake(snowflake)) {
+		const { guildId } = interaction;
+		const snowflake   = interaction.options.getString('snowflake', true);
+
+		if (!guildId) {
 			return interaction.reply(msg.$errInvalidSnowflake(snowflake));
+		}
+
+		if (!isValidSnowflake(snowflake)) {
+			return interaction.reply(msg.$errGuildOnly());
 		}
 
 		await interaction.deferReply();
 
-		const exists = await db.alertDestination.exists({ snowflake });
+		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
 			return interaction.editReply(msg.$commandsAlertsErrNoDestBySnowflake(snowflake));
 		}
