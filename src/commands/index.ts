@@ -1,6 +1,7 @@
 import { tryToRespond } from '@utils/interactions';
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { InvalidPermissionsError } from '@lib/errors';
+import { ApplicationCommandOptionType } from 'discord.js';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { BasePrecondition } from '@preconditions';
 import type {
@@ -101,7 +102,18 @@ export abstract class BaseCommand {
 		}
 
 		const subcommandName = interaction.options.getSubcommand(true);
-		const { handler, preconditions } = this.subcommandMap[subcommandName];
+		const entry          = this.subcommandMap[subcommandName];
+		if (!entry) {
+			const mappedSubcommands = Object.keys(this.subcommandMap);
+			const available         = mappedSubcommands.length === 0 ? '(none)' : mappedSubcommands.join(', ');
+
+			throw new Error([
+				`Subcommand "${subcommandName}" is not mapped for command "${this.name}".`,
+				`Mapped subcommands: ${available}`
+			].join('\n'));
+		}
+
+		const { handler, preconditions } = entry;
 
 		if (preconditions) {
 			for (const precondition of preconditions) {
@@ -109,7 +121,7 @@ export abstract class BaseCommand {
 			}
 		}
 
-		await handler.bind(this)(interaction);
+		await handler.call(this, interaction);
 	}
 
 	/**
@@ -144,7 +156,48 @@ export abstract class BaseCommand {
 			throw new Error('A subcommand map has already been defined for this command.');
 		}
 
+		const declaredSubcommands = this.getDeclaredSubcommandNames();
+		if (declaredSubcommands.length === 0) {
+			throw new Error(`Cannot create subcommand map for command "${this.name}" because no subcommands are declared in command data.`);
+		}
+
+		const declaredSet       = new Set(declaredSubcommands);
+		const mappedSubcommands = Object.keys(map);
+		const mappedSet         = new Set(mappedSubcommands);
+		const unknownHandlers   = mappedSubcommands.filter(name => !declaredSet.has(name));
+		const missingHandlers   = declaredSubcommands.filter(name => !mappedSet.has(name));
+		if (missingHandlers.length > 0 || unknownHandlers.length > 0) {
+			const errors = [`Invalid subcommand map for command "${this.name}".`];
+			if (missingHandlers.length > 0) {
+				errors.push(`Missing handler(s) for: ${missingHandlers.join(', ')}`);
+			}
+
+			if (unknownHandlers.length > 0) {
+				errors.push(`Mapped subcommand(s) not declared in builder: ${unknownHandlers.join(', ')}`);
+			}
+
+			throw new Error(errors.join('\n'));
+		}
+
 		this.subcommandMap = map;
+	}
+
+	private getDeclaredSubcommandNames(): string[] {
+		const names   = [] as string[];
+		const options = this.data.toJSON().options ?? [];
+		for (const option of options) {
+			if (option.type === ApplicationCommandOptionType.Subcommand) {
+				names.push(option.name);
+			} else if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
+				for (const nested of option.options ?? []) {
+					if (nested.type === ApplicationCommandOptionType.Subcommand) {
+						names.push(nested.name);
+					}
+				}
+			}
+		}
+
+		return names;
 	}
 
 	/**
