@@ -66,7 +66,7 @@ export class LocationService {
 	 * @param longitude The longitude of the location to retrieve.
 	 */
 	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
-		const cacheKey = latitude + longitude;
+		const cacheKey = `${latitude},${longitude}`;
 		const cached   = await this.redis.get(cacheKey);
 		if (cached) {
 			return JSON.parse(cached) as CoordinateInfo;
