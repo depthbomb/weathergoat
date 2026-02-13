@@ -152,11 +152,11 @@ export default class AlertsCommand extends BaseCommand {
 		const snowflake   = interaction.options.getString('snowflake', true);
 
 		if (!guildId) {
-			return interaction.reply(msg.$errInvalidSnowflake(snowflake));
+			return interaction.reply(msg.$errGuildOnly());
 		}
 
 		if (!isValidSnowflake(snowflake)) {
-			return interaction.reply(msg.$errGuildOnly());
+			return interaction.reply(msg.$errInvalidSnowflake(snowflake));
 		}
 
 		await interaction.deferReply();
