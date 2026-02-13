@@ -48,16 +48,39 @@ export class LocationService {
 	 * @param longitude Optional longitude.
 	 */
 	public isValidCoordinates(combinedCoordinatesOrLatitude: string, longitude?: string): boolean {
-		if (combinedCoordinatesOrLatitude.includes(',') || !longitude) {
+		if (typeof longitude === 'undefined') {
+			if (!combinedCoordinatesOrLatitude.includes(',')) {
+				return false;
+			}
+
 			const split = combinedCoordinatesOrLatitude.split(',');
-			const lat   = split[0].trim();
-			const lon   = split[1].trim();
+			if (split.length !== 2) {
+				return false;
+			}
+
+			const lat = split[0]?.trim();
+			const lon = split[1]?.trim();
+			if (!lat || !lon) {
+				return false;
+			}
 
 			return this.isValidCoordinates(lat, lon);
 		}
 
-		return this.coordinatePattern.test(combinedCoordinatesOrLatitude)
-			&& this.coordinatePattern.test(longitude);
+		const latitude = combinedCoordinatesOrLatitude.trim();
+		const lon      = longitude.trim();
+
+		return this.isCoordinateInRange(latitude, -90, 90)
+			&& this.isCoordinateInRange(lon, -180, 180);
+	}
+
+	private isCoordinateInRange(input: string, min: number, max: number): boolean {
+		if (!this.coordinatePattern.test(input)) {
+			return false;
+		}
+
+		const value = Number.parseFloat(input);
+		return Number.isFinite(value) && value >= min && value <= max;
 	}
 
 	/**
