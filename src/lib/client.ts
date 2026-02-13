@@ -154,15 +154,29 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	 * the container to utilize dependency injection.
 	 */
 	public async registerCommands() {
+		this.commands.clear();
+
+		const commandSourceByName = new Map<string, string>();
+
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: CommandModule = await import(file);
 			if (!container.has(mod)) {
 				container.bind(mod);
 			}
 
-			const command = container.get<BaseCommand>(mod);
+			const command        = container.get<BaseCommand>(mod);
+			const previousSource = commandSourceByName.get(command.name);
+			if (previousSource) {
+				throw new Error([
+					`Duplicate command name "${command.name}" detected during registration.`,
+					`First seen in: ${previousSource}`,
+					`Duplicate found in: ${file}`
+				].join('\n'));
+			}
 
 			this.commands.set(command.name, command);
+
+			commandSourceByName.set(command.name, file);
 
 			this.logger.withMetadata({ name: command.name }).info('Registered command');
 		}
