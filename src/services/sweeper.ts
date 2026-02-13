@@ -2,6 +2,8 @@ import { db } from '@db';
 import { logger } from '@lib/logger';
 import { WeatherGoat } from '@lib/client';
 import { Duration } from '@sapphire/duration';
+import { RESTJSONErrorCodes } from 'discord.js';
+import { isDiscordAPIErrorCode } from '@lib/errors';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
@@ -99,8 +101,15 @@ export class SweeperService {
 		let sweepCount = 0;
 		let errorCount = 0;
 		const messages = await this.getDueMessages();
+		const nonRetryableErrorCodes = [
+			RESTJSONErrorCodes.UnknownGuild,
+			RESTJSONErrorCodes.UnknownChannel,
+			RESTJSONErrorCodes.UnknownMessage
+		];
 
 		for (const { id, channelId, messageId } of messages) {
+			let shouldDeleteRecord = false;
+
 			try {
 				const channel = await this.bot.channels.fetch(channelId);
 				if (isTextChannel(channel)) {
@@ -108,16 +117,26 @@ export class SweeperService {
 					if (message) {
 						await message.delete();
 						sweepCount++;
+						shouldDeleteRecord = true;
 					}
+				} else {
+					// Channel is no longer sweepable, remove stale row.
+					shouldDeleteRecord = true;
 				}
 			} catch (err) {
 				errorCount++;
+				if (isDiscordAPIErrorCode(err, nonRetryableErrorCodes)) {
+					shouldDeleteRecord = true;
+				}
+
 				this.logger
 					.withError(err)
-					.withMetadata({ id, channelId, messageId })
+					.withMetadata({ id, channelId, messageId, shouldDeleteRecord })
 					.error('Error while deleting volatile message');
 			} finally {
-				await db.volatileMessage.delete({ where: { id } });
+				if (shouldDeleteRecord) {
+					await db.volatileMessage.delete({ where: { id } });
+				}
 			}
 		}
 
