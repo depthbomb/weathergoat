@@ -53,12 +53,13 @@ model ForecastDestination {
 
 model SentAlert {
   id        Int     @id @default(autoincrement())
-  alertId   String  @unique
+  alertId   String
   guildId   String
   channelId String
   messageId String
   json      String?
 
+  @@unique([alertId, guildId, channelId])
   @@index([guildId, channelId, alertId])
 }
 

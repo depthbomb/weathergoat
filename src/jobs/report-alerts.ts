@@ -138,7 +138,7 @@ export default class ReportAlertsJob extends BaseJob {
 							json: alert.json
 						}
 					});
-					expiredReferenceIDs.add(alert.id);
+					reportedIDs.add(alert.id);
 
 					// Enqueue expired alert messages to be deleted immediately
 					if (alert.expiredReferences) {
@@ -151,6 +151,8 @@ export default class ReportAlertsJob extends BaseJob {
 				if (expiredReferenceIDs.size) {
 					const expiredSentAlerts = await db.sentAlert.findMany({
 						where: {
+							guildId,
+							channelId,
 							alertId: {
 								in: [...expiredReferenceIDs]
 							}
@@ -163,15 +165,13 @@ export default class ReportAlertsJob extends BaseJob {
 						}
 					});
 
-					const firstByAlertID = new Map<string, typeof expiredSentAlerts[number]>();
+					const byAlertId = new Map<string, typeof expiredSentAlerts[number]>();
 					for (const sent of expiredSentAlerts) {
-						if (!firstByAlertID.has(sent.alertId)) {
-							firstByAlertID.set(sent.alertId, sent);
-						}
+						byAlertId.set(sent.alertId, sent);
 					}
 
 					for (const alertId of expiredReferenceIDs) {
-						const expiredSentAlert = firstByAlertID.get(alertId);
+						const expiredSentAlert = byAlertId.get(alertId);
 						if (!expiredSentAlert) continue;
 
 						await this.sweeper.enqueueMessage(
