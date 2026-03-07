@@ -1,7 +1,8 @@
-import { Type } from 'class-transformer';
+import { Serializable, JSONProperty } from '@depthbomb/serde';
 import { GridpointForecastPeriod } from '@models/GridpointForecastPeriod';
 
+@Serializable()
 export class GridpointForecast {
-	@Type(() => GridpointForecastPeriod)
+	@JSONProperty({ type: () => GridpointForecastPeriod, isArray: true })
 	public periods!: GridpointForecastPeriod[];
 }

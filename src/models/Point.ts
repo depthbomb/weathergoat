@@ -1,19 +1,42 @@
-import { Type } from 'class-transformer';
 import { RelativeLocation } from '@models/RelativeLocation';
+import { Serializable, JSONProperty } from '@depthbomb/serde';
 
+@Serializable()
 export class Point {
+	@JSONProperty()
 	public gridX!: number;
+
+	@JSONProperty()
 	public gridY!: number;
+
+	@JSONProperty()
 	public forecast!: string;
+
+	@JSONProperty()
 	public forecastHourly!: string;
+
+	@JSONProperty()
 	public forecastGridData!: string;
+
+	@JSONProperty()
 	public observationStations!: string;
-	@Type(() => RelativeLocation)
+
+	@JSONProperty({ type: () => RelativeLocation })
 	public relativeLocation!: RelativeLocation;
+
+	@JSONProperty()
 	public forecastZone!: string;
+
+	@JSONProperty()
 	public county?: string;
+
+	@JSONProperty()
 	public fireWeatherZone!: string;
+
+	@JSONProperty()
 	public timeZone!: string;
+
+	@JSONProperty()
 	public radarStation!: string;
 
 	public get countyId() {

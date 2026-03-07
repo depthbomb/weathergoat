@@ -1,7 +1,7 @@
 import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
 import { injectable } from '@needle-di/core';
-import { plainToInstance } from 'class-transformer';
+import { deserialize } from '@depthbomb/serde';
 import type { LogLayer } from 'loglayer';
 
 class Feature {
@@ -26,7 +26,7 @@ export class FeaturesService {
 	public set(name: string, fraction: number, description?: string) {
 		const obj = { name, fraction, description };
 
-		this.features.set(name, plainToInstance(Feature, obj));
+		this.features.set(name, deserialize(Feature, obj));
 
 		this.logger.withMetadata({ name, fraction, description }).info('Created feature flag');
 

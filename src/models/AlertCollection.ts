@@ -1,12 +1,18 @@
 import { Alert } from '@models/Alert';
-import { Type, Expose } from 'class-transformer';
+import { Serializable, JSONProperty } from '@depthbomb/serde';
 
+@Serializable()
 export class AlertCollection {
+	@JSONProperty()
 	public title!: string;
-	@Type(() => Date)
+
+	@JSONProperty({
+		deserializeTransform: (raw) => new Date(raw as string),
+		serializeTransform: (d: Date) => d.toISOString(),
+	})
 	public updated!: Date;
-	@Type(() => Alert)
-	@Expose({ name: '@graph' })
+
+	@JSONProperty({ type: () => Alert, name: '@graph', isArray: true })
 	public alerts!: Alert[];
 
 	public get hasAlerts(): boolean {

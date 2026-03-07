@@ -1,7 +1,7 @@
 import { HTTPService } from './http';
+import { fromJSON } from '@depthbomb/serde';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
-import { plainToClass } from 'class-transformer';
 import { inject, injectable } from '@needle-di/core';
 import { AlertCollection } from '@models/AlertCollection';
 import type { HTTPClient } from './http';
@@ -25,7 +25,7 @@ export class AlertsService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = plainToClass(AlertCollection, json);
+		const data = fromJSON(AlertCollection, json);
 
 		return data.alerts;
 	}
@@ -41,7 +41,7 @@ export class AlertsService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = plainToClass(AlertCollection, json);
+		const data = fromJSON(AlertCollection, json);
 
 		return data.alerts;
 	}

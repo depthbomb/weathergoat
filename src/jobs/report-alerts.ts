@@ -207,6 +207,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 	private getAlertSeverityColor(alert: Alert) {
 		switch (alert.severity) {
+			default:
 			case 'Unknown':
 				return Color.SeverityUnknown;
 			case 'Minor':

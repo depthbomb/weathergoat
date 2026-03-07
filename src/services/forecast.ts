@@ -1,7 +1,7 @@
 import { HTTPService } from './http';
+import { fromJSON } from '@depthbomb/serde';
 import { LocationService } from './location';
 import { HTTPRequestError } from '@lib/errors';
-import { plainToClass } from 'class-transformer';
 import { inject, injectable } from '@needle-di/core';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HTTPClient } from './http';
@@ -31,7 +31,7 @@ export class ForecastService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = plainToClass(GridpointForecast, json);
+		const data = fromJSON(GridpointForecast, json);
 
 		return data.periods[0];
 	}
