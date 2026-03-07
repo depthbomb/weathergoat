@@ -1,4 +1,6 @@
+import { logger } from '@lib/logger';
 import type { Cron } from 'croner';
+import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 type JobOptions = {
@@ -39,11 +41,16 @@ export abstract class BaseJob {
 	 * client is ready.
 	 */
 	public readonly runImmediately: boolean;
+	/**
+	 * A {@link LogLayer} instance.
+	 */
+	public readonly logger: LogLayer;
 
 	public constructor(options: JobOptions) {
 		this.name           = options.name;
 		this.pattern        = options.pattern;
 		this.runImmediately = options.runImmediately ?? false;
+		this.logger         = logger.child().withPrefix(`[Job(${this.name})]`);
 	}
 
 	/**

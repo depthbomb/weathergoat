@@ -2,19 +2,16 @@ import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
-import { logger } from '@lib/logger';
 import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { Cron } from 'croner';
-import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class UpdateRadarMessagesJob extends BaseJob {
-	private readonly logger: LogLayer;
 	private readonly errorCodes: number[];
 
 	public constructor() {
@@ -24,7 +21,6 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger     = logger.child().withPrefix(`[Job::${this.name}]`);
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 

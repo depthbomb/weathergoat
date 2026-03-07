@@ -2,22 +2,20 @@ import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
+import { reportError } from '@lib/logger';
 import { HTTPRequestError } from '@lib/errors';
 import { AlertsService } from '@services/alerts';
-import { logger, reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { inject, injectable } from '@needle-di/core';
 import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
-import type { LogLayer } from 'loglayer';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class ReportAlertsJob extends BaseJob {
-	private readonly logger: LogLayer;
 	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;
 
 	public constructor(
@@ -29,8 +27,6 @@ export default class ReportAlertsJob extends BaseJob {
 			pattern: '*/30 * * * * *',
 			runImmediately: true
 		});
-
-		this.logger = logger.child().withPrefix(`[Job::${this.name}]`);
 	}
 
 	public async execute(client: WeatherGoat<true>) {

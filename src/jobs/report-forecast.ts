@@ -2,7 +2,6 @@ import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
-import { logger } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { ForecastService } from '@services/forecast';
@@ -10,12 +9,10 @@ import { inject, injectable } from '@needle-di/core';
 import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
-import type { LogLayer } from 'loglayer';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class ReportForecastsJob extends BaseJob {
-	private readonly logger: LogLayer;
 	private readonly errorCodes: number[];
 
 	public constructor(
@@ -28,7 +25,6 @@ export default class ReportForecastsJob extends BaseJob {
 			runImmediately: true
 		});
 
-		this.logger = logger.child().withPrefix(`[Job::${this.name}]`);
 		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 

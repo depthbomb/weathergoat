@@ -1,3 +1,5 @@
+import { logger } from '@lib/logger';
+import type { LogLayer } from 'loglayer';
 import type { ClientEvents } from 'discord.js';
 
 type EventOptions<T> = {
@@ -32,11 +34,16 @@ export abstract class BaseEvent<T extends keyof ClientEvents> {
 	 * Whether the event is disabled.
 	 */
 	public readonly disabled: boolean;
+	/**
+	 * A {@link LogLayer} instance.
+	 */
+	public readonly logger: LogLayer;
 
 	public constructor(options: EventOptions<T>) {
 		this.name     = options.name;
 		this.once     = options.once ?? false;
 		this.disabled = options.disabled ?? false;
+		this.logger   = logger.child().withPrefix(`[Event(${this.name})]`);
 	}
 
 	/**

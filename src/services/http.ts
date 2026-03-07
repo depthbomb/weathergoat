@@ -67,7 +67,7 @@ export class HTTPClient {
 			backoff: new ConstantBackoff(1_000)
 		});
 		this.durationFormatter = new DurationFormatter();
-		this.logger            = logger.child().withPrefix(`[HTTP::${this.name}]`);
+		this.logger            = logger.child().withPrefix(`[HTTP(${this.name})]`);
 	}
 
 	public async get(url: string | URL, options?: GETOptions) {

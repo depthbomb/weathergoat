@@ -1,16 +1,10 @@
 import { db } from '@db';
 import { BaseEvent } from '@events';
-import { logger } from '@lib/logger';
-import type { LogLayer } from 'loglayer';
 import type { Guild } from 'discord.js';
 
 export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
-	private readonly logger: LogLayer;
-
 	public constructor() {
 		super({ name: 'guildDelete' });
-
-		this.logger = logger.child().withPrefix(`[Event::${this.name}]`);
 	}
 
 	public async handle(guild: Guild) {
