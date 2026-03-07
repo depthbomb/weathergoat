@@ -1,5 +1,5 @@
-import { withQuery } from 'ufo';
 import { Type } from 'class-transformer';
+import { URLPath } from '@depthbomb/common';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
 import type { Nullable } from '@depthbomb/common/types';
@@ -41,7 +41,7 @@ export class Alert {
 	}
 
 	public get url() {
-		return withQuery(ALERTS_SEARCH_BASE_URL, { id: this.id });
+		return URLPath.from(ALERTS_SEARCH_BASE_URL).withQuery({ id: this.id });
 	}
 
 	public get expiredReferences(): Nullable<Array<{ sender: string; alertId: string; date: Date; }>> {

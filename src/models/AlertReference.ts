@@ -1,4 +1,4 @@
-import { withQuery } from 'ufo';
+import { URLPath } from '@depthbomb/common';
 import { Type, Expose } from 'class-transformer';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 
@@ -11,6 +11,6 @@ export class AlertReference {
 	public sent!: Date;
 
 	public get url() {
-		return withQuery(ALERTS_SEARCH_BASE_URL, { id: this.identifier });
+		return URLPath.from(ALERTS_SEARCH_BASE_URL).withQuery({ id: this.identifier });
 	}
 }

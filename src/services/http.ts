@@ -2,14 +2,14 @@ import { fetch } from 'bun';
 import { logger } from '@lib/logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
-import { joinURL, withQuery } from 'ufo';
+import { URLPath } from '@depthbomb/common';
 import { BOT_USER_AGENT } from '@constants';
 import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { retry, ConstantBackoff, handleResultType } from 'cockatiel';
 import type { LogLayer } from 'loglayer';
-import type { QueryObject } from 'ufo';
 import type { RetryPolicy } from 'cockatiel';
+import type { QueryObject } from '@depthbomb/common';
 
 type HTTPClientOptions = {
 	/**
@@ -87,10 +87,10 @@ export class HTTPClient {
 			},
 		};
 
-		let requestUrl = this.baseUrl ? joinURL(this.baseUrl, input) : input;
+		let requestUrl = this.baseUrl ? URLPath.from(input, this.baseUrl) : URLPath.from(input);
 
 		if (init?.query) {
-			requestUrl = withQuery(requestUrl, init.query);
+			requestUrl = requestUrl.withQuery(init.query);
 		}
 
 		const requestId = `${this.name}-${this.requestNum}`;
@@ -106,9 +106,9 @@ export class HTTPClient {
 
 		let res: Response;
 		if (this.retry) {
-			res = await this.retryPolicy.execute(() => fetch(requestUrl, requestInit));
+			res = await this.retryPolicy.execute(() => fetch(requestUrl.toString(), requestInit));
 		} else {
-			res = await fetch(requestUrl, requestInit);
+			res = await fetch(requestUrl.toString(), requestInit);
 		}
 
 		const endTime = hrtime.bigint();
