@@ -1,5 +1,4 @@
 export * from './alerts';
-export * from './api';
 export * from './cli';
 export * from './features';
 export * from './forecast';

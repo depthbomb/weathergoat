@@ -8,7 +8,7 @@ import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { logger, reportError } from '@lib/logger';
-import { ApiService, CliService, FeaturesService } from '@services';
+import { CliService, FeaturesService } from '@services';
 
 async function main() {
 	const mode      = env.get('MODE');
@@ -39,10 +39,7 @@ async function main() {
 		const wg = container.get(WeatherGoat);
 		await wg.start();
 
-		const server = container.get(ApiService);
-
 		process.once('beforeExit', async () => {
-			await server.stop();
 			await wg.destroy();
 			process.exit(0);
 		});
@@ -50,7 +47,6 @@ async function main() {
 		for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
 			if (err.code !== 'ABORT_ERR') {
 				reportError('Unhandled error', err);
-				await server.stop();
 				await wg.destroy();
 			}
 
