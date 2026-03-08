@@ -22,6 +22,10 @@ export default class AboutCommand extends BaseCommand {
 			.setName('about')
 			.setDescription('Read about me!')
 			.addSubcommand(sc => sc
+				.setName('bot')
+				.setDescription('Returns basic info about my inner workings')
+			)
+			.addSubcommand(sc => sc
 				.setName('changelog')
 				.setDescription('Retrieve the latest commits made to my repository')
 			)
@@ -33,7 +37,10 @@ export default class AboutCommand extends BaseCommand {
 
 		this.formatter = new DurationFormatter();
 
-		this.createSubcommandMap<'changelog' | 'stats'>({
+		this.createSubcommandMap<'bot' | 'changelog' | 'stats'>({
+			bot: {
+				handler: this._handleBotSubcommand
+			},
 			changelog: {
 				handler: this._handleChangelogSubcommand,
 				preconditions: [
@@ -48,6 +55,30 @@ export default class AboutCommand extends BaseCommand {
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		await this.handleSubcommand(interaction);
+	}
+
+	private async _handleBotSubcommand(interaction: ChatInputCommandInteraction) {
+		const avatar = interaction.client.user.avatarURL({ size: 128 });
+		const embed = new EmbedBuilder()
+			.setTitle(msg.$commandsAboutMyStatsTitle())
+			.setColor(Color.Primary)
+			.setThumbnail(avatar)
+			.addFields(
+				{
+					name: msg.$commandsAboutBotSoftwareTitle(),
+					value: msg.$commandsAboutBotSoftwareBody()
+				},
+				{
+					name: msg.$commandsAboutBotApiTitle(),
+					value: msg.$commandsAboutBotApiBody()
+				},
+				{
+					name: msg.$commandsAboutBotAiUseTitle(),
+					value: msg.$commandsAboutBotAiUseBody()
+				},
+			);
+
+		await interaction.reply({ embeds: [embed] });
 	}
 
 	private async _handleChangelogSubcommand(interaction: ChatInputCommandInteraction) {

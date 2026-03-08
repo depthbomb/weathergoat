@@ -24,6 +24,14 @@
 	},
 	"commands": {
 		"about": {
+			"bot": {
+				"softwareTitle": "Software",
+				"softwareBody": "I'm built on the following software:\n-[Bun](https://bun.sh)\n- [discord.js](https://discord.js.org)\n- [Prisma ORM](https://prisma.io)\n- [Redis](https://redis.io)\n... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server).",
+				"apiTitle": "Where do you get your weather data?",
+				"apiBody": "I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api).",
+				"aiUseTitle": "Do you use any AI?",
+				"aiUseBody": "**Nope!** I neither use AI to parse or transform data nor is any of my code written in AI. All of my code is written by a human, mistakes and all!"
+			},
 			"myStatsTitle": "My Stats",
 			"uptimeTitle": "Uptime",
 			"applicationPrefix": "Application:",
