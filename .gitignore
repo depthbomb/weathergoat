@@ -7,3 +7,4 @@ src/db/generated/*
 .env
 .env.*
 *.generated.ts
+audit.json

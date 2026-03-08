@@ -106,9 +106,9 @@ export class HTTPClient {
 
 		let res: Response;
 		if (this.retry) {
-			res = await this.retryPolicy.execute(() => fetch(requestUrl.toString(), requestInit));
+			res = await this.retryPolicy.execute(() => requestUrl.fetch(requestInit));
 		} else {
-			res = await fetch(requestUrl.toString(), requestInit);
+			res = await requestUrl.fetch(requestInit);
 		}
 
 		const endTime = hrtime.bigint();

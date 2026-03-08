@@ -19,7 +19,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 	public constructor() {
 		super();
 
-		this.logger = logger.child().withPrefix(`[CLI::${CommandManagerCommand.paths.join(',')}]`);
+		this.logger = logger.child().withPrefix(`[CLI(${CommandManagerCommand.paths.join(',')})]`);
 	}
 
 	public async execute() {
