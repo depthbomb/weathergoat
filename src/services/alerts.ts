@@ -1,5 +1,5 @@
 import { HTTPService } from './http';
-import { fromJSON } from '@depthbomb/serde';
+import { deserialize } from '@depthbomb/serde';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { inject, injectable } from '@needle-di/core';
@@ -25,7 +25,7 @@ export class AlertsService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = fromJSON(AlertCollection, json);
+		const data = deserialize(AlertCollection, json);
 
 		return data.alerts;
 	}
@@ -41,7 +41,7 @@ export class AlertsService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = fromJSON(AlertCollection, json);
+		const data = deserialize(AlertCollection, json);
 
 		return data.alerts;
 	}

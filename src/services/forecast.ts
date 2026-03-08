@@ -1,6 +1,6 @@
 import { HTTPService } from './http';
-import { fromJSON } from '@depthbomb/serde';
 import { LocationService } from './location';
+import { deserialize } from '@depthbomb/serde';
 import { HTTPRequestError } from '@lib/errors';
 import { inject, injectable } from '@needle-di/core';
 import { GridpointForecast } from '@models/GridpointForecast';
@@ -31,7 +31,7 @@ export class ForecastService {
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 
 		const json = await res.json();
-		const data = fromJSON(GridpointForecast, json);
+		const data = deserialize(GridpointForecast, json);
 
 		return data.periods[0];
 	}

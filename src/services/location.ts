@@ -1,7 +1,7 @@
 import { HTTPService } from './http';
 import { Point } from '@models/Point';
 import { RedisService } from './redis';
-import { fromJSON } from '@depthbomb/serde';
+import { deserialize } from '@depthbomb/serde';
 import { HTTPRequestError } from '@lib/errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { inject, injectable } from '@needle-di/core';
@@ -103,7 +103,7 @@ export class LocationService {
 		});
 
 		const json = await res.json();
-		const data = fromJSON(Point, json);
+		const data = deserialize(Point, json);
 
 		const info: CoordinateInfo = {
 			latitude,
