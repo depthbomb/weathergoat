@@ -25,8 +25,9 @@
 	"commands": {
 		"about": {
 			"bot": {
+				"embedTitle": "My Inner Workings",
 				"softwareTitle": "Software",
-				"softwareBody": "I'm built on the following software:\n-[Bun](https://bun.sh)\n- [discord.js](https://discord.js.org)\n- [Prisma ORM](https://prisma.io)\n- [Redis](https://redis.io)\n... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server).",
+				"softwareBody": "I'm built on the following software:\n- [Bun](https://bun.sh)\n- [discord.js](https://discord.js.org)\n- [Prisma ORM](https://prisma.io)\n- [Redis](https://redis.io)\n... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server).",
 				"apiTitle": "Where do you get your weather data?",
 				"apiBody": "I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api).",
 				"aiUseTitle": "Do you use any AI?",
