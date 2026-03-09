@@ -12,7 +12,11 @@ import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class UpdateRadarMessagesJob extends BaseJob {
-	private readonly errorCodes: number[];
+	private readonly errorCodes = [
+		RESTJSONErrorCodes.UnknownChannel,
+		RESTJSONErrorCodes.UnknownGuild,
+		RESTJSONErrorCodes.UnknownMessage
+	];
 
 	public constructor() {
 		super({
@@ -20,16 +24,13 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			pattern: '*/5 * * * *',
 			runImmediately: true
 		});
-
-		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
 		const radarMessages = await db.autoRadarMessage.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
 			try {
-				const guild   = await client.guilds.fetch(guildId);
-				const channel = await guild.channels.fetch(channelId);
+				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
 					this.logger
 						.withMetadata({ guildId, channelId, messageId, location })

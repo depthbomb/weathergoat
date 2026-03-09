@@ -3,6 +3,7 @@ import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
+import { AlertSeverity } from '@models/Alert';
 import { HTTPRequestError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
 import { AlertsService } from '@services/alerts';
@@ -109,11 +110,7 @@ export default class ReportAlertsJob extends BaseJob {
 						embed.setDescription(description);
 					}
 
-					const shouldPingEveryone = !!(
-						(alert.severity === 'Severe' || alert.severity === 'Extreme') &&
-						(!alert.event.includes('Excessive Heat Warning') && !alert.event.includes('Heat Advisory')) &&
-						pingOnSevere
-					);
+					const shouldPingEveryone = (alert.severity === AlertSeverity.Severe || alert.severity === AlertSeverity.Extreme) && pingOnSevere;
 					const sentMessage = await webhook.send({
 						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
@@ -204,15 +201,15 @@ export default class ReportAlertsJob extends BaseJob {
 	private getAlertSeverityColor(alert: Alert) {
 		switch (alert.severity) {
 			default:
-			case 'Unknown':
+			case AlertSeverity.Unknown:
 				return Color.SeverityUnknown;
-			case 'Minor':
+			case AlertSeverity.Minor:
 				return Color.SeverityMinor;
-			case 'Moderate':
+			case AlertSeverity.Moderate:
 				return Color.SeverityModerate;
-			case 'Severe':
+			case AlertSeverity.Severe:
 				return Color.SeveritySevere;
-			case 'Extreme':
+			case AlertSeverity.Extreme:
 				return Color.SeverityExtreme;
 		}
 	}

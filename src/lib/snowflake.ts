@@ -5,6 +5,7 @@ type SnowflakeType = string | bigint;
 export const enum SnowflakeReturnType {
 	BigInt,
 	String,
+	URN,
 }
 
 /**
@@ -36,10 +37,20 @@ export function generateSnowflake(returnType: SnowflakeReturnType.String): strin
  * @param returnType The return type of the generated snowflake ID.
  */
 export function generateSnowflake(returnType: SnowflakeReturnType.BigInt): bigint;
+/**
+ * Generates a unique snowflake ID and returns it as an URN (uniform resource name).
+ *
+ * @param returnType The return type of the generated snowflake ID.
+ */
+export function generateSnowflake(returnType: SnowflakeReturnType.URN): string;
 export function generateSnowflake(returnType: SnowflakeReturnType = SnowflakeReturnType.String): SnowflakeType {
 	const sf = snowflake.generate();
-	if (returnType === SnowflakeReturnType.String) {
-		return sf.toString();
+
+	switch (returnType) {
+		case SnowflakeReturnType.String:
+			return sf.toString();
+		case SnowflakeReturnType.URN:
+			return `urn:snowflake:${sf}`;
 	}
 
 	return sf;
