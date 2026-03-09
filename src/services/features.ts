@@ -51,6 +51,10 @@ export class FeaturesService {
 	}
 
 	public all() {
-		return Array.from(this.features.values());
+		return Array.from(this.features.values()).map(f => ({
+			name: f.name,
+			description: f.description,
+			fraction: f.fraction
+		}));
 	}
 }

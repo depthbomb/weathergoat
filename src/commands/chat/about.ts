@@ -58,11 +58,9 @@ export default class AboutCommand extends BaseCommand {
 	}
 
 	private async _handleBotSubcommand(interaction: ChatInputCommandInteraction) {
-		const avatar = interaction.client.user.avatarURL({ size: 128 });
 		const embed = new EmbedBuilder()
 			.setTitle(msg.$commandsAboutBotEmbedTitle())
 			.setColor(Color.Primary)
-			.setThumbnail(avatar)
 			.addFields(
 				{
 					name: msg.$commandsAboutBotSoftwareTitle(),
