@@ -4,7 +4,7 @@ import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
-import { codeBlock, AttachmentBuilder, SlashCommandBuilder } from 'discord.js';
+import { codeBlock, AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
@@ -16,6 +16,7 @@ export default class DebugCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('debug')
 			.setDescription('Owner-only debug commands')
+			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('print')
 				.setDescription('Prints string representations of various domains of my application')
@@ -32,15 +33,19 @@ export default class DebugCommand extends BaseCommand {
 			.addSubcommand(sc => sc
 				.setName('dump-db')
 				.setDescription('Dumps all of the data in my database to a JSON file')
-			),
-			preconditions: [
-				new OwnerPrecondition()
-			]
+			)
 		});
 
 		this.createSubcommandMap<'print' | 'dump-db'>({
-			print: { handler: this._handlePrintSubcommand },
-			'dump-db': { handler: this._handleDumpDbSubcommand }
+			print: {
+				handler: this._handlePrintSubcommand
+			},
+			'dump-db': {
+				handler: this._handleDumpDbSubcommand,
+				preconditions: [
+					new OwnerPrecondition()
+				]
+			}
 		});
 	}
 
@@ -76,26 +81,38 @@ export default class DebugCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const alertDestinations    = await db.alertDestination.findMany();
-		const forecastDestinations = await db.forecastDestination.findMany();
-		const autoRadarMessages    = await db.autoRadarMessage.findMany();
-		const sentAlerts           = await db.sentAlert.findMany();
-		const volatileMessages     = await db.volatileMessage.findMany();
+		try {
+			const [
+				alertDestinations,
+				forecastDestinations,
+				autoRadarMessages,
+				sentAlerts,
+				volatileMessages
+			] = await Promise.all([
+				db.alertDestination.findMany(),
+				db.forecastDestination.findMany(),
+				db.autoRadarMessage.findMany(),
+				db.sentAlert.findMany(),
+				db.volatileMessage.findMany()
+			]);
 
-		const json = JSON.stringify({
-			date,
-			alertDestinations,
-			forecastDestinations,
-			autoRadarMessages,
-			sentAlerts,
-			volatileMessages
-		}, null, 4);
-		const buf = Buffer.from(json, 'utf8');
-		const attachment = new AttachmentBuilder(buf, {
-			name: 'dump.json',
-			description: msg.$commandsDebugDumpDescription(date)
-		});
+			const json = JSON.stringify({
+				date,
+				alertDestinations,
+				forecastDestinations,
+				autoRadarMessages,
+				sentAlerts,
+				volatileMessages
+			}, null, 4);
+			const buf = Buffer.from(json, 'utf8');
+			const attachment = new AttachmentBuilder(buf, {
+				name: 'dump.json',
+				description: msg.$commandsDebugDumpDescription(date)
+			});
 
-		await interaction.editReply({ files: [attachment] })
+			await interaction.editReply({ files: [attachment] });
+		} catch (err) {
+			await interaction.editReply(`Failed to dump database: ${codeBlock((err as Error).message)}`);
+		}
 	}
 }
