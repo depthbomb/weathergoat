@@ -57,7 +57,6 @@ model SentAlert {
   guildId   String
   channelId String
   messageId String
-  json      String?
 
   @@unique([alertId, guildId, channelId])
   @@index([guildId, channelId, alertId])

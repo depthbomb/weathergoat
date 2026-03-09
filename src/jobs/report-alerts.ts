@@ -130,8 +130,7 @@ export default class ReportAlertsJob extends BaseJob {
 							alertId: alert.id,
 							guildId,
 							channelId: channelId,
-							messageId: sentMessage.id,
-							json: alert.json
+							messageId: sentMessage.id
 						}
 					});
 					reportedIDs.add(alert.id);
