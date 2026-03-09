@@ -1,13 +1,15 @@
 import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
 import { injectable } from '@needle-di/core';
-import { deserialize } from '@depthbomb/serde';
 import type { LogLayer } from 'loglayer';
 
 class Feature {
-	public name!: string;
-	public fraction!: number;
-	public description?: string;
+	public constructor(
+		public readonly name: string,
+		public readonly fraction: number,
+		public readonly description?: string,
+	) {}
+
 	public check() {
 		return Math.random() < this.fraction;
 	}
@@ -24,10 +26,9 @@ export class FeaturesService {
 	}
 
 	public set(name: string, fraction: number, description?: string) {
-		const obj = { name, fraction, description };
+		const feature = new Feature(name, fraction, description);
 
-		this.features.set(name, deserialize(Feature, obj));
-
+		this.features.set(name, feature);
 		this.logger.withMetadata({ name, fraction, description }).info('Created feature flag');
 
 		return this;
