@@ -4,11 +4,11 @@ import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { HTTPRequestError } from '@lib/errors';
+import { time, EmbedBuilder } from 'discord.js';
 import { AlertsService } from '@services/alerts';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { inject, injectable } from '@needle-di/core';
-import { time, codeBlock, EmbedBuilder } from 'discord.js';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
@@ -54,6 +54,7 @@ export default class ReportAlertsJob extends BaseJob {
 					alerts = (await this.alerts.getActiveAlertsForZone(countyId)).filter(a => a.isNotTest);
 					countyAlerts.set(countyId, alerts);
 				}
+
 				if (!alerts.length) {
 					continue;
 				}
@@ -77,7 +78,7 @@ export default class ReportAlertsJob extends BaseJob {
 						continue;
 					}
 
-					const description = codeBlock('md', alert.description);
+					const description = alert.description.toCodeBlock('md');
 					const embed = new EmbedBuilder()
 						.setTitle(`${alert.isUpdate ? '🔁 ' + msg.$jobsAlertsUpdateTag() : '🚨'} ${alert.headline}`)
 						.setColor(this.getAlertSeverityColor(alert))
@@ -92,7 +93,7 @@ export default class ReportAlertsJob extends BaseJob {
 						.setTimestamp();
 
 					if (alert.instruction) {
-						embed.addFields({ name: msg.$jobsAlertsInstructionsTitle(), value: codeBlock('md', alert.instruction) });
+						embed.addFields({ name: msg.$jobsAlertsInstructionsTitle(), value: alert.instruction.toCodeBlock('md') });
 					}
 
 					if (radarImageUrl) {

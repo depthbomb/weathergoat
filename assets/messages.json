@@ -54,6 +54,17 @@
 			"destRemoved": "Alert reporting destination has been successfully removed.",
 			"listEmbedTitle": "Alert reporting destinations in this server"
 		},
+		"autoRadar": {
+			"err": {
+				"noMessageBySnowflake": "No radar message exists by the snowflake `{snowflake:string}`.",
+				"noMessages": "This server does not appear to have any radar messages",
+				"maxDestinationsReached": "You have reached the maximum amount of radar messages in this server."
+			},
+			"coordLocationAskConfirmation": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.\nIs this correct?\n{radarImageUrl:string}",
+			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
+			"destCreated": "{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
+			"listEmbedTitle": "Radar messages in this server"
+		},
 		"debug": {
 			"dumpDescription": "A dump of my database taken at {date:Date}."
 		},
@@ -68,16 +79,8 @@
 			"destCreated": "Hourly forecast reporting created in {channel:string}!\nYou can remove this destination by simply deleting the message.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
 		},
-		"autoRadar": {
-			"err": {
-				"noMessageBySnowflake": "No radar message exists by the snowflake `{snowflake:string}`.",
-				"noMessages": "This server does not appear to have any radar messages",
-				"maxDestinationsReached": "You have reached the maximum amount of radar messages in this server."
-			},
-			"coordLocationAskConfirmation": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.\nIs this correct?\n{radarImageUrl:string}",
-			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
-			"destCreated": "{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
-			"listEmbedTitle": "Radar messages in this server"
+		"help": {
+			"embedTitle": "Help"
 		},
 		"radar": {
 			"err": {

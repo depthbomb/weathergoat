@@ -9,7 +9,6 @@ import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
-	codeBlock,
 	ChannelType,
 	ButtonStyle,
 	EmbedBuilder,
@@ -203,7 +202,7 @@ export default class AlertsCommand extends BaseCommand {
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
 					msg.$reportingTo(channel!.toString()),
-					codeBlock('json', JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4))
+					JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4).toCodeBlock('json')
 				].join('\n')
 			});
 		}

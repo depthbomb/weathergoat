@@ -10,7 +10,7 @@ declare global {
 		toUserMention(): string;
 		toRoleMention(): string;
 		toHyperlink(url: string): string;
-		toCodeBlock<Language extends string>(language: Language): string;
+		toCodeBlock<Language extends string>(language?: Language): string;
 		toSpoiler(): string;
 		bracketWrap(): `[${string}]`;
 	}
@@ -41,7 +41,7 @@ String.prototype.toHyperlink = function(url) {
 };
 
 String.prototype.toCodeBlock = function(language) {
-	return codeBlock(this.valueOf(), language);
+	return codeBlock(language ?? '', this.valueOf());
 };
 
 String.prototype.toSpoiler = function() {

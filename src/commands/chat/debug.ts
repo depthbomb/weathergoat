@@ -4,7 +4,7 @@ import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
-import { codeBlock, AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
@@ -73,7 +73,7 @@ export default class DebugCommand extends BaseCommand {
 				break;
 		}
 
-		await interaction.reply(codeBlock('json', json));
+		await interaction.reply(json.toCodeBlock('json'));
 	}
 
 	private async _handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
@@ -112,7 +112,7 @@ export default class DebugCommand extends BaseCommand {
 
 			await interaction.editReply({ files: [attachment] });
 		} catch (err) {
-			await interaction.editReply(`Failed to dump database: ${codeBlock((err as Error).message)}`);
+			await interaction.editReply(`Failed to dump database: ${(err as Error).message.toCodeBlock()}`);
 		}
 	}
 }
