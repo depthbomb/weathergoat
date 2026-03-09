@@ -36,7 +36,7 @@ type CreateHTTPClientOptions = Omit<HTTPClientOptions, 'name' | 'retry'> & {
 	retry?: boolean;
 };
 type RequestOptions = RequestInit & { query?: QueryObject };
-type GETOptions = Omit<RequestOptions, 'method'>;
+type GETOptions     = Omit<RequestOptions, 'method'>;
 
 const RETRYABLE_STATUS_CODES = new Set([
 	408, // Request Timeout

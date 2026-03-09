@@ -113,5 +113,12 @@
 		"status": {
 			"activity": "{emoji:string} Forecasting for {duration:string}"
 		}
+	},
+	"beacon": {
+		"guildCreatedTitle": "Added to guild",
+		"guildDeletedTitle": "Removed from guild",
+		"name": "Name",
+		"members": "Members",
+		"channels": "Channels"
 	}
 }

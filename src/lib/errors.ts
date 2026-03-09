@@ -14,9 +14,9 @@ export class MaxDestinationError extends MakeErrorClass<{ max: number; }>() {}
  * @param err The {@link Error} to check
  */
 export function isWeatherGoatError<T extends WeatherGoatError>(err: unknown): err is T {
-	return err instanceof InvalidPermissionsError ||
+	return err instanceof InvalidPermissionsError            ||
            err instanceof GuildOnlyInvocationInNonGuildError ||
-           err instanceof HTTPRequestError ||
+           err instanceof HTTPRequestError                   ||
            err instanceof MaxDestinationError;
 }
 

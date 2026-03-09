@@ -9,6 +9,7 @@ export const env = Env.create({
 	REDIS_PREFIX: Env.schema.string({ required: false }),
 	SENTRY_DSN: Env.schema.string({ required: false }),
 	GITHUB_ACCESS_TOKEN: Env.schema.string(),
+	BEACON_WEBHOOK_URL: Env.schema.url(),
 	MAX_RADAR_MESSAGES_PER_GUILD: Env.schema.int({ positive: true }),
 	MAX_ALERT_DESTINATIONS_PER_GUILD: Env.schema.int({ positive: true }),
 	MAX_FORECAST_DESTINATIONS_PER_GUILD: Env.schema.int({ positive: true }),
