@@ -2,7 +2,7 @@ if (!process.versions.bun) {
 	throw new Error('WeatherGoat requires the Bun runtime to operate.');
 }
 
-import '@extensions';
+import '@extensions/string';
 import '@abraham/reflection';
 import { env } from '@env';
 import { container } from '@container';
