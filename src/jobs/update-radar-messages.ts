@@ -61,6 +61,8 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 					continue;
 				}
 
+				const nextUpdate = new Date(Temporal.Now.instant().add({ minutes: 5 }).epochMilliseconds);
+
 				const embed = new EmbedBuilder()
 					.setColor(Color.Primary)
 					.setTitle(msg.$jobsRadarEmbedTitle(location))
@@ -74,7 +76,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 				await message.edit({ content: msg.$deleteToDeleteSubheading(), embeds: [embed] });
 				await db.autoRadarMessage.update({
 					data: {
-						nextUpdate: new Date(Temporal.Now.instant().add({ minutes: 5 }).epochMilliseconds)
+						nextUpdate
 					},
 					where: {
 						id
