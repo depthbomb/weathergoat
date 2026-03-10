@@ -43,9 +43,18 @@ export default class FeedbackCommand extends BaseCommand {
 					.setRequired(false)
 				)
 			)
+			.addSubcommand(sc => sc
+				.setName('unban')
+				.setDescription('Unbans a user from submitting feedback. Owner only.')
+				.addStringOption(o => o
+					.setName('user-id')
+					.setDescription('The ID of the user to unban from submitting feedback.')
+					.setRequired(true)
+				)
+			)
 		});
 
-		this.createSubcommandMap<'submit' | 'ban'>({
+		this.createSubcommandMap<'submit' | 'ban' | 'unban'>({
 			submit: {
 				handler: this._handleSubmitSubcommand,
 				preconditions: [
@@ -57,7 +66,13 @@ export default class FeedbackCommand extends BaseCommand {
 				preconditions: [
 					new OwnerPrecondition()
 				]
-			}
+			},
+			unban: {
+				handler: this._handleUnbanSubcommand,
+				preconditions: [
+					new OwnerPrecondition()
+				]
+			},
 		});
 	}
 
@@ -119,6 +134,19 @@ export default class FeedbackCommand extends BaseCommand {
 			await interaction.editReply('Feedback ban successfully saved.');
 		} catch (err) {
 			await interaction.editReply(`Unable to save feedback ban: ${(err as Error).stack?.toCodeBlock()}`);
+		}
+	}
+
+	private async _handleUnbanSubcommand(interaction: ChatInputCommandInteraction) {
+		const userId = interaction.options.getString('user-id', true);
+
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+		try {
+			await db.feedbackBan.delete({ where: { userId } });
+			await interaction.editReply('Feedback ban successfully lifted.');
+		} catch (err) {
+			await interaction.editReply(`Unable to lift feedback ban: ${(err as Error).stack?.toCodeBlock()}`);
 		}
 	}
 }
