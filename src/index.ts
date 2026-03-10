@@ -4,6 +4,7 @@ if (!process.versions.bun) {
 
 import '@extensions/string';
 import '@abraham/reflection';
+import 'temporal-polyfill/global';
 import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';

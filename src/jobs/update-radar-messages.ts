@@ -8,7 +8,6 @@ import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
-import type { Cron } from 'croner';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
@@ -24,18 +23,23 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	) {
 		super({
 			name: 'update_radar_messages',
-			pattern: '*/5 * * * *',
+			pattern: '* * * * *',
 			runImmediately: true
 		});
 	}
 
-	public async execute(client: WeatherGoat<true>, job: Cron) {
+	public async execute(client: WeatherGoat<true>) {
 		if (this.features.isFeatureEnabled('disableRadarMessageUpdating')) {
 			return;
 		}
 
-		const radarMessages = await db.autoRadarMessage.findMany();
-		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
+		const dueMessages = await db.autoRadarMessage.findMany({
+			where: {
+				nextUpdate: { lte: new Date() }
+			},
+			take: 500
+		});
+		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, nextUpdate } of dueMessages) {
 			try {
 				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
@@ -64,10 +68,18 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 					.setImage(`${radarImageUrl}?${generateSnowflake()}`)
 					.addFields(
 						{ name: msg.$jobsRadarLastUpdatedTitle(), value: time(new Date(), 'R'), inline: true },
-						{ name: msg.$jobsRadarNextUpdateTitle(), value: time(job.nextRun()!, 'R'), inline: true },
+						{ name: msg.$jobsRadarNextUpdateTitle(), value: time(nextUpdate, 'R'), inline: true },
 					);
 
 				await message.edit({ content: msg.$deleteToDeleteSubheading(), embeds: [embed] });
+				await db.autoRadarMessage.update({
+					data: {
+						nextUpdate: new Date(Temporal.Now.instant().add({ minutes: 5 }).epochMilliseconds)
+					},
+					where: {
+						id
+					}
+				});
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
