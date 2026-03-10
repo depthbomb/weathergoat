@@ -12,7 +12,7 @@ import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class AboutCommand extends BaseCommand {
+export default class FeedbackCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
