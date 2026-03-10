@@ -7,8 +7,9 @@ import { AlertSeverity } from '@models/Alert';
 import { HTTPRequestError } from '@lib/errors';
 import { time, EmbedBuilder } from 'discord.js';
 import { AlertsService } from '@services/alerts';
-import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
+import { generateSnowflake } from '@lib/snowflake';
+import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
 import type { Alert } from '@models/Alert';
@@ -20,8 +21,9 @@ export default class ReportAlertsJob extends BaseJob {
 	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;
 
 	public constructor(
-		private readonly alerts = inject(AlertsService),
-		private readonly sweeper = inject(SweeperService)
+		private readonly alerts   = inject(AlertsService),
+		private readonly sweeper  = inject(SweeperService),
+		private readonly features = inject(FeaturesService)
 	) {
 		super({
 			name: 'report_alerts',
@@ -31,6 +33,10 @@ export default class ReportAlertsJob extends BaseJob {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
+		if (this.features.isFeatureEnabled('disableAlertReporting')) {
+			return;
+		}
+
 		const destinations = await db.alertDestination.findMany({
 			select: {
 				countyId: true,

@@ -2,7 +2,7 @@ import { env } from '@env';
 import { Cron } from 'croner';
 import { container } from '@container';
 import { inject } from '@needle-di/core';
-import { RedisService } from '@services';
+import { RedisService } from '@services/redis';
 import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
 import { Partials, GatewayIntentBits } from 'discord.js';

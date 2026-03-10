@@ -15,6 +15,9 @@
 	"promptTimedOut": "You did not respond to the prompt in time.",
 	"reportingTo": "Reporting to {channel:string}",
 	"deleteToDeleteSubheading": "-# Delete this message to stop.",
+	"features": {
+		"disabled": "This feature is currently disabled."
+	},
 	"events": {
 		"guildCreate": {
 			"message": ""

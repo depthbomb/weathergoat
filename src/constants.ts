@@ -18,6 +18,33 @@ export const COMMANDS_DIR = join(ROOT_DIR, 'commands');
 export const EVENTS_DIR   = join(ROOT_DIR, 'events');
 export const JOBS_DIR     = join(ROOT_DIR, 'jobs');
 
+export const FEATURE_DEFINITIONS = {
+	disableAlertReporting: {
+		fraction: 0.0,
+		description: 'Alert reporting killswitch'
+	},
+	disableForecastReporting: {
+		fraction: 0.0,
+		description: 'Forecast reporting killswitch'
+	},
+	disableMessageSweeping: {
+		fraction: 0.0,
+		description: 'Message sweeping killswitch'
+	},
+	disableRadarMessageUpdating: {
+		fraction: 0.0,
+		description: 'Radar message updating killswitch'
+	},
+	disableStatusUpdating: {
+		fraction: 0.0,
+		description: 'Status updating killswitch'
+	},
+	disableFeedbackSubmissions: {
+		fraction: 0.0,
+		description: 'Feedback submission killswitch'
+	}
+} as const;
+
 export const enum Color {
 	Primary          = 0x5876aa,
 	Info             = 0x0ea5e9,

@@ -2,11 +2,12 @@ import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
-import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
+import { FeaturesService } from '@services/features';
+import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
 import type { Cron } from 'croner';
 import type { WeatherGoat } from '@lib/client';
 
@@ -18,7 +19,9 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		RESTJSONErrorCodes.UnknownMessage
 	];
 
-	public constructor() {
+	public constructor(
+		private readonly features = inject(FeaturesService)
+	) {
 		super({
 			name: 'update_radar_messages',
 			pattern: '*/5 * * * *',
@@ -27,6 +30,10 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 	}
 
 	public async execute(client: WeatherGoat<true>, job: Cron) {
+		if (this.features.isFeatureEnabled('disableRadarMessageUpdating')) {
+			return;
+		}
+
 		const radarMessages = await db.autoRadarMessage.findMany();
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of radarMessages) {
 			try {

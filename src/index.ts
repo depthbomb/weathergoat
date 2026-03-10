@@ -7,8 +7,8 @@ import '@abraham/reflection';
 import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
+import { CliService } from '@services/cli';
 import { logger, reportError } from '@lib/logger';
-import { CliService, FeaturesService } from '@services';
 
 async function main() {
 	const mode      = env.get('MODE');
@@ -28,14 +28,6 @@ async function main() {
 		const cli = container.get(CliService);
 		await cli.run(process.argv.slice(2));
 	} else {
-		const features = container.get(FeaturesService);
-
-		features.set('disable_alert_reporting',        0.0, 'Alert reporting killswitch');
-		features.set('disable_forecast_reporting',     0.0, 'Forecast reporting killswitch');
-		features.set('disable_message_sweeping',       0.0, 'Message sweeping killswitch');
-		features.set('disable_radar_message_updating', 0.0, 'Radar message updating killswitch');
-		features.set('disable_status_updating',        0.0, 'Status updating killswitch');
-
 		const wg = container.get(WeatherGoat);
 		await wg.start();
 

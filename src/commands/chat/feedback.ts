@@ -4,7 +4,8 @@ import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
-import { injectable } from '@needle-di/core';
+import { FeaturesService } from '@services/features';
+import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { GuildOnlyInvocationInNonGuildError } from '@lib/errors';
@@ -13,7 +14,9 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
 export default class FeedbackCommand extends BaseCommand {
-	public constructor() {
+	public constructor(
+		private readonly features = inject(FeaturesService)
+	) {
 		super({
 			data: new SlashCommandBuilder()
 			.setName('feedback')
@@ -81,6 +84,11 @@ export default class FeedbackCommand extends BaseCommand {
 	}
 
 	private async _handleSubmitSubcommand(interaction: ChatInputCommandInteraction) {
+		if (this.features.isFeatureEnabled('disableFeedbackSubmissions')) {
+			await interaction.reply(msg.$featuresDisabled());
+			return;
+		}
+
 		GuildOnlyInvocationInNonGuildError.assert(interaction.guildId);
 
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });

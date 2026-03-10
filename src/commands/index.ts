@@ -186,7 +186,7 @@ export abstract class BaseCommand {
 		this.subcommandMap = map;
 	}
 
-	private getDeclaredSubcommandNames(): string[] {
+	private getDeclaredSubcommandNames() {
 		const names   = [] as string[];
 		const options = this.data.toJSON().options ?? [];
 		for (const option of options) {

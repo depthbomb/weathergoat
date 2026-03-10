@@ -3,6 +3,7 @@ import { BaseJob } from '@jobs';
 import { Color } from '@constants';
 import { msg } from '@lib/messages';
 import { generateSnowflake } from '@lib/snowflake';
+import { FeaturesService } from '@services/features';
 import { LocationService } from '@services/location';
 import { ForecastService } from '@services/forecast';
 import { inject, injectable } from '@needle-di/core';
@@ -13,22 +14,29 @@ import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class ReportForecastsJob extends BaseJob {
-	private readonly errorCodes: number[];
+	private readonly errorCodes = [
+		RESTJSONErrorCodes.UnknownChannel,
+		RESTJSONErrorCodes.UnknownGuild,
+		RESTJSONErrorCodes.UnknownMessage
+	];
 
 	public constructor(
 		private readonly location = inject(LocationService),
 		private readonly forecast = inject(ForecastService),
+		private readonly features = inject(FeaturesService)
 	) {
 		super({
 			name: 'report_forecasts',
 			pattern: '0 * * * *',
 			runImmediately: true
 		});
-
-		this.errorCodes = [RESTJSONErrorCodes.UnknownChannel, RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.UnknownMessage];
 	}
 
 	public async execute(client: WeatherGoat<true>) {
+		if (this.features.isFeatureEnabled('disableForecastReporting')) {
+			return;
+		}
+
 		const destinations = await db.forecastDestination.findMany({
 			select: {
 				id: true,

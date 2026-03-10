@@ -22,7 +22,7 @@ type JobOptions = {
 	 * `false` by default.
 	 */
 	runImmediately?: boolean;
-}
+};
 
 export abstract class BaseJob {
 	/**

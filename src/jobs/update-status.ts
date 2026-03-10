@@ -1,6 +1,7 @@
 import { BaseJob } from '@jobs';
 import { msg } from '@lib/messages';
-import { injectable } from '@needle-di/core';
+import { FeaturesService } from '@services/features';
+import { inject, injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -28,7 +29,9 @@ export default class UpdateStatusJob extends BaseJob {
 		'🌊'
 	] as const;
 
-	public constructor() {
+	public constructor(
+		private readonly features = inject(FeaturesService)
+	) {
 		super({
 			name: 'update_status',
 			pattern: '*/15 * * * * *',
@@ -39,6 +42,10 @@ export default class UpdateStatusJob extends BaseJob {
 	}
 
 	public async execute(client: WeatherGoat<true>) {
+		if (this.features.isFeatureEnabled('disableStatusUpdating')) {
+			return;
+		}
+
 		const duration = this.formatter.format(client.uptime, 3);
 
 		client.user.setPresence({

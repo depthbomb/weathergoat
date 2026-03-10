@@ -1,14 +1,20 @@
-import { logger } from '@lib/logger';
 import { Collection } from 'discord.js';
 import { injectable } from '@needle-di/core';
-import type { LogLayer } from 'loglayer';
+import { FEATURE_DEFINITIONS } from '@constants';
+
+export type FeatureName = keyof typeof FEATURE_DEFINITIONS;
+
+export type FeatureConfig = {
+	fraction: number;
+	description?: string;
+};
 
 class Feature {
 	public constructor(
-		public readonly name: string,
+		public readonly name: FeatureName,
 		public readonly fraction: number,
-		public readonly description?: string,
-	) {}
+		public readonly description?: string
+	) { }
 
 	public check() {
 		return Math.random() < this.fraction;
@@ -17,31 +23,26 @@ class Feature {
 
 @injectable()
 export class FeaturesService {
-	private readonly logger: LogLayer;
-	private readonly features: Collection<string, Feature>;
+	private readonly features: Collection<FeatureName, Feature>;
 
 	public constructor() {
-		this.logger   = logger.child().withPrefix(FeaturesService.name.bracketWrap());
 		this.features = new Collection();
+
+		for (const [name, config] of Object.entries(FEATURE_DEFINITIONS)) {
+			const feature = new Feature((name as FeatureName), config.fraction, config.description);
+			this.features.set((name as FeatureName), feature);
+		}
 	}
 
-	public set(name: string, fraction: number, description?: string) {
-		const feature = new Feature(name, fraction, description);
-
-		this.features.set(name, feature);
-		this.logger.withMetadata({ name, fraction, description }).info('Created feature flag');
-
-		return this;
-	}
-
-	public get(name: string) {
+	public get(name: FeatureName) {
 		return this.features.get(name);
 	}
 
-	public isFeatureEnabled(name: string, defaultValue?: boolean) {
-		const feature = this.features.find(f => f.name === name);
+	public isFeatureEnabled(name: FeatureName, defaultValue?: boolean) {
+		const feature = this.features.get(name);
+
 		if (!feature) {
-			if (typeof defaultValue === 'undefined') {
+			if (defaultValue === undefined) {
 				throw new Error(`Feature flag not found: ${name}`);
 			}
 
