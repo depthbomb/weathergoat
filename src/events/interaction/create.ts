@@ -60,7 +60,9 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 	}
 
 	private getCommand(interaction: Interaction): Maybe<BaseCommand> {
-		if (!('commandName' in interaction)) return;
+		if (!('commandName' in interaction)) {
+			return;
+		}
 
 		return interaction.client.commands.get(interaction.commandName);
 	}

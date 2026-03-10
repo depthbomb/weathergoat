@@ -1,8 +1,10 @@
+import { logger } from '@lib/logger';
 import { tryToRespond } from '@utils/interactions';
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { InvalidPermissionsError } from '@lib/errors';
 import { ApplicationCommandOptionType } from 'discord.js';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
+import type { LogLayer } from 'loglayer';
 import type { BasePrecondition } from '@preconditions';
 import type {
 	PermissionResolvable,
@@ -43,6 +45,7 @@ export abstract class BaseCommand {
 	public readonly name: string;
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
 	public readonly preconditions: BasePrecondition[];
+	public readonly logger: LogLayer;
 
 	private localStorage: AsyncLocalStorage<CommandContext>;
 	private subcommandMap?: SubcommandMap;
@@ -51,7 +54,8 @@ export abstract class BaseCommand {
 		this.name          = options.data.name;
 		this.data          = options.data;
 		this.preconditions = options.preconditions ?? [];
-		this.localStorage = new AsyncLocalStorage();
+		this.localStorage  = new AsyncLocalStorage();
+		this.logger        = logger.child().withPrefix(`[Command(${this.name})]`);
 	}
 
 	/**

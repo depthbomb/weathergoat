@@ -4,6 +4,7 @@ export const env = Env.create({
 	MODE: Env.schema.enum(['production', 'development'], { defaultValue: 'development' }),
 	BOT_ID: Env.schema.string(),
 	BOT_TOKEN: Env.schema.string(),
+	BOT_OWNER_ID: Env.schema.string(),
 	DATABASE_URL: Env.schema.url(),
 	REDIS_URL: Env.schema.url(),
 	REDIS_PREFIX: Env.schema.string({ required: false }),

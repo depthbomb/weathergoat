@@ -52,7 +52,7 @@ model ForecastDestination {
 }
 
 model SentAlert {
-  id        Int     @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   alertId   String
   guildId   String
   channelId String
@@ -69,6 +69,16 @@ model VolatileMessage {
   messageId String   @unique
   expiresAt DateTime
 
-  @@index([guildId])
   @@index([expiresAt])
+}
+
+model FeedbackBan {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  reason    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId])
 }

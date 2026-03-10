@@ -16,6 +16,9 @@
 	"reportingTo": "Reporting to {channel:string}",
 	"deleteToDeleteSubheading": "-# Delete this message to stop.",
 	"events": {
+		"guildCreate": {
+			"message": ""
+		},
 		"interactions": {
 			"err": {
 				"commandError": "I've encountered a problem executing that command. Please try again later."
@@ -68,6 +71,12 @@
 		"debug": {
 			"dumpDescription": "A dump of my database taken at {date:Date}."
 		},
+		"feedback": {
+			"embedTitle": "Feedback Received",
+			"successMessage": "My creator has successfully received your feedback. Thank you!",
+			"errorMessage": "I was unable to pass your feedback along to my creator. Please try again later.",
+			"bannedMessage": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
+		},
 		"forecasts": {
 			"err": {
 				"noDestBySnowflake": "No forecast destination exists with the snowflake `{snowflake:string}`.",
@@ -78,9 +87,6 @@
 			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
 			"destCreated": "Hourly forecast reporting created in {channel:string}!\nYou can remove this destination by simply deleting the message.",
 			"listEmbedTitle": "Forecast reporting destinations in this server"
-		},
-		"help": {
-			"embedTitle": "Help"
 		},
 		"radar": {
 			"err": {
