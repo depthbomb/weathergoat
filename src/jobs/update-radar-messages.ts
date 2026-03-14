@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
@@ -65,15 +65,15 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 
 				const embed = new EmbedBuilder()
 					.setColor(Color.Primary)
-					.setTitle(msg.$jobsRadarEmbedTitle(location))
-					.setFooter({ text: msg.$jobsRadarEmbedFooter(radarStation) })
+					.setTitle($msg.jobs.radar.embedTitle(location))
+					.setFooter({ text: $msg.jobs.radar.embedFooter(radarStation) })
 					.setImage(`${radarImageUrl}?${generateSnowflake()}`)
 					.addFields(
-						{ name: msg.$jobsRadarLastUpdatedTitle(), value: time(new Date(), 'R'), inline: true },
-						{ name: msg.$jobsRadarNextUpdateTitle(), value: time(nextUpdate, 'R'), inline: true },
+						{ name: $msg.jobs.radar.lastUpdatedTitle(), value: time(new Date(), 'R'), inline: true },
+						{ name: $msg.jobs.radar.nextUpdateTitle(), value: time(nextUpdate, 'R'), inline: true },
 					);
 
-				await message.edit({ content: msg.$deleteToDeleteSubheading(), embeds: [embed] });
+				await message.edit({ content: $msg.common.status.deleteToStopSubheading(), embeds: [embed] });
 				await db.autoRadarMessage.update({
 					data: {
 						nextUpdate

@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Color } from '@constants';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { AlertSeverity } from '@models/Alert';
 import { HTTPRequestError } from '@lib/errors';
@@ -87,20 +87,20 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const description = alert.description.toCodeBlock('md');
 					const embed = new EmbedBuilder()
-						.setTitle(`${alert.isUpdate ? '🔁 ' + msg.$jobsAlertsUpdateTag() : '🚨'} ${alert.headline}`)
+						.setTitle(`${alert.isUpdate ? '🔁 ' + $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline}`)
 						.setColor(this.getAlertSeverityColor(alert))
 						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
 						.setURL(alert.url)
 						.addFields(
-							{ name: msg.$jobsAlertsCertaintyTitle(), value: alert.certainty, inline: true },
-							{ name: msg.$jobsAlertsEffectiveTitle(), value: time(alert.effective, 'R'), inline: true },
-							{ name: msg.$jobsAlertsExpiresTitle(), value: time(alert.expires, 'R'), inline: true },
-							{ name: msg.$jobsAlertsAffectedAreasTitle(), value: alert.areaDesc }
+							{ name: $msg.jobs.alerts.fieldTitles.certainty(), value: alert.certainty, inline: true },
+							{ name: $msg.jobs.alerts.fieldTitles.effective(), value: time(alert.effective, 'R'), inline: true },
+							{ name: $msg.jobs.alerts.fieldTitles.expires(), value: time(alert.expires, 'R'), inline: true },
+							{ name: $msg.jobs.alerts.fieldTitles.affectedAreas(), value: alert.areaDesc }
 						)
 						.setTimestamp();
 
 					if (alert.instruction) {
-						embed.addFields({ name: msg.$jobsAlertsInstructionsTitle(), value: alert.instruction.toCodeBlock('md') });
+						embed.addFields({ name: $msg.jobs.alerts.fieldTitles.instructions(), value: alert.instruction.toCodeBlock('md') });
 					}
 
 					if (radarImageUrl) {
@@ -111,7 +111,7 @@ export default class ReportAlertsJob extends BaseJob {
 						(embed.length + description.length) > EmbedLimits.MaximumTotalCharacters ||
 						description.length > EmbedLimits.MaximumDescriptionLength
 					) {
-						embed.setDescription(msg.$jobsAlertsPayloadTooLargePlaceholder(alert.url));
+						embed.setDescription($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url));
 					} else {
 						embed.setDescription(description);
 					}

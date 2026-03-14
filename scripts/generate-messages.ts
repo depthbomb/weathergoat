@@ -36,14 +36,6 @@ function parseTemplate(template: string): { params: ParsedParam[]; hasPlurals: b
 	return { params, hasPlurals: false };
 }
 
-function generateFunctionName(path: string[]): string {
-	const [first, ...rest] = path;
-	const camelRest = rest
-		.map(p => p.charAt(0).toUpperCase() + p.slice(1))
-		.join('');
-	return `$${first}${camelRest}`;
-}
-
 function generateParamSignature(params: ParsedParam[]): string {
 	if (params.length === 0) return '()';
 
@@ -58,80 +50,68 @@ function generateParamSignature(params: ParsedParam[]): string {
 	return `(${paramStrings.join(', ')})`;
 }
 
-function generateJSDoc(path: string[], params: ParsedParam[]): string[] {
-	const lines: string[] = [];
-	lines.push('/**');
-	lines.push(` * Translation key: \`${path.join('.')}\``);
-
-	if (params.length > 0) {
-		params.forEach(p => {
-			const optional = p.optional ? ' (optional)' : '';
-			const defaultVal = p.defaultValue !== undefined ? ` (default: ${p.defaultValue})` : '';
-			lines.push(` * @param ${p.name} - ${p.type}${optional}${defaultVal}`);
-		});
-	}
-
-	lines.push(` * @returns The translated string`);
-	lines.push(' */');
-
-	return lines;
+function ensureCountParam(params: ParsedParam[]): ParsedParam[] {
+	if (params.some(p => p.name === 'count')) return params;
+	return [{ name: 'count', type: 'number', optional: false }, ...params];
 }
 
-function generateFunction(path: string[], value: string | TranslationValue): string[] {
-	const functions: string[] = [];
+function templateToString(template: string): string {
+	return escapeBackticks(template.replace(/{(\w+)\??:[^}=]+(?:=[^}]+)?}/g, '${$1}'));
+}
+
+function generateMsgObject(value: string | TranslationValue): string[] {
+	const lines: string[] = [];
 
 	if (typeof value === 'string') {
-		const fnName = generateFunctionName(path);
 		const { params } = parseTemplate(value);
-
 		const paramsSignature = generateParamSignature(params);
+		const templateStr = templateToString(value);
+		lines.push(`${paramsSignature} => \`${templateStr}\` as const`);
+		return lines;
+	}
 
-		let templateStr = escapeBackticks(value.replace(/{(\w+)\??:[^}=]+(?:=[^}]+)?}/g, '${$1}'));
-
-		functions.push(...generateJSDoc(path, params));
-		functions.push(`export function ${fnName}${paramsSignature} {`);
-		functions.push(`\treturn \`${templateStr}\` as const;`);
-		functions.push(`}`);
-	} else if (typeof value === 'object') {
+	if (typeof value === 'object') {
 		const keys = Object.keys(value);
 		const pluralKeys = keys.filter(k => k.startsWith('_'));
 
 		if (pluralKeys.length > 0) {
-			const fnName = generateFunctionName(path);
 			const templateOne = value['_one'] as string;
 			const templateOther = value['_other'] as string;
 
-			const { params } = parseTemplate(templateOne || templateOther);
+			const { params: rawParams } = parseTemplate(templateOne || templateOther);
+			const params = ensureCountParam(rawParams);
 			const paramsSignature = generateParamSignature(params);
 
-			const templateOneStr = escapeBackticks(templateOne.replace(/{(\w+)\??:[^}=]+(?:=[^}]+)?}/g, '${$1}'));
-			const templateOtherStr = escapeBackticks(templateOther.replace(/{(\w+)\??:[^}=]+(?:=[^}]+)?}/g, '${$1}'));
+			const templateOneStr = templateToString(templateOne);
+			const templateOtherStr = templateToString(templateOther);
 
-			functions.push('/**');
-			functions.push(` * Translation key: ${path.join('.')} (plural form)`);
-			params.forEach(p => {
-				const optional = p.optional ? ' (optional)' : '';
-				const defaultVal = p.defaultValue !== undefined ? ` (default: ${p.defaultValue})` : '';
-				functions.push(` * @param ${p.name} - ${p.type}${optional}${defaultVal}`);
-			});
-			functions.push(` * @returns The translated string (singular or plural)`);
-			functions.push(' */');
-
-			functions.push(`export function ${fnName}${paramsSignature} {`);
-			functions.push(`\tif (count === 1) {`);
-			functions.push(`\t\treturn \`${templateOneStr}\` as const;`);
-			functions.push(`\t} else {`);
-			functions.push(`\t\treturn \`${templateOtherStr}\` as const;`);
-			functions.push(`\t}`);
-			functions.push(`}`);
-		} else {
-			for (const [key, val] of Object.entries(value)) {
-				functions.push(...generateFunction([...path, key], val));
-			}
+			lines.push(`${paramsSignature} => {`);
+			lines.push(`if (count === 1) {`);
+			lines.push(`return \`${templateOneStr}\` as const;`);
+			lines.push(`}`);
+			lines.push(`return \`${templateOtherStr}\` as const;`);
+			lines.push(`}`);
+			return lines;
 		}
+
+		lines.push('{');
+		const entries = Object.entries(value);
+		entries.forEach(([key, val], index) => {
+			const valueLines = generateMsgObject(val);
+			if (valueLines.length === 1) {
+				lines.push(`${key}: ${valueLines[0]}${index < entries.length - 1 ? ',' : ''}`);
+			} else {
+				lines.push(`${key}: ${valueLines[0]}`);
+				for (let i = 1; i < valueLines.length; i++) {
+					lines.push(`${valueLines[i]}`);
+				}
+				lines[lines.length - 1] = `${lines[lines.length - 1]}${index < entries.length - 1 ? ',' : ''}`;
+			}
+		});
+		lines.push(`}`);
 	}
 
-	return functions;
+	return lines;
 }
 
 function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string): void {
@@ -139,11 +119,9 @@ function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string
 	const data: TranslationObject = JSON.parse(jsonContent);
 
 	const functions: string[] = [];
-	functions.push('// Auto-generated translation functions');
-
-	for (const [key, value] of Object.entries(data)) {
-		functions.push(...generateFunction([key], value));
-	}
+	functions.push('// Auto-generated translation catalog');
+	functions.push('export const $msg = ' + generateMsgObject(data).join('') + ' as const;');
+	functions.push('export type MessageCatalog = typeof $msg;');
 
 	writeFileSync(outputFilePath, functions.join('\n'), 'utf-8');
 	console.log(`Generated TypeScript file: ${outputFilePath}`);

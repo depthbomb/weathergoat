@@ -1,4 +1,4 @@
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { GithubService } from '@services/github';
 import { inject, injectable } from '@needle-di/core';
@@ -59,20 +59,20 @@ export default class AboutCommand extends BaseCommand {
 
 	private async _handleBotSubcommand(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
-			.setTitle(msg.$commandsAboutBotEmbedTitle())
+			.setTitle($msg.commands.about.bot.embedTitle())
 			.setColor(Color.Primary)
 			.addFields(
 				{
-					name: msg.$commandsAboutBotSoftwareTitle(),
-					value: msg.$commandsAboutBotSoftwareBody()
+					name: $msg.commands.about.bot.softwareTitle(),
+					value: $msg.commands.about.bot.softwareBody()
 				},
 				{
-					name: msg.$commandsAboutBotApiTitle(),
-					value: msg.$commandsAboutBotApiBody()
+					name: $msg.commands.about.bot.apiTitle(),
+					value: $msg.commands.about.bot.apiBody()
 				},
 				{
-					name: msg.$commandsAboutBotAiUseTitle(),
-					value: msg.$commandsAboutBotAiUseBody()
+					name: $msg.commands.about.bot.aiUseTitle(),
+					value: $msg.commands.about.bot.aiUseBody()
 				},
 			);
 
@@ -91,7 +91,7 @@ export default class AboutCommand extends BaseCommand {
 			}
 		).join('\n');
 		if (response.length > MessageLimits.MaximumLength) {
-			await interaction.editReply(msg.$commandsAboutResponseTooLong(REPO));
+			await interaction.editReply($msg.commands.about.changelog.responseTooLong(REPO));
 		} else {
 			await interaction.editReply(response);
 		}
@@ -101,23 +101,23 @@ export default class AboutCommand extends BaseCommand {
 		const bunCommitSha = Bun.revision.slice(0, 7);
 		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${Bun.revision.slice(0, 7)}`;
 		const embed = new EmbedBuilder()
-			.setTitle(msg.$commandsAboutMyStatsTitle())
+			.setTitle($msg.commands.about.stats.title())
 			.setColor(Color.Primary)
 			.addFields(
 				{
-					name: msg.$commandsAboutUptimeTitle(),
-					value: `- ${msg.$commandsAboutApplicationPrefix()} ${this.formatter.format(interaction.client.uptime ?? 0)}\n- ${msg.$commandsAboutSystemPrefix()} ${this.formatter.format(uptime() * 1_000)}`
+					name: $msg.commands.about.stats.uptimeTitle(),
+					value: `- ${$msg.commands.about.stats.applicationPrefix()} ${this.formatter.format(interaction.client.uptime ?? 0)}\n- ${$msg.commands.about.stats.systemPrefix()} ${this.formatter.format(uptime() * 1_000)}`
 				},
 				{
-					name: msg.$commandsAboutRuntimeTitle(),
+					name: $msg.commands.about.stats.runtimeTitle(),
 					value: `Bun ${Bun.version} (${bunCommitSha.toHyperlink(bunCommitUrl)})`
 				},
 				{
-					name: msg.$commandsAboutSystemTitle(),
+					name: $msg.commands.about.stats.systemTitle(),
 					value: `${version()} (${platform()}) ${arch()}`
 				},
 				{
-					name: msg.$commandsAboutHostNameTitle(),
+					name: $msg.commands.about.stats.hostNameTitle(),
 					value: hostname()
 				}
 			);

@@ -1,5 +1,5 @@
 import { Color } from '@constants';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
@@ -203,13 +203,13 @@ export default class RadarCommand extends BaseCommand {
 	public handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
 		if (!this.radars.find(v => v === station)) {
-			return interaction.reply(msg.$commandsRadarErrInvalidStation(station));
+			return interaction.reply($msg.commands.radar.errors.invalidStation(station));
 		}
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
 			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${generateSnowflake()}`)
-			.setTitle(msg.$commandsRadarEmbedTitle(station))
+			.setTitle($msg.commands.radar.embed.title(station))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`);
 
 		return interaction.reply({ embeds: [embed] });

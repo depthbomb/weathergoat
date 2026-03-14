@@ -1,6 +1,6 @@
 import { Color } from '@constants';
 import { EmbedBuilder } from 'discord.js';
-import * as messages from './messages.generated';
+import { $msg } from './messages.generated';
 import { MaxDestinationError } from '@lib/errors';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 import type { WeatherGoatError } from '@lib/errors';
@@ -38,9 +38,8 @@ export function PRECONDITION_ERROR(err: PreconditionError) {
 
 export function INTERACTION_ERROR() {
 	return new MessageBuilder().setEmbeds([
-		createErrorEmbed(messages.$eventsInteractionsErrCommandError())
+		createErrorEmbed($msg.events.interactions.errors.commandFailed())
 	]);
 }
 
-export * from './messages.generated';
-export const msg = messages;
+export { $msg } from './messages.generated';

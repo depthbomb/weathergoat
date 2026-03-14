@@ -1,5 +1,5 @@
 import { BaseJob } from '@jobs';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
@@ -52,7 +52,7 @@ export default class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: msg.$jobsStatusActivity(this.pickRandomEmoji(), duration),
+					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration),
 					type: ActivityType.Custom
 				}
 			]

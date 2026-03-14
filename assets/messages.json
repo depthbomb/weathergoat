@@ -1,30 +1,40 @@
 {
-	"err": {
-		"invalidLatOrLon": "The provided latitude or longitude is not valid.",
+	"common": {
+		"buttons": {
+			"yes": "Yes",
+			"no": "No"
+		},
+		"prompts": {
+			"locationConfirm": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.\nIs this correct?"
+		},
+		"notices": {
+			"confirmationCancelled": "Confirmation cancelled",
+			"promptTimedOut": "You did not respond to the prompt in time."
+		},
+		"status": {
+			"reportingTo": "Reporting to {channel:string}",
+			"deleteToStopSubheading": "-# Delete this message to stop."
+		}
+	},
+	"errors": {
+		"invalidCoordinates": "The provided latitude or longitude is not valid.",
 		"guildOnly": "This action can only be performed inside a server channel.",
-		"noDestinations": "There are no {type:string} destinations in this server.",
-		"tooManyDestinations": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
-		"locationQueryHTTPError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
+		"noDestinationsForType": "There are no {type:string} destinations in this server.",
+		"tooManyDestinationsForType": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
+		"locationLookupHttpError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
 		"invalidSnowflake": "The provided [snowflake](https://en.wikipedia.org/wiki/Snowflake_ID) `{snowflake:string}` is invalid.",
 		"unknown": "An unknown error has occurred"
 	},
-	"yes": "Yes",
-	"no": "No",
-	"coordLocationAskConfirmation": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.\nIs this correct?",
-	"confirmationCancelled": "Confirmation cancelled",
-	"promptTimedOut": "You did not respond to the prompt in time.",
-	"reportingTo": "Reporting to {channel:string}",
-	"deleteToDeleteSubheading": "-# Delete this message to stop.",
 	"features": {
 		"disabled": "This feature is currently disabled."
 	},
 	"events": {
 		"guildCreate": {
-			"message": ""
+			"introMessage": "## Thank you for adding me to your server! Here's a quick rundown to get started:\n- Use the `/alerts` commands to manage weather alert reporting\n- Use the `/forecasts` command to designate a channel for reporting hourly forecasts to\n- Use the `/auto-radar` command to designate a channel to keep an auto-updating doppler radar animation in\n- Use the `/radar` command to get the current doppler radar animation for a location\n\nAdmins in this server can use the `/announcement` command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise.\nLastly, if you encounter any bugs, oddities, or have any suggestions then use the `/feedback` command to submit feedback!\n-# I apologize if this is not an appropriate channel for this introduction."
 		},
 		"interactions": {
-			"err": {
-				"commandError": "I've encountered a problem executing that command. Please try again later."
+			"errors": {
+				"commandFailed": "I've encountered a problem executing that command. Please try again later."
 			}
 		}
 	},
@@ -39,74 +49,98 @@
 				"aiUseTitle": "Do you use any AI?",
 				"aiUseBody": "**Nope!** I neither use AI to parse or transform data nor is any of my code written in AI. All of my code is written by a human, mistakes and all!"
 			},
-			"myStatsTitle": "My Stats",
-			"uptimeTitle": "Uptime",
-			"applicationPrefix": "Application:",
-			"systemPrefix": "System:",
-			"runtimeTitle": "Runtime",
-			"systemTitle": "System",
-			"hostNameTitle": "Host Name",
-			"responseTooLong": "A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/{repo:string}/commits)."
+			"stats": {
+				"title": "My Stats",
+				"uptimeTitle": "Uptime",
+				"applicationPrefix": "Application:",
+				"systemPrefix": "System:",
+				"runtimeTitle": "Runtime",
+				"systemTitle": "System",
+				"hostNameTitle": "Host Name"
+			},
+			"changelog": {
+				"responseTooLong": "A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/{repo:string}/commits)."
+			}
 		},
 		"alerts": {
-			"err": {
-				"destExists": "This channel is already designated as an alert destination.",
-				"noDestBySnowflake": "No alert destination exists with the snowflake `{snowflake:string}`.",
-				"couldNotRemoveDest": "The alert destination could not be removed. Please try again later.",
-				"noDestInChannel": "{channel:string} does not have any alert reporting assigned to it.",
+			"errors": {
+				"destinationExists": "This channel is already designated as an alert destination.",
+				"destinationNotFound": "No alert destination exists with the snowflake `{snowflake:string}`.",
+				"removeFailed": "The alert destination could not be removed. Please try again later.",
+				"noDestinationInChannel": "{channel:string} does not have any alert reporting assigned to it.",
 				"maxDestinationsReached": "You have reached the maximum amount of alert destinations in this server."
 			},
-			"destCreated": "Alert reporting created in {channel:string}!\nYou can remove this reporting destination by using the `/alerts remove` command with the Snowflake `{snowflake:string}`.",
-			"destRemoved": "Alert reporting destination has been successfully removed.",
-			"listEmbedTitle": "Alert reporting destinations in this server"
+			"created": "Alert reporting created in {channel:string}!\nYou can remove this reporting destination by using the `/alerts remove` command with the Snowflake `{snowflake:string}`.",
+			"removed": "Alert reporting destination has been successfully removed.",
+			"listTitle": "Alert reporting destinations in this server"
+		},
+		"announcements": {
+			"subscribe": {
+				"alreadySubscribed": "This guild is already subscribed to announcements. Unsubscribe from announcements first before setting a new channel to receive announcements.",
+				"success": "This guild has been subscribed to announcements which will be posted to {channelLink:string}.",
+				"error": "Unable to create announcement subscription. Please try again later."
+			},
+			"unsubscribe": {
+				"notSubscribed": "This guild is not subscribed to announcements.",
+				"success": "This guild will no longer receive announcements.",
+				"error": "Unable to remove announcement subscription. Please try again later."
+			}
 		},
 		"autoRadar": {
-			"err": {
-				"noMessageBySnowflake": "No radar message exists by the snowflake `{snowflake:string}`.",
+			"errors": {
+				"messageNotFound": "No radar message exists by the snowflake `{snowflake:string}`.",
 				"noMessages": "This server does not appear to have any radar messages",
-				"maxDestinationsReached": "You have reached the maximum amount of radar messages in this server."
+				"maxMessagesReached": "You have reached the maximum amount of radar messages in this server."
 			},
-			"coordLocationAskConfirmation": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.\nIs this correct?\n{radarImageUrl:string}",
+			"locationConfirmWithImage": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.\nIs this correct?\n{radarImageUrl:string}",
 			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
-			"destCreated": "{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
-			"listEmbedTitle": "Radar messages in this server"
+			"created": "{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
+			"listTitle": "Radar messages in this server"
 		},
 		"debug": {
 			"dumpDescription": "A dump of my database taken at {date:Date}."
 		},
 		"feedback": {
-			"embedTitle": "Feedback Received",
-			"successMessage": "My creator has successfully received your feedback. Thank you!",
-			"errorMessage": "I was unable to pass your feedback along to my creator. Please try again later.",
-			"bannedMessage": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
+			"embed": {
+				"title": "Feedback Received"
+			},
+			"submit": {
+				"success": "My creator has successfully received your feedback. Thank you!",
+				"error": "I was unable to pass your feedback along to my creator. Please try again later.",
+				"banned": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
+			}
 		},
 		"forecasts": {
-			"err": {
-				"noDestBySnowflake": "No forecast destination exists with the snowflake `{snowflake:string}`.",
-				"couldNotRemoveDest": "The forecast destination could not be removed. Please try again later.",
-				"noDestInChannel": "{channel:string} does not have any forecast reporting assigned to it.",
+			"errors": {
+				"destinationNotFound": "No forecast destination exists with the snowflake `{snowflake:string}`.",
+				"removeFailed": "The forecast destination could not be removed. Please try again later.",
+				"noDestinationInChannel": "{channel:string} does not have any forecast reporting assigned to it.",
 				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
 			},
 			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
-			"destCreated": "Hourly forecast reporting created in {channel:string}!\nYou can remove this destination by simply deleting the message.",
-			"listEmbedTitle": "Forecast reporting destinations in this server"
+			"created": "Hourly forecast reporting created in {channel:string}!\nYou can remove this destination by simply deleting the message.",
+			"listTitle": "Forecast reporting destinations in this server"
 		},
 		"radar": {
-			"err": {
+			"errors": {
 				"invalidStation": "Invalid station: `{station:string}`."
 			},
-			"embedTitle": "Radar Loop for {station:string}"
+			"embed": {
+				"title": "Radar Loop for {station:string}"
+			}
 		}
 	},
 	"jobs": {
 		"alerts": {
 			"updateTag": "[UPDATE]",
-			"certaintyTitle": "Certainty",
-			"effectiveTitle": "Effective",
-			"expiresTitle": "Expires",
-			"affectedAreasTitle": "Affected Areas",
-			"instructionsTitle": "Instructions",
-			"referencesTitle": "References",
+			"fieldTitles": {
+				"certainty": "Certainty",
+				"effective": "Effective",
+				"expires": "Expires",
+				"affectedAreas": "Affected Areas",
+				"instructions": "Instructions",
+				"references": "References"
+			},
 			"payloadTooLargePlaceholder": "## The description of this alert is too large to send. View the full alert [here.]({alertUrl:string})"
 		},
 		"forecasts": {
@@ -124,10 +158,14 @@
 		}
 	},
 	"beacon": {
-		"guildCreatedTitle": "Added to guild",
-		"guildDeletedTitle": "Removed from guild",
-		"name": "Name",
-		"members": "Members",
-		"channels": "Channels"
+		"titles": {
+			"guildAdded": "Added to guild",
+			"guildRemoved": "Removed from guild"
+		},
+		"fields": {
+			"name": "Name",
+			"members": "Members",
+			"channels": "Channels"
+		}
 	}
 }

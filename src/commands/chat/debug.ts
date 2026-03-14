@@ -1,5 +1,5 @@
 import { db } from '@db';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
@@ -107,7 +107,7 @@ export default class DebugCommand extends BaseCommand {
 			const buf = Buffer.from(json, 'utf8');
 			const attachment = new AttachmentBuilder(buf, {
 				name: 'dump.json',
-				description: msg.$commandsDebugDumpDescription(date)
+				description: $msg.commands.debug.dumpDescription(date)
 			});
 
 			await interaction.editReply({ files: [attachment] });

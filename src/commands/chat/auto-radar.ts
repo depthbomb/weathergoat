@@ -1,6 +1,6 @@
 import { db } from '@db';
 import { env } from '@env';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
@@ -49,10 +49,10 @@ export default class AutoRadarCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, msg.$commandsAutoRadarErrMaxDestinationsReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.autoRadar.errors.maxMessagesReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply(msg.$errInvalidLatOrLon());
+			return interaction.reply($msg.errors.invalidCoordinates());
 		}
 
 		await interaction.deferReply();
@@ -62,16 +62,16 @@ export default class AutoRadarCommand extends BaseCommand {
 			.addComponents(
 				new ButtonBuilder()
 					.setCustomId('confirm')
-					.setLabel(msg.$yes())
+					.setLabel($msg.common.buttons.yes())
 					.setStyle(ButtonStyle.Success),
 				new ButtonBuilder()
 					.setCustomId('deny')
-					.setLabel(msg.$no())
+					.setLabel($msg.common.buttons.no())
 					.setStyle(ButtonStyle.Danger)
 			);
 
 		const initialReply = await interaction.editReply({
-			content: msg.$commandsAutoRadarCoordLocationAskConfirmation(latitude, longitude, location.location, location.radarImageUrl),
+			content: $msg.commands.autoRadar.locationConfirmWithImage(latitude, longitude, location.location, location.radarImageUrl),
 			components: [row]
 		});
 
@@ -82,7 +82,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				const channelId          = channel.id;
 				const snowflake          = generateSnowflake();
 				const placeholderMessage = await channel.send({
-					content: msg.$commandsAutoRadarPlaceholderMessage(location.location),
+					content: $msg.commands.autoRadar.placeholderMessage(location.location),
 					flags: [MessageFlags.SuppressNotifications]
 				});
 
@@ -99,7 +99,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: msg.$commandsAutoRadarDestCreated(channel.toString()),
+					content: $msg.commands.autoRadar.created(channel.toString()),
 					components: []
 				});
 			} else {
@@ -107,12 +107,12 @@ export default class AutoRadarCommand extends BaseCommand {
 			}
 		} catch (err) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: msg.$errLocationQueryHTTPError(err.code, err.status), components: [] });
+				return interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: msg.$promptTimedOut(), components: [] });
+				return interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
 			}
 
-			await interaction.editReply({ content: msg.$errUnknown(), components: [] });
+			await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 		}
 	}
 }

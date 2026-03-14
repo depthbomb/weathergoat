@@ -1,7 +1,7 @@
 import { db } from '@db';
 import { env } from '@env';
 import { Color } from '@constants';
-import { msg } from '@lib/messages';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { LocationService } from '@services/location';
 import { inject, injectable } from '@needle-di/core';
@@ -77,17 +77,17 @@ export default class AlertsCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, msg.$commandsAlertsErrMaxDestinationsReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.alerts.errors.maxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply(msg.$errInvalidLatOrLon());
+			return interaction.reply($msg.errors.invalidCoordinates());
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ latitude, longitude, channelId: channel.id });
 		if (exists) {
-			return interaction.editReply(msg.$commandsAlertsErrDestExists());
+			return interaction.editReply($msg.commands.alerts.errors.destinationExists());
 		}
 
 		try {
@@ -96,16 +96,16 @@ export default class AlertsCommand extends BaseCommand {
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel(msg.$yes())
+						.setLabel($msg.common.buttons.yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel(msg.$no())
+						.setLabel($msg.common.buttons.no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
 			const initialReply = await interaction.editReply({
-				content: msg.$coordLocationAskConfirmation(latitude, longitude, info.location),
+				content: $msg.common.prompts.locationConfirm(latitude, longitude, info.location),
 				components: [row]
 			});
 
@@ -129,7 +129,7 @@ export default class AlertsCommand extends BaseCommand {
 				});
 
 				return interaction.editReply({
-					content: msg.$commandsAlertsDestCreated(channel.toString(), destination.snowflake),
+					content: $msg.commands.alerts.created(channel.toString(), destination.snowflake),
 					components: []
 				});
 			} else {
@@ -137,12 +137,12 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: msg.$errLocationQueryHTTPError(err.code, err.status), components: [] });
+				return interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: msg.$promptTimedOut(), components: [] });
+				return interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
 			}
 
-			return interaction.editReply({ content: msg.$errUnknown(), components: [] });
+			return interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 		}
 	}
 
@@ -151,22 +151,22 @@ export default class AlertsCommand extends BaseCommand {
 		const snowflake   = interaction.options.getString('snowflake', true);
 
 		if (!guildId) {
-			return interaction.reply(msg.$errGuildOnly());
+			return interaction.reply($msg.errors.guildOnly());
 		}
 
 		if (!isValidSnowflake(snowflake)) {
-			return interaction.reply(msg.$errInvalidSnowflake(snowflake));
+			return interaction.reply($msg.errors.invalidSnowflake(snowflake));
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
-			return interaction.editReply(msg.$commandsAlertsErrNoDestBySnowflake(snowflake));
+			return interaction.editReply($msg.commands.alerts.errors.destinationNotFound(snowflake));
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
-		await interaction.editReply(msg.$commandsAlertsDestRemoved());
+		await interaction.editReply($msg.commands.alerts.removed());
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
@@ -188,12 +188,12 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply(msg.$errNoDestinations('alert'));
+			return interaction.editReply($msg.errors.noDestinationsForType('alert'));
 		}
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
-			.setTitle(msg.$commandsAlertsListEmbedTitle());
+			.setTitle($msg.commands.alerts.listTitle());
 
 		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const info    = await this.location.getInfoFromCoordinates(latitude, longitude);
@@ -201,7 +201,7 @@ export default class AlertsCommand extends BaseCommand {
 			embed.addFields({
 				name: `${info.location} (${latitude}, ${longitude})`,
 				value: [
-					msg.$reportingTo(channel!.toString()),
+					$msg.common.status.reportingTo(channel!.toString()),
 					JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4).toCodeBlock('json')
 				].join('\n')
 			});
