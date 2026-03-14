@@ -3,3 +3,5 @@
 </div>
 
 A Discord bot for reporting weather alerts and hourly forecasts to channels. Built with [Bun](https://bun.sh), [Discord.js](https://discord.js.org), [Prisma](https://www.prisma.io/orm), [Redis](https://redis.io), and the [National Weather Service API](https://www.weather.gov/documentation/services-web-api).
+
+**[Click here](https://discord.com/oauth2/authorize?client_id=1009028718083199016) to add WeatherGoat to your server.**

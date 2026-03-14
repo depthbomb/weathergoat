@@ -16,10 +16,10 @@ import type { BaseCommand } from '@commands';
 import type { ClientEvents } from 'discord.js';
 import type { BaseComponent, ComponentMatch } from '@components';
 
-type BaseModule<T>  = { default: new() => T };
-type JobModule      = BaseModule<BaseJob>;
-type EventModule    = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule  = BaseModule<BaseCommand>;
+type BaseModule<T>   = { default: new() => T };
+type JobModule       = BaseModule<BaseJob>;
+type EventModule     = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule   = BaseModule<BaseCommand>;
 type ComponentModule = BaseModule<BaseComponent>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
@@ -43,7 +43,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				GatewayIntentBits.Guilds,
 				GatewayIntentBits.GuildMembers,
 				GatewayIntentBits.GuildMessages,
-				GatewayIntentBits.GuildWebhooks
+				GatewayIntentBits.GuildWebhooks,
+				GatewayIntentBits.GuildScheduledEvents,
 			],
 			partials: [Partials.Message, Partials.Channel]
 		});
