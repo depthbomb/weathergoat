@@ -18,7 +18,7 @@ export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 				.filter(c => c.isTextBased() && !c.isThread())
 				.sort((a, b) => a.position - b.position)
 				.first();
-			if (!channel) {
+			if (!channel || !channel.isSendable()) {
 				return;
 			}
 

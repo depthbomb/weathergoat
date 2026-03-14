@@ -5,9 +5,7 @@ import { isWeatherGoatError } from '@lib/errors';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
 import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/messages';
-import type { BaseCommand } from '@commands';
-import type { Interaction } from 'discord.js';
-import type { Maybe } from '@depthbomb/common/types';
+import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	public constructor() {
@@ -15,12 +13,12 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 	}
 
 	public async handle(interaction: Interaction) {
-		const command = this.getCommand(interaction);
-		if (!command) {
-			return;
-		}
-
 		if (interaction.isChatInputCommand() && interaction.channel?.isSendable()) {
+			const command = this.getCommand(interaction);
+			if (!command) {
+				return;
+			}
+
 			const sw = new Stopwatch();
 			try {
 				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
@@ -51,19 +49,54 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				this.logger.debug(`Interaction completed in ${sw.toString()}`);
 			}
 		} else if (interaction.isAutocomplete()) {
+			const command = this.getCommand(interaction);
+			if (!command) {
+				return;
+			}
+
 			try {
 				await command.handleAutocomplete(interaction);
 			} catch (err: unknown) {
 				reportError('Error in interaction autocomplete handler', err, { interaction: interaction.commandName });
 			}
+		} else if (interaction.isMessageComponent()) {
+			const resolved = this.getComponent(interaction);
+			if (!resolved) {
+				return;
+			}
+
+			const { component, match } = resolved;
+			const sw = new Stopwatch();
+
+			try {
+				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) used component ${component.name}`);
+
+				await component.callHandler(interaction, match);
+			} catch (err: unknown) {
+				if (isWeatherGoatError(err)) {
+					await tryToRespond(interaction, WEATHERGOAT_ERROR(err));
+				} else if (isPreconditionError(err)) {
+					await tryToRespond(interaction, PRECONDITION_ERROR(err));
+				} else {
+					reportError('Error in component interaction handler', err, { interaction: interaction.customId });
+
+					await tryToRespond(interaction, INTERACTION_ERROR());
+				}
+			} finally {
+				this.logger.debug(`Component interaction completed in ${sw.toString()}`);
+			}
 		}
 	}
 
-	private getCommand(interaction: Interaction): Maybe<BaseCommand> {
+	private getCommand(interaction: Interaction) {
 		if (!('commandName' in interaction)) {
 			return;
 		}
 
 		return interaction.client.commands.get(interaction.commandName);
+	}
+
+	private getComponent(interaction: MessageComponentInteraction) {
+		return interaction.client.getComponentForCustomId(interaction.customId);
 	}
 }

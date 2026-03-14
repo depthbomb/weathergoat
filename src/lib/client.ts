@@ -5,24 +5,28 @@ import { inject } from '@needle-di/core';
 import { RedisService } from '@services/redis';
 import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
+import { compareComponentMatch } from '@components';
 import { Partials, GatewayIntentBits } from 'discord.js';
-import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR } from '@constants';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
+import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR, COMPONENTS_DIR } from '@constants';
 import type { BaseJob } from '@jobs';
 import type { LogLayer } from 'loglayer';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
 import type { ClientEvents } from 'discord.js';
+import type { BaseComponent, ComponentMatch } from '@components';
 
-type BaseModule<T> = { default: new() => T };
-type JobModule     = BaseModule<BaseJob>;
-type EventModule   = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule = BaseModule<BaseCommand>;
+type BaseModule<T>  = { default: new() => T };
+type JobModule      = BaseModule<BaseJob>;
+type EventModule    = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule  = BaseModule<BaseCommand>;
+type ComponentModule = BaseModule<BaseComponent>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs: Set<{ job: BaseJob; cron: Cron }>;
 	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
 	public readonly commands: Collection<string, BaseCommand>;
+	public readonly components: Collection<string, BaseComponent>;
 
 	private readonly logger: LogLayer;
 	private readonly moduleFilePattern: RegExp;
@@ -44,9 +48,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			partials: [Partials.Message, Partials.Channel]
 		});
 
-		this.jobs     = new Set();
-		this.events   = new Collection();
-		this.commands = new Collection();
+		this.jobs       = new Set();
+		this.events     = new Collection();
+		this.commands   = new Collection();
+		this.components = new Collection();
 
 		this.logger            = logger.child().withPrefix('[Client]');
 		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
@@ -56,6 +61,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();
+		await this.registerComponents();
 
 		const res = await this.login(env.get('BOT_TOKEN'));
 
@@ -135,8 +141,14 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const once     = event.once ?? false;
 			const disabled = event.disabled ?? false;
 
-			if (disabled) continue;
-			if (this.events.has(name)) continue;
+			if (disabled) {
+				continue;
+			}
+
+			if (this.events.has(name)) {
+				continue;
+			}
+
 			if (once) {
 				this.once(name, async (...args) => await event.handle(...args));
 			} else {
@@ -180,5 +192,55 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.logger.withMetadata({ name: command.name }).info('Registered command');
 		}
+	}
+
+	/**
+	 * Iterates the components directory and subdirectories and registers all component handlers,
+	 * adding them to the container to utilize dependency injection.
+	 */
+	public async registerComponents() {
+		this.components.clear();
+
+		const componentSourceByName = new Map<string, string>();
+
+		for await (const file of findFilesRecursivelyRegex(COMPONENTS_DIR, this.moduleFilePattern)) {
+			const { default: mod }: ComponentModule = await import(file);
+			if (!container.has(mod)) {
+				container.bind(mod);
+			}
+
+			const component      = container.get<BaseComponent>(mod);
+			const previousSource = componentSourceByName.get(component.name);
+			if (previousSource) {
+				throw new Error([
+					`Duplicate component name "${component.name}" detected during registration.`,
+					`First seen in: ${previousSource}`,
+					`Duplicate found in: ${file}`
+				].join('\n'));
+			}
+
+			this.components.set(component.name, component);
+
+			componentSourceByName.set(component.name, file);
+
+			this.logger.withMetadata({ name: component.name }).info('Registered component');
+		}
+	}
+
+	public getComponentForCustomId(customId: string) {
+		let best: { component: BaseComponent; match: ComponentMatch } | undefined;
+
+		for (const component of this.components.values()) {
+			const match = component.getMatch(customId);
+			if (!match) {
+				continue;
+			}
+
+			if (!best || compareComponentMatch(match, best.match) > 0) {
+				best = { component, match };
+			}
+		}
+
+		return best;
 	}
 }

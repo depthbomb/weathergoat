@@ -10,13 +10,14 @@ export const ALERTS_SEARCH_BASE_URL = 'https://alerts.weather.gov/search' as con
 
 export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 
-export const ROOT_DIR     = dirname(main);
-export const PROJECT_ROOT = join(ROOT_DIR, '..');
-export const DATA_DIR     = join(PROJECT_ROOT, '.data');
-export const LOGS_DIR     = join(DATA_DIR, 'logs');
-export const COMMANDS_DIR = join(ROOT_DIR, 'commands');
-export const EVENTS_DIR   = join(ROOT_DIR, 'events');
-export const JOBS_DIR     = join(ROOT_DIR, 'jobs');
+export const ROOT_DIR       = dirname(main);
+export const PROJECT_ROOT   = join(ROOT_DIR, '..');
+export const DATA_DIR       = join(PROJECT_ROOT, '.data');
+export const LOGS_DIR       = join(DATA_DIR, 'logs');
+export const COMMANDS_DIR   = join(ROOT_DIR, 'commands');
+export const COMPONENTS_DIR = join(ROOT_DIR, 'components');
+export const EVENTS_DIR     = join(ROOT_DIR, 'events');
+export const JOBS_DIR       = join(ROOT_DIR, 'jobs');
 
 export const FEATURE_DEFINITIONS = {
 	disableAlertReporting: {

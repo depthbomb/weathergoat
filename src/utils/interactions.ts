@@ -1,8 +1,8 @@
-import type { CommandInteraction, InteractionReplyOptions, InteractionEditReplyOptions } from 'discord.js';
+import type { CacheType, RepliableInteraction, InteractionReplyOptions, InteractionEditReplyOptions } from 'discord.js';
 
 type ReplyLike = string | InteractionReplyOptions | InteractionEditReplyOptions;
 
-export async function tryToRespond(interaction: CommandInteraction, options: ReplyLike) {
+export async function tryToRespond(interaction: RepliableInteraction<CacheType>, options: ReplyLike) {
 	const { replied, deferred } = interaction;
 	if (deferred) {
 		if (typeof options === 'string' || 'files' in options || 'content' in options) {
