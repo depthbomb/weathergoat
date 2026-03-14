@@ -1,5 +1,6 @@
 import { BaseEvent } from '@events';
 import { reportError } from '@lib/logger';
+import { MessageFlags } from 'discord.js';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { isWeatherGoatError } from '@lib/errors';
 import { tryToRespond } from '@utils/interactions';
@@ -16,6 +17,15 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		if (interaction.isChatInputCommand() && interaction.channel?.isSendable()) {
 			const command = this.getCommand(interaction);
 			if (!command) {
+				return;
+			}
+
+			if (command.name !== 'maintenance' && interaction.client.maintenanceModeFlag.isTrue) {
+				const reason = interaction.client.maintenanceModeReason.value;
+				await interaction.reply({
+					content: `Maintenance in progress: ${reason.toInlineCode()}`,
+					flags: MessageFlags.Ephemeral
+				});
 				return;
 			}
 

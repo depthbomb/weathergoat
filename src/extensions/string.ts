@@ -1,4 +1,4 @@
-import { spoiler, codeBlock, hyperlink, userMention, roleMention, channelLink, channelMention } from 'discord.js';
+import { spoiler, codeBlock, inlineCode, hyperlink, userMention, roleMention, channelLink, channelMention } from 'discord.js';
 
 export default {}
 
@@ -10,6 +10,7 @@ declare global {
 		toUserMention(): string;
 		toRoleMention(): string;
 		toHyperlink(url: string): string;
+		toInlineCode(): `\`${string}\``;
 		toCodeBlock<Language extends string>(language?: Language): string;
 		toSpoiler(): string;
 		bracketWrap(): `[${string}]`;
@@ -38,6 +39,10 @@ String.prototype.toRoleMention = function() {
 
 String.prototype.toHyperlink = function(url) {
 	return hyperlink(this.valueOf(), url);
+};
+
+String.prototype.toInlineCode = function() {
+	return inlineCode(this.valueOf());
 };
 
 String.prototype.toCodeBlock = function(language) {
