@@ -7,9 +7,9 @@ import { FeaturesService } from '@services/features';
 import { LocationService } from '@services/location';
 import { ForecastService } from '@services/forecast';
 import { inject, injectable } from '@needle-di/core';
-import { EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
+import { ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
@@ -84,7 +84,13 @@ export default class ReportForecastsJob extends BaseJob {
 					embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
 				}
 
-				await message.edit({ content: $msg.common.status.deleteToStopSubheading(), embeds: [embed] });
+				const deleteButton = new ButtonBuilder()
+					.setCustomId(`delete-forecast:${messageId}`)
+					.setLabel($msg.common.buttons.delete())
+					.setStyle(ButtonStyle.Danger);
+				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
+
+				await message.edit({ content: '', embeds: [embed], components: [row] });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

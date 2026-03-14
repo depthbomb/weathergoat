@@ -16,7 +16,7 @@ export default class DebugCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('debug')
 			.setDescription('Owner-only debug commands')
-			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+			.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 			.addSubcommand(sc => sc
 				.setName('print')
 				.setDescription('Prints string representations of various domains of my application')

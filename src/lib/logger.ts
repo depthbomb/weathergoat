@@ -9,7 +9,6 @@ import { LogFileRotationTransport } from '@loglayer/transport-log-file-rotation'
 import { getSimplePrettyTerminal } from '@loglayer/transport-simple-pretty-terminal';
 
 export const logger = new LogLayer({
-	prefix: '[WeatherGoat]',
 	errorSerializer: serializeError,
 	transport: [
 		getSimplePrettyTerminal({

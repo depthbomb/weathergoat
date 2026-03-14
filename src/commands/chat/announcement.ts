@@ -7,7 +7,7 @@ import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import { PermissionsPrecondition } from '@preconditions/permissions';
-import { channelLink, ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
@@ -96,7 +96,7 @@ export default class AnnouncementCommand extends BaseCommand {
 
 		try {
 			await db.announcementSubscription.create({ data: { guildId, channelId } });
-			await interaction.editReply($msg.commands.announcements.subscribe.success(channelLink(channelId)));
+			await interaction.editReply($msg.commands.announcements.subscribe.success(channelId.toChannelLink()));
 		} catch (err) {
 			reportError('Unable to create announcement subscription record', err, { guildId, channelId });
 			await interaction.editReply($msg.commands.announcements.subscribe.error());

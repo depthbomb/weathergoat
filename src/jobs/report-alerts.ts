@@ -171,7 +171,9 @@ export default class ReportAlertsJob extends BaseJob {
 
 					for (const alertId of expiredReferenceIDs) {
 						const expiredSentAlert = byAlertId.get(alertId);
-						if (!expiredSentAlert) continue;
+						if (!expiredSentAlert) {
+							continue;
+						}
 
 						await this.sweeper.enqueueMessage(
 							expiredSentAlert.guildId,

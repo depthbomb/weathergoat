@@ -1,16 +1,17 @@
 import { env } from '@env';
 import { Cron } from 'croner';
+import { Flag } from './flag';
 import { container } from '@container';
 import { inject } from '@needle-di/core';
 import { RedisService } from '@services/redis';
 import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
 import { compareComponentMatch } from '@components';
+import { ResettableString } from './resettable-string';
 import { Partials, GatewayIntentBits } from 'discord.js';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR, COMPONENTS_DIR } from '@constants';
 import type { BaseJob } from '@jobs';
-import type { LogLayer } from 'loglayer';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
 import type { ClientEvents } from 'discord.js';
@@ -23,13 +24,15 @@ type CommandModule   = BaseModule<BaseCommand>;
 type ComponentModule = BaseModule<BaseComponent>;
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs: Set<{ job: BaseJob; cron: Cron }>;
-	public readonly events: Collection<string, BaseEvent<keyof ClientEvents>>;
-	public readonly commands: Collection<string, BaseCommand>;
-	public readonly components: Collection<string, BaseComponent>;
+	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();
+	public readonly events                = new Collection<string, BaseEvent<keyof ClientEvents>>();
+	public readonly commands              = new Collection<string, BaseCommand>();
+	public readonly components            = new Collection<string, BaseComponent>();
+	public readonly maintenanceModeFlag   = new Flag(false);
+	public readonly maintenanceModeReason = new ResettableString('No reason specified');
 
-	private readonly logger: LogLayer;
-	private readonly moduleFilePattern: RegExp;
+	private readonly logger            = logger.child().withPrefix('[Client]');
+	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 
 	public constructor(
 		private readonly redis = inject(RedisService)
@@ -48,14 +51,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			],
 			partials: [Partials.Message, Partials.Channel]
 		});
-
-		this.jobs       = new Set();
-		this.events     = new Collection();
-		this.commands   = new Collection();
-		this.components = new Collection();
-
-		this.logger            = logger.child().withPrefix('[Client]');
-		this.moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	}
 
 	public async start() {

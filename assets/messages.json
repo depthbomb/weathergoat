@@ -2,7 +2,8 @@
 	"common": {
 		"buttons": {
 			"yes": "Yes",
-			"no": "No"
+			"no": "No",
+			"delete": "Delete"
 		},
 		"prompts": {
 			"locationConfirm": [
@@ -15,8 +16,7 @@
 			"promptTimedOut": "You did not respond to the prompt in time."
 		},
 		"status": {
-			"reportingTo": "Reporting to {channel:string}",
-			"deleteToStopSubheading": "-# Delete this message to stop."
+			"reportingTo": "Reporting to {channel:string}"
 		}
 	},
 	"errors": {
@@ -154,6 +154,10 @@
 			],
 			"listTitle": "Forecast reporting destinations in this server"
 		},
+		"maintenance": {
+			"enabled": "Successfully enabled maintenance mode.",
+			"disabled": "Successfully disabled maintenance mode."
+		},
 		"radar": {
 			"errors": {
 				"invalidStation": "Invalid station: `{station:string}`."
@@ -161,6 +165,16 @@
 			"embed": {
 				"title": "Radar Loop for {station:string}"
 			}
+		}
+	},
+	"components": {
+		"deleteAutoRadarButton": {
+			"noPermission": "You do not have permission to perform this action.",
+			"couldNotFindMessage": "Could not find auto-radar message."
+		},
+		"deleteForecastButton": {
+			"noPermission": "You do not have permission to perform this action.",
+			"couldNotFindMessage": "Could not find forecast message."
 		}
 	},
 	"jobs": {

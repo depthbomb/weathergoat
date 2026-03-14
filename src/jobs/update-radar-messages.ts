@@ -6,8 +6,8 @@ import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, EmbedBuilder, RESTJSONErrorCodes } from 'discord.js';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
+import { time, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
@@ -39,7 +39,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 			},
 			take: 500
 		});
-		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, nextUpdate } of dueMessages) {
+		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of dueMessages) {
 			try {
 				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
@@ -73,7 +73,13 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 						{ name: $msg.jobs.radar.nextUpdateTitle(), value: time(nextUpdate, 'R'), inline: true },
 					);
 
-				await message.edit({ content: $msg.common.status.deleteToStopSubheading(), embeds: [embed] });
+				const deleteButton = new ButtonBuilder()
+					.setCustomId(`delete-auto-radar:${messageId}`)
+					.setLabel($msg.common.buttons.delete())
+					.setStyle(ButtonStyle.Danger);
+				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
+
+				await message.edit({ content: '', embeds: [embed], components: [row] });
 				await db.autoRadarMessage.update({
 					data: {
 						nextUpdate
