@@ -44,11 +44,6 @@ export default class AnnouncementCommand extends BaseCommand {
 					.setDescription('The content of the announcement')
 					.setRequired(true)
 				)
-				.addStringOption(o => o
-					.setName('color')
-					.setDescription('The color to use for the embed containing the announcement')
-					.setRequired(false)
-				)
 			)
 		});
 
@@ -135,40 +130,25 @@ export default class AnnouncementCommand extends BaseCommand {
 			return;
 		}
 
-		const parsedColor = this.parseHexColor(colorInput);
-		if (colorInput && parsedColor === null) {
-			await interaction.reply({ content: 'Invalid color. Provide a 6-digit hex color like `#1e40af`.', flags: MessageFlags.Ephemeral });
-			return;
-		}
-
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		const snowflake = generateSnowflake();
-		const storedColor = parsedColor !== null ? `#${colorInput!.replace(/^#|^0x/i, '').toUpperCase()}` : null;
 
 		try {
-			await db.announcement.create({
+			const announcement = await db.announcement.create({
 				data: {
 					snowflake,
 					title,
-					body,
-					color: storedColor
+					body
 				}
 			});
+
+			const subscriptions = await db.announcementSubscription.findMany();
+			const deliveries    = subscriptions.map(s => ({ announcementId: announcement.id, subscriptionId: s.id }));
+			await db.announcementDelivery.createMany({ data: deliveries });
 		} catch (err) {
 			reportError('Unable to create announcement record', err, { snowflake });
 			await interaction.editReply('Unable to create announcement. Please try again later.');
 		}
-	}
-
-	private parseHexColor(input?: string | null): number | null {
-		if (!input) return null;
-
-		const normalized = input.replace(/^#|^0x/i, '');
-		if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
-			return null;
-		}
-
-		return Number.parseInt(normalized, 16);
 	}
 }

@@ -79,29 +79,42 @@ model FeedbackBan {
   reason    String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
 
 model Announcement {
-  id        Int      @id @default(autoincrement())
-  snowflake String   @unique
-  title     String
-  body      String
-  color     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([snowflake])
+  id         Int                    @id @default(autoincrement())
+  snowflake  String                 @unique
+  title      String
+  body       String
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  deliveries AnnouncementDelivery[]
 }
 
 model AnnouncementSubscription {
-  id        Int      @id @default(autoincrement())
-  guildId   String @unique
-  channelId String  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id         Int                    @id @default(autoincrement())
+  guildId    String                 @unique
+  channelId  String
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  deliveries AnnouncementDelivery[]
+}
 
-  @@index([guildId, channelId])
+model AnnouncementDelivery {
+  id             Int                      @id @default(autoincrement())
+  announcementId Int
+  subscriptionId Int
+  sentAt         DateTime?
+  failedAt       DateTime?
+  error          String?
+  createdAt      DateTime                 @default(now())
+  announcement   Announcement             @relation(fields: [announcementId], references: [id])
+  subscription   AnnouncementSubscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([announcementId, subscriptionId])
+  @@index([announcementId])
+  @@index([subscriptionId])
 }

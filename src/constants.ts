@@ -43,6 +43,10 @@ export const FEATURE_DEFINITIONS = {
 	disableFeedbackSubmissions: {
 		fraction: 0.0,
 		description: 'Feedback submission killswitch'
+	},
+	disableAnnouncementDispatching: {
+		fraction: 0.0,
+		description: 'Announcement dispatching killswitch'
 	}
 } as const;
 
