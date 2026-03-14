@@ -5,7 +5,10 @@
 			"no": "No"
 		},
 		"prompts": {
-			"locationConfirm": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.\nIs this correct?"
+			"locationConfirm": [
+				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.",
+				"Is this correct?"
+			]
 		},
 		"notices": {
 			"confirmationCancelled": "Confirmation cancelled",
@@ -30,7 +33,17 @@
 	},
 	"events": {
 		"guildCreate": {
-			"introMessage": "## Thank you for adding me to your server! Here's a quick rundown to get started:\n- Use the `/alerts` commands to manage weather alert reporting\n- Use the `/forecasts` command to designate a channel for reporting hourly forecasts to\n- Use the `/auto-radar` command to designate a channel to keep an auto-updating doppler radar animation in\n- Use the `/radar` command to get the current doppler radar animation for a location\n\nAdmins in this server can use the `/announcement` command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise.\nLastly, if you encounter any bugs, oddities, or have any suggestions then use the `/feedback` command to submit feedback!\n-# I apologize if this is not an appropriate channel for this introduction."
+			"introMessage": [
+				"## Thank you for adding me to your server! Here's a quick rundown to get started:",
+				"- Use the `/alerts` commands to manage weather alert reporting",
+				"- Use the `/forecasts` command to designate a channel for reporting hourly forecasts to",
+				"- Use the `/auto-radar` command to designate a channel to keep an auto-updating doppler radar animation in",
+				"- Use the `/radar` command to get the current doppler radar animation for a location",
+				"",
+				"Admins in this server can use the `/announcement` command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise.",
+				"Lastly, if you encounter any bugs, oddities, or have any suggestions then use the `/feedback` command to submit feedback!",
+				"-# I apologize if this is not an appropriate channel for this introduction."
+			]
 		},
 		"interactions": {
 			"errors": {
@@ -43,7 +56,14 @@
 			"bot": {
 				"embedTitle": "My Inner Workings",
 				"softwareTitle": "Software",
-				"softwareBody": "I'm built on the following software:\n- [Bun](https://bun.sh)\n- [discord.js](https://discord.js.org)\n- [Prisma ORM](https://prisma.io)\n- [Redis](https://redis.io)\n... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server).",
+				"softwareBody": [
+					"I'm built on the following software:",
+					"- [Bun](https://bun.sh)",
+					"- [discord.js](https://discord.js.org)",
+					"- [Prisma ORM](https://prisma.io)",
+					"- [Redis](https://redis.io)",
+					"... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server)."
+				],
 				"apiTitle": "Where do you get your weather data?",
 				"apiBody": "I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api).",
 				"aiUseTitle": "Do you use any AI?",
@@ -70,7 +90,10 @@
 				"noDestinationInChannel": "{channel:string} does not have any alert reporting assigned to it.",
 				"maxDestinationsReached": "You have reached the maximum amount of alert destinations in this server."
 			},
-			"created": "Alert reporting created in {channel:string}!\nYou can remove this reporting destination by using the `/alerts remove` command with the Snowflake `{snowflake:string}`.",
+			"created": [
+				"Alert reporting created in {channel:string}!",
+				"You can remove this reporting destination by using the `/alerts remove` command with the Snowflake `{snowflake:string}`."
+			],
 			"removed": "Alert reporting destination has been successfully removed.",
 			"listTitle": "Alert reporting destinations in this server"
 		},
@@ -92,9 +115,16 @@
 				"noMessages": "This server does not appear to have any radar messages",
 				"maxMessagesReached": "You have reached the maximum amount of radar messages in this server."
 			},
-			"locationConfirmWithImage": "The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.\nIs this correct?\n{radarImageUrl:string}",
+			"locationConfirmWithImage": [
+				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.",
+				"Is this correct?",
+				"{radarImageUrl:string}"
+			],
 			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
-			"created": "{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.\nTo remove this designation, simply delete the message at any time.",
+			"created": [
+				"{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.",
+				"To remove this designation, simply delete the message at any time."
+			],
 			"listTitle": "Radar messages in this server"
 		},
 		"debug": {
@@ -118,7 +148,10 @@
 				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
 			},
 			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
-			"created": "Hourly forecast reporting created in {channel:string}!\nYou can remove this destination by simply deleting the message.",
+			"created": [
+				"Hourly forecast reporting created in {channel:string}!",
+				"You can remove this destination by simply deleting the message."
+			],
 			"listTitle": "Forecast reporting destinations in this server"
 		},
 		"radar": {

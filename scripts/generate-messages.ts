@@ -1,26 +1,28 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
-interface TranslationValue {
-	[key: string]: string | TranslationValue;
+type TranslationLeaf = string | string[];
+
+interface ITranslationValue {
+	[key: string]: TranslationLeaf | ITranslationValue;
 }
 
-interface TranslationObject {
-	[key: string]: string | TranslationValue;
+interface ITranslationObject {
+	[key: string]: TranslationLeaf | ITranslationValue;
 }
 
 function escapeBackticks(str: string): string {
 	return str.replace(/`/g, '\\`');
 }
 
-interface ParsedParam {
+interface IParsedParam {
 	name: string;
 	type: string;
 	optional: boolean;
 	defaultValue?: string;
 }
 
-function parseTemplate(template: string): { params: ParsedParam[]; hasPlurals: boolean } {
-	const params: ParsedParam[] = [];
+function parseTemplate(template: string) {
+	const params: IParsedParam[] = [];
 	const paramRegex = /{(\w+)(\?)?:([^}=]+)(?:=([^}]+))?}/g;
 	let match;
 
@@ -36,7 +38,7 @@ function parseTemplate(template: string): { params: ParsedParam[]; hasPlurals: b
 	return { params, hasPlurals: false };
 }
 
-function generateParamSignature(params: ParsedParam[]): string {
+function generateParamSignature(params: IParsedParam[]) {
 	if (params.length === 0) return '()';
 
 	const paramStrings = params.map(p => {
@@ -50,40 +52,48 @@ function generateParamSignature(params: ParsedParam[]): string {
 	return `(${paramStrings.join(', ')})`;
 }
 
-function ensureCountParam(params: ParsedParam[]): ParsedParam[] {
+function ensureCountParam(params: IParsedParam[]) {
 	if (params.some(p => p.name === 'count')) return params;
-	return [{ name: 'count', type: 'number', optional: false }, ...params];
+	return [{ name: 'count', type: 'number', optional: false }, ...params] as IParsedParam[];
 }
 
-function templateToString(template: string): string {
+function templateToString(template: string) {
 	return escapeBackticks(template.replace(/{(\w+)\??:[^}=]+(?:=[^}]+)?}/g, '${$1}'));
 }
 
-function generateMsgObject(value: string | TranslationValue): string[] {
-	const lines: string[] = [];
+function generateMsgObject(value: string | string[] | ITranslationValue) {
+	const lines = [] as string[];
+
+	if (Array.isArray(value)) {
+		value = value.join('\n');
+	}
 
 	if (typeof value === 'string') {
-		const { params } = parseTemplate(value);
+		const { params }      = parseTemplate(value);
 		const paramsSignature = generateParamSignature(params);
-		const templateStr = templateToString(value);
+		const templateStr     = templateToString(value);
+
 		lines.push(`${paramsSignature} => \`${templateStr}\` as const`);
+
 		return lines;
 	}
 
 	if (typeof value === 'object') {
 		const keys = Object.keys(value);
 		const pluralKeys = keys.filter(k => k.startsWith('_'));
-
 		if (pluralKeys.length > 0) {
-			const templateOne = value['_one'] as string;
-			const templateOther = value['_other'] as string;
+			const templateOne   = value['_one'] as string | string[];
+			const templateOther = value['_other'] as string | string[];
 
-			const { params: rawParams } = parseTemplate(templateOne || templateOther);
-			const params = ensureCountParam(rawParams);
-			const paramsSignature = generateParamSignature(params);
+			const one   = Array.isArray(templateOne) ? templateOne.join('\n') : templateOne;
+			const other = Array.isArray(templateOther) ? templateOther.join('\n') : templateOther;
 
-			const templateOneStr = templateToString(templateOne);
-			const templateOtherStr = templateToString(templateOther);
+			const { params: rawParams } = parseTemplate(one || other);
+			const params                = ensureCountParam(rawParams);
+			const paramsSignature       = generateParamSignature(params);
+
+			const templateOneStr   = templateToString(one);
+			const templateOtherStr = templateToString(other);
 
 			lines.push(`${paramsSignature} => {`);
 			lines.push(`if (count === 1) {`);
@@ -96,8 +106,9 @@ function generateMsgObject(value: string | TranslationValue): string[] {
 
 		lines.push('{');
 		const entries = Object.entries(value);
+
 		entries.forEach(([key, val], index) => {
-			const valueLines = generateMsgObject(val);
+			const valueLines = generateMsgObject(val as any);
 			if (valueLines.length === 1) {
 				lines.push(`${key}: ${valueLines[0]}${index < entries.length - 1 ? ',' : ''}`);
 			} else {
@@ -105,9 +116,11 @@ function generateMsgObject(value: string | TranslationValue): string[] {
 				for (let i = 1; i < valueLines.length; i++) {
 					lines.push(`${valueLines[i]}`);
 				}
-				lines[lines.length - 1] = `${lines[lines.length - 1]}${index < entries.length - 1 ? ',' : ''}`;
+				lines[lines.length - 1] =
+					`${lines[lines.length - 1]}${index < entries.length - 1 ? ',' : ''}`;
 			}
 		});
+
 		lines.push(`}`);
 	}
 
@@ -116,9 +129,9 @@ function generateMsgObject(value: string | TranslationValue): string[] {
 
 function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string): void {
 	const jsonContent = readFileSync(jsonFilePath, 'utf-8');
-	const data: TranslationObject = JSON.parse(jsonContent);
+	const data        = JSON.parse(jsonContent) as ITranslationObject;
 
-	const functions: string[] = [];
+	const functions = [] as string[];
 	functions.push('// Auto-generated translation catalog');
 	functions.push('export const $msg = ' + generateMsgObject(data).join('') + ' as const;');
 	functions.push('export type MessageCatalog = typeof $msg;');
