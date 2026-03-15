@@ -1,3 +1,4 @@
+import { Geocode } from './Geocode';
 import { URLPath } from '@depthbomb/common';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
@@ -63,6 +64,9 @@ export class Alert {
 
 	@JSONProperty()
 	public areaDesc!: string;
+
+	@JSONProperty({ type: () => Geocode })
+	public geocode!: Geocode;
 
 	@JSONProperty()
 	public affectedZones!: string[];
@@ -161,9 +165,5 @@ export class Alert {
 		}
 
 		return null;
-	}
-
-	public get json() {
-		return JSON.stringify(this);
 	}
 }

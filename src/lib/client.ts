@@ -4,13 +4,12 @@ import { Flag } from './flag';
 import { container } from '@container';
 import { inject } from '@needle-di/core';
 import { RedisService } from '@services/redis';
-import { Client, Collection } from 'discord.js';
 import { logger, reportError } from '@lib/logger';
 import { compareComponentMatch } from '@components';
 import { ResettableString } from './resettable-string';
-import { Partials, GatewayIntentBits } from 'discord.js';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR, COMPONENTS_DIR } from '@constants';
+import { Client, Options, Partials, Collection, GatewayIntentBits } from 'discord.js';
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
@@ -49,7 +48,11 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				GatewayIntentBits.GuildWebhooks,
 				GatewayIntentBits.GuildScheduledEvents,
 			],
-			partials: [Partials.Message, Partials.Channel]
+			partials: [Partials.Message, Partials.Channel],
+			makeCache: Options.cacheWithLimits({
+				...Options.DefaultMakeCacheSettings,
+				ReactionManager: 0,
+			})
 		});
 	}
 

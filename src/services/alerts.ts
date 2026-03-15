@@ -20,7 +20,7 @@ export class AlertsService {
 	 * Retrieves all active weather alerts.
 	 */
 	public async getActiveAlerts() {
-		const res = await this.client.get('/alerts/active');
+		const res = await this.client.get('/alerts/active?status=actual');
 
 		HTTPRequestError.assert(res.ok, res.statusText, { code: res.status, status: res.statusText });
 

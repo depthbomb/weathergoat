@@ -5,6 +5,7 @@ import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { LocationService } from '@services/location';
 import { inject, injectable } from '@needle-di/core';
+import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
@@ -24,6 +25,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 @injectable()
 export default class AlertsCommand extends BaseCommand {
 	public constructor(
+		private readonly eventBus = inject(EventBusService),
 		private readonly location = inject(LocationService)
 	) {
 		super({
@@ -80,14 +82,16 @@ export default class AlertsCommand extends BaseCommand {
 		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.alerts.errors.maxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			return interaction.reply($msg.errors.invalidCoordinates());
+			await interaction.reply($msg.errors.invalidCoordinates());
+			return;
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ latitude, longitude, channelId: channel.id });
 		if (exists) {
-			return interaction.editReply($msg.commands.alerts.errors.destinationExists());
+			await interaction.editReply($msg.commands.alerts.errors.destinationExists());
+			return;
 		}
 
 		try {
@@ -128,21 +132,23 @@ export default class AlertsCommand extends BaseCommand {
 					select: { snowflake: true }
 				});
 
-				return interaction.editReply({
+				this.eventBus.emit('alert-destinations:updated');
+
+				await interaction.editReply({
 					content: $msg.commands.alerts.created(channel.toString(), destination.snowflake),
 					components: []
 				});
 			} else {
-				return initialReply.delete();
+				await initialReply.delete();
 			}
 		} catch (err: unknown) {
 			if (isWeatherGoatError<HTTPRequestError>(err)) {
-				return interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+				await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
 			}
 
-			return interaction.editReply({ content: $msg.errors.unknown(), components: [] });
+			await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 		}
 	}
 
@@ -151,22 +157,27 @@ export default class AlertsCommand extends BaseCommand {
 		const snowflake   = interaction.options.getString('snowflake', true);
 
 		if (!guildId) {
-			return interaction.reply($msg.errors.guildOnly());
+			await interaction.reply($msg.errors.guildOnly());
+			return;
 		}
 
 		if (!isValidSnowflake(snowflake)) {
-			return interaction.reply($msg.errors.invalidSnowflake(snowflake));
+			await interaction.reply($msg.errors.invalidSnowflake(snowflake));
+			return;
 		}
 
 		await interaction.deferReply();
 
 		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
-			return interaction.editReply($msg.commands.alerts.errors.destinationNotFound(snowflake));
+			await interaction.editReply($msg.commands.alerts.errors.destinationNotFound(snowflake));
+			return;
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
 		await interaction.editReply($msg.commands.alerts.removed());
+
+		this.eventBus.emit('alert-destinations:updated');
 	}
 
 	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
@@ -188,7 +199,8 @@ export default class AlertsCommand extends BaseCommand {
 			}
 		});
 		if (!destinations.length) {
-			return interaction.editReply($msg.errors.noDestinationsForType('alert'));
+			await interaction.editReply($msg.errors.noDestinationsForType('alert'));
+			return;
 		}
 
 		const embed = new EmbedBuilder()
@@ -207,6 +219,6 @@ export default class AlertsCommand extends BaseCommand {
 			});
 		}
 
-		return interaction.editReply({ embeds: [embed] });
+		await interaction.editReply({ embeds: [embed] });
 	}
 }
