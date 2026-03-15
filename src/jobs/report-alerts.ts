@@ -1,19 +1,19 @@
 import { db } from '@db';
 import { BaseJob } from '@jobs';
 import { Flag } from '@lib/flag';
-import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { AlertSeverity } from '@models/Alert';
 import { HTTPRequestError } from '@lib/errors';
 import { AlertsService } from '@services/alerts';
+import { Color, IMAGE_ASSETS } from '@constants';
 import { SweeperService } from '@services/sweeper';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { EventBusService } from '@services/event-bus';
-import { time, Collection, EmbedBuilder } from 'discord.js';
-import { EmbedLimits, isTextChannel } from '@sapphire/discord.js-utilities';
+import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { time, Collection, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -71,6 +71,10 @@ export default class ReportAlertsJob extends BaseJob {
 		const alerts         = await this.alerts.getActiveAlerts();
 		for (const alert of alerts) {
 			const ugcs = alert.geocode.UGC;
+			if (!ugcs) {
+				continue;
+			}
+
 			const matched = new Set<AlertDestination>();
 
 			for (const ugc of ugcs) {
@@ -119,38 +123,52 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const webhook     = await this.getOrCreateWebhook(channel);
 					const description = alert.description.toCodeBlock('md');
-					const embed = new EmbedBuilder()
-						.setTitle(`${alert.isUpdate ? '🔁 ' + $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline}`)
-						.setDescription(description)
-						.setColor(this.getAlertSeverityColor(alert))
-						.setAuthor({ name: alert.senderName, iconURL: 'https://www.weather.gov/images/nws/nws_logo.png' })
-						.setURL(alert.url)
-						.addFields(
-							{ name: $msg.jobs.alerts.fieldTitles.certainty(), value: alert.certainty, inline: true },
-							{ name: $msg.jobs.alerts.fieldTitles.effective(), value: time(alert.effective, 'R'), inline: true },
-							{ name: $msg.jobs.alerts.fieldTitles.expires(), value: time(alert.expires, 'R'), inline: true },
-							{ name: $msg.jobs.alerts.fieldTitles.affectedAreas(), value: alert.areaDesc }
+					const container   = new ContainerBuilder()
+						.setAccentColor(this.getAlertSeverityColor(alert))
+						.addMediaGalleryComponents(g => g
+							.addItems(i => i
+								.setURL(this.getAlertSeverityBanner(alert))
+							)
 						)
-						.setTimestamp();
+						.addTextDisplayComponents(t => t
+							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
+						)
+						.addSeparatorComponents(s => s
+							.setSpacing(SeparatorSpacingSize.Large)
+						)
 
-					if (alert.instruction) {
-						embed.addFields({ name: $msg.jobs.alerts.fieldTitles.instructions(), value: alert.instruction.toCodeBlock('md') });
-					}
+						if (description.length > 2_000) {
+							container.addTextDisplayComponents(t => t
+								.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url))
+							);
+						} else {
+							container.addTextDisplayComponents(t => t
+								.setContent(alert.description.toCodeBlock('md'))
+							);
+						}
 
-					if (radarImageUrl) {
-						embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
-					}
+						container.addTextDisplayComponents(t => t
+							.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas: _${alert.areaDesc}_.`)
+						);
 
-					if (embed.length > EmbedLimits.MaximumTotalCharacters) {
-						embed.setDescription($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url));
-					}
+						if (alert.instruction) {
+							container.addTextDisplayComponents(t => t.setContent(`### Instructions\n${alert.instruction!.toCodeBlock('md')}`));
+						}
+
+						if (radarImageUrl) {
+							container.addMediaGalleryComponents(g => g
+								.addItems(i => i
+									.setURL(radarImageUrl + `?${generateSnowflake()}`)
+								)
+							);
+						}
 
 					const shouldPingEveryone = (alert.severity === AlertSeverity.Severe || alert.severity === AlertSeverity.Extreme) && pingOnSevere;
 					const sentMessage = await webhook.send({
 						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
-						embeds: [embed]
+						components: [container]
 					});
 
 					if (autoCleanup) {
@@ -240,6 +258,22 @@ export default class ReportAlertsJob extends BaseJob {
 				return Color.SeveritySevere;
 			case AlertSeverity.Extreme:
 				return Color.SeverityExtreme;
+		}
+	}
+
+	private getAlertSeverityBanner(alert: Alert) {
+		switch (alert.severity) {
+			default:
+			case AlertSeverity.Unknown:
+				return IMAGE_ASSETS['alert-banner-unknown'];
+			case AlertSeverity.Minor:
+				return IMAGE_ASSETS['alert-banner-minor'];
+			case AlertSeverity.Moderate:
+				return IMAGE_ASSETS['alert-banner-minor'];
+			case AlertSeverity.Severe:
+				return IMAGE_ASSETS['alert-banner-severe'];
+			case AlertSeverity.Extreme:
+				return IMAGE_ASSETS['alert-banner-extreme'];
 		}
 	}
 }

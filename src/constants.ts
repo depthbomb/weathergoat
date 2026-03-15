@@ -50,6 +50,14 @@ export const FEATURE_DEFINITIONS = {
 	}
 } as const;
 
+export const IMAGE_ASSETS = {
+	'alert-banner-extreme':  'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484203003965.png?size=1024',
+	'alert-banner-minor':    'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424486711197697.png?size=1024',
+	'alert-banner-moderate': 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484551135314.png?size=1024',
+	'alert-banner-severe':   'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484307734620.png?size=1024',
+	'alert-banner-unknown':  'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484748267622.png?size=1024',
+} as const;
+
 export const enum Color {
 	Primary          = 0x5876aa,
 	Info             = 0x0ea5e9,
