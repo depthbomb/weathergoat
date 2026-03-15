@@ -103,7 +103,7 @@ export default class ReportAlertsJob extends BaseJob {
 				continue;
 			}
 
-			for (const { countyId, guildId, channelId, autoCleanup, radarImageUrl, pingOnSevere } of destinations) {
+			for (const { latitude, longitude, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 				try {
 					const channel = await client.channels.fetch(channelId);
 					if (!isTextChannel(channel)) {
@@ -123,23 +123,23 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const webhook     = await this.getOrCreateWebhook(channel);
 					const description = alert.description.toCodeBlock('md');
-				const container   = new ContainerBuilder()
-					.setAccentColor(this.getAlertSeverityColor(alert))
-					.addMediaGalleryComponents(g => g
-						.addItems(i => i
-							.setURL(this.getAlertSeverityBanner(alert))
+					const container   = new ContainerBuilder()
+						.setAccentColor(this.getAlertSeverityColor(alert))
+						.addMediaGalleryComponents(g => g
+							.addItems(i => i
+								.setURL(this.getAlertSeverityBanner(alert))
+							)
 						)
-					)
-					.addTextDisplayComponents(t => t
-						.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
-					)
-					.addSeparatorComponents(s => s
-						.setSpacing(SeparatorSpacingSize.Large)
-					)
+						.addTextDisplayComponents(t => t
+							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
+						)
+						.addSeparatorComponents(s => s
+							.setSpacing(SeparatorSpacingSize.Large)
+						)
 
 					if (description.length > 2_000) {
 						container.addTextDisplayComponents(t => t
-							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url))
+							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(latitude, longitude))
 						);
 					} else {
 						container.addTextDisplayComponents(t => t
@@ -148,7 +148,7 @@ export default class ReportAlertsJob extends BaseJob {
 					}
 
 					container.addTextDisplayComponents(t => t
-						.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas: _${alert.areaDesc}_.`)
+						.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas:\n**${alert.areaDesc}**`)
 					);
 
 					if (alert.instruction) {
@@ -165,7 +165,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const sentMessage = await webhook.send({
 						username: this.webhookUsername,
-						avatarURL: client.user.avatarURL({ forceStatic: false })!,
+						avatarURL: client.user.avatarURL()!,
 						components: [container],
 						flags: MessageFlags.IsComponentsV2
 					});

@@ -5,7 +5,7 @@ import { reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
+import { MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
@@ -48,7 +48,7 @@ export default class DispatchAnnouncementsJob extends BaseJob {
 					continue;
 				}
 
-				await channel.send({ components: [container] });
+				await channel.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
 				await db.announcementDelivery.update({
 					where: { id: delivery.id },
 					data: { sentAt: new Date() }
