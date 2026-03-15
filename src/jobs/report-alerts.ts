@@ -13,7 +13,7 @@ import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { EventBusService } from '@services/event-bus';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, Collection, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
+import { time, Collection, MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -166,7 +166,8 @@ export default class ReportAlertsJob extends BaseJob {
 					const sentMessage = await webhook.send({
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
-						components: [container]
+						components: [container],
+						flags: MessageFlags.IsComponentsV2
 					});
 
 					if (autoCleanup) {
