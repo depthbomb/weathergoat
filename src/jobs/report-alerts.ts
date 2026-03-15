@@ -123,49 +123,47 @@ export default class ReportAlertsJob extends BaseJob {
 
 					const webhook     = await this.getOrCreateWebhook(channel);
 					const description = alert.description.toCodeBlock('md');
-					const container   = new ContainerBuilder()
-						.setAccentColor(this.getAlertSeverityColor(alert))
-						.addMediaGalleryComponents(g => g
-							.addItems(i => i
-								.setURL(this.getAlertSeverityBanner(alert))
-							)
+				const container   = new ContainerBuilder()
+					.setAccentColor(this.getAlertSeverityColor(alert))
+					.addMediaGalleryComponents(g => g
+						.addItems(i => i
+							.setURL(this.getAlertSeverityBanner(alert))
 						)
-						.addTextDisplayComponents(t => t
-							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
-						)
-						.addSeparatorComponents(s => s
-							.setSpacing(SeparatorSpacingSize.Large)
-						)
+					)
+					.addTextDisplayComponents(t => t
+						.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
+					)
+					.addSeparatorComponents(s => s
+						.setSpacing(SeparatorSpacingSize.Large)
+					)
 
-						if (description.length > 2_000) {
-							container.addTextDisplayComponents(t => t
-								.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url))
-							);
-						} else {
-							container.addTextDisplayComponents(t => t
-								.setContent(alert.description.toCodeBlock('md'))
-							);
-						}
-
+					if (description.length > 2_000) {
 						container.addTextDisplayComponents(t => t
-							.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas: _${alert.areaDesc}_.`)
+							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(alert.url))
 						);
+					} else {
+						container.addTextDisplayComponents(t => t
+							.setContent(alert.description.toCodeBlock('md'))
+						);
+					}
 
-						if (alert.instruction) {
-							container.addTextDisplayComponents(t => t.setContent(`### Instructions\n${alert.instruction!.toCodeBlock('md')}`));
-						}
+					container.addTextDisplayComponents(t => t
+						.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas: _${alert.areaDesc}_.`)
+					);
 
-						if (radarImageUrl) {
-							container.addMediaGalleryComponents(g => g
-								.addItems(i => i
-									.setURL(radarImageUrl + `?${generateSnowflake()}`)
-								)
-							);
-						}
+					if (alert.instruction) {
+						container.addTextDisplayComponents(t => t.setContent(`### Instructions\n${alert.instruction!.toCodeBlock('md')}`));
+					}
 
-					const shouldPingEveryone = (alert.severity === AlertSeverity.Severe || alert.severity === AlertSeverity.Extreme) && pingOnSevere;
+					if (radarImageUrl) {
+						container.addMediaGalleryComponents(g => g
+							.addItems(i => i
+								.setURL(radarImageUrl + `?${generateSnowflake()}`)
+							)
+						);
+					}
+
 					const sentMessage = await webhook.send({
-						content: shouldPingEveryone ? '@everyone' : '',
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL({ forceStatic: false })!,
 						components: [container]
