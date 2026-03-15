@@ -188,7 +188,7 @@
 				"instructions": "Instructions",
 				"references": "References"
 			},
-			"payloadTooLargePlaceholder": "## The description of this alert is too large to send. View the full alert [here.](https://beta.weather.gov/point/{lat:string}/{lon:string}/)"
+			"payloadTooLargePlaceholder": "## The description of this alert is too large to send. View the full alert [here.](https://beta.weather.gov/point/{lat:string}/{lon:string}/#{anchor:string})"
 		},
 		"forecasts": {
 			"embedTitle": "{forecastName:string}'s Forecast for {location:string}",

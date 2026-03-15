@@ -139,7 +139,7 @@ export default class ReportAlertsJob extends BaseJob {
 
 					if (description.length > 2_000) {
 						container.addTextDisplayComponents(t => t
-							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(latitude, longitude))
+							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(latitude, longitude, this.createLinkAnchor(alert.id)))
 						);
 					} else {
 						container.addTextDisplayComponents(t => t
@@ -274,5 +274,10 @@ export default class ReportAlertsJob extends BaseJob {
 			case AlertSeverity.Extreme:
 				return IMAGE_ASSETS['alert-banner-extreme'];
 		}
+	}
+
+	private createLinkAnchor(alertId: string) {
+		const parts = alertId.split('.');
+		return parts.slice(-3).join('_');
 	}
 }
