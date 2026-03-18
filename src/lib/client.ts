@@ -156,7 +156,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			const name     = event.name;
 			const once     = event.once ?? false;
 			const disabled = event.disabled ?? false;
-
 			if (disabled) {
 				continue;
 			}
@@ -184,7 +183,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async registerCommands() {
 		this.commands.clear();
 		this.commandLinks.clear();
-		this.commandLinksLoaded = false;
+		this.commandLinksLoaded      = false;
 		this.commandLinksLoadPromise = undefined;
 
 		const commandSourceByName = new Map<string, string>();

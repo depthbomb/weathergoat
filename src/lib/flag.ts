@@ -1,10 +1,8 @@
-export class Flag {
-	public value: boolean;
-	readonly #initialValue: boolean;
+import { ResettableValue } from './resettable-value';
 
+export class Flag extends ResettableValue<boolean> {
 	public constructor(value: boolean = false) {
-		this.value        = value;
-		this.#initialValue = value;
+		super(value);
 	}
 
 	public get isTrue() {
@@ -16,7 +14,7 @@ export class Flag {
 	}
 
 	public set(value: boolean) {
-		this.value = value;
+		super.set(value);
 	}
 
 	public setTrue() {
@@ -31,15 +29,4 @@ export class Flag {
 		this.value = !this.value;
 	}
 
-	public reset() {
-		this.value = this.#initialValue;
-	}
-
-	public valueOf() {
-		return this.value;
-	}
-
-	public toString() {
-		return String(this.value);
-	}
 }
