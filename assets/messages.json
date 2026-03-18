@@ -46,7 +46,9 @@
 			"introMessage": [
 				"## Thank you for adding me to your server! Here's a quick rundown to get started:",
 				"{commandsOverview:string}",
+				"",
 				"Lastly, if you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
+				"",
 				"-# I apologize if this is not an appropriate channel for this introduction."
 			]
 		},

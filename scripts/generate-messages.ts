@@ -42,14 +42,14 @@ function generateParamSignature(params: IParsedParam[]) {
 	if (params.length === 0) return '()';
 
 	const paramStrings = params.map(p => {
-		let paramStr = `${p.name}${p.optional ? '?' : ''}: ${p.type}`;
+		let paramStr = `${p.name}${p.optional ? '?' : ''}:${p.type}`;
 		if (p.defaultValue !== undefined) {
-			paramStr += ` = ${p.defaultValue}`;
+			paramStr += `=${p.defaultValue}`;
 		}
 		return paramStr;
 	});
 
-	return `(${paramStrings.join(', ')})`;
+	return `(${paramStrings.join(',')})`;
 }
 
 function ensureCountParam(params: IParsedParam[]) {
@@ -73,7 +73,7 @@ function generateMsgObject(value: string | string[] | ITranslationValue) {
 		const paramsSignature = generateParamSignature(params);
 		const templateStr     = templateToString(value);
 
-		lines.push(`${paramsSignature} => \`${templateStr}\` as const`);
+		lines.push(`${paramsSignature}=>\`${templateStr}\` as const`);
 
 		return lines;
 	}
@@ -95,12 +95,7 @@ function generateMsgObject(value: string | string[] | ITranslationValue) {
 			const templateOneStr   = templateToString(one);
 			const templateOtherStr = templateToString(other);
 
-			lines.push(`${paramsSignature} => {`);
-			lines.push(`if (count === 1) {`);
-			lines.push(`return \`${templateOneStr}\` as const;`);
-			lines.push(`}`);
-			lines.push(`return \`${templateOtherStr}\` as const;`);
-			lines.push(`}`);
+			lines.push(`${paramsSignature}=>count===1?\`${templateOneStr}\` as const:\`${templateOtherStr}\` as const`);
 			return lines;
 		}
 
@@ -110,9 +105,9 @@ function generateMsgObject(value: string | string[] | ITranslationValue) {
 		entries.forEach(([key, val], index) => {
 			const valueLines = generateMsgObject(val as any);
 			if (valueLines.length === 1) {
-				lines.push(`${key}: ${valueLines[0]}${index < entries.length - 1 ? ',' : ''}`);
+				lines.push(`${key}:${valueLines[0]}${index < entries.length - 1 ? ',' : ''}`);
 			} else {
-				lines.push(`${key}: ${valueLines[0]}`);
+				lines.push(`${key}:${valueLines[0]}`);
 				for (let i = 1; i < valueLines.length; i++) {
 					lines.push(`${valueLines[i]}`);
 				}
@@ -127,16 +122,43 @@ function generateMsgObject(value: string | string[] | ITranslationValue) {
 	return lines;
 }
 
+function generateRootObject(data: ITranslationObject) {
+	const lines = [] as string[];
+	lines.push('{');
+	lines.push(`$generated:${JSON.stringify(new Date().toISOString())},`);
+	lines.push(`$raw:${JSON.stringify(JSON.stringify(data))},`);
+
+	const entries = Object.entries(data);
+	entries.forEach(([key, val], index) => {
+		const valueLines = generateMsgObject(val as ITranslationValue);
+		if (valueLines.length === 1) {
+			lines.push(`${key}:${valueLines[0]}${index < entries.length - 1 ? ',' : ''}`);
+		} else {
+			lines.push(`${key}:${valueLines[0]}`);
+
+			for (let i = 1; i < valueLines.length; i++) {
+				lines.push(`${valueLines[i]}`);
+			}
+
+			lines[lines.length - 1] = `${lines[lines.length - 1]}${index < entries.length - 1 ? ',' : ''}`;
+		}
+	});
+
+	lines.push('}');
+	return lines.join('');
+}
+
 function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string): void {
 	const jsonContent = readFileSync(jsonFilePath, 'utf-8');
 	const data        = JSON.parse(jsonContent) as ITranslationObject;
+	const functions   = [] as string[];
 
-	const functions = [] as string[];
 	functions.push('// Auto-generated translation catalog');
-	functions.push('export const $msg = ' + generateMsgObject(data).join('') + ' as const;');
+	functions.push('export const $msg=' + generateRootObject(data) + ' as const;');
 	functions.push('export type MessageCatalog = typeof $msg;');
 
 	writeFileSync(outputFilePath, functions.join('\n'), 'utf-8');
+
 	console.log(`Generated TypeScript file: ${outputFilePath}`);
 }
 
