@@ -25,12 +25,12 @@ export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 
 			const client = guild.client as WeatherGoat<true>;
 			const [alerts, forecasts, autoRadar, radar, announcement, feedback] = await Promise.all([
-				client.getCommandLink('alerts'),
+				client.getCommandLink('alerts', 'add'),
 				client.getCommandLink('forecasts'),
 				client.getCommandLink('auto-radar'),
 				client.getCommandLink('radar'),
-				client.getCommandLink('announcement'),
-				client.getCommandLink('feedback')
+				client.getCommandLink('announcement', 'subscribe'),
+				client.getCommandLink('feedback', 'submit')
 			]);
 
 			await channel.send($msg.events.guildCreate.introMessage(alerts, forecasts, autoRadar, radar, announcement, feedback));

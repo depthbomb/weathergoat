@@ -35,13 +35,13 @@
 		"guildCreate": {
 			"introMessage": [
 				"## Thank you for adding me to your server! Here's a quick rundown to get started:",
-				"- Use the {alerts:string} commands to manage weather alert reporting",
+				"- Use the {alertsAdd:string} command to add a weather alert reporting destination",
 				"- Use the {forecasts:string} command to designate a channel for reporting hourly forecasts to",
 				"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
 				"- Use the {radar:string} command to get the current doppler radar animation for a location",
 				"",
-				"Admins in this server can use the {announcement:string} command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise.",
-				"Lastly, if you encounter any bugs, oddities, or have any suggestions then use the {feedback:string} command to submit feedback!",
+				"Admins in this server can use the {announcementSubscribe:string} command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise.",
+				"Lastly, if you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
 				"-# I apologize if this is not an appropriate channel for this introduction."
 			]
 		},
