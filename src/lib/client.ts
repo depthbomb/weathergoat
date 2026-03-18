@@ -95,6 +95,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			}
 		}
 
+		this.user?.setPresence({ status: 'invisible' });
+
 		this.redis.close();
 
 		await super.destroy();

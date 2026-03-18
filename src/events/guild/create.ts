@@ -3,7 +3,6 @@ import { $msg } from '@lib/messages';
 import type { Guild } from 'discord.js';
 
 export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
-
 	public constructor() {
 		super({ name: 'guildCreate' });
 	}
