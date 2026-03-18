@@ -1,6 +1,10 @@
 import type { WeatherGoat } from '@lib/client';
 
 declare module 'discord.js' {
+	interface Guild {
+		client: WeatherGoat<true>;
+	}
+
 	interface BaseInteraction {
 		client: WeatherGoat<true>;
 	}
