@@ -22,6 +22,10 @@ type HTTPClientOptions = {
 	 */
 	baseUrl?: string;
 	/**
+	 * Headers to include with every request this client makes.
+	 */
+	headers?: HeadersInit;
+	/**
 	 * Whether to use a retry policy to retry failed requests.
 	 */
 	retry: boolean;
@@ -51,6 +55,7 @@ export class HTTPClient {
 	private readonly name: string;
 	private readonly retry: boolean;
 	private readonly baseUrl?: string;
+	private readonly headers: Headers;
 	private readonly retryPolicy: RetryPolicy;
 	private readonly durationFormatter: DurationFormatter;
 	private readonly logger: LogLayer;
@@ -61,12 +66,15 @@ export class HTTPClient {
 		this.name        = options.name;
 		this.retry       = options.retry;
 		this.baseUrl     = options.baseUrl;
+		this.headers     = new Headers({ 'user-agent': BOT_USER_AGENT });
 		this.retryPolicy = retry(handleResultType(Response, res => RETRYABLE_STATUS_CODES.has(res.status)), {
 			maxAttempts: 10,
 			backoff: new ConstantBackoff(1_000)
 		});
 		this.durationFormatter = new DurationFormatter();
 		this.logger            = logger.child().withPrefix(`[HTTP(${this.name})]`);
+
+		this._mergeHeaders(this.headers, options.headers);
 	}
 
 	public async get(url: string | URL, options?: GETOptions) {
@@ -78,18 +86,19 @@ export class HTTPClient {
 			input = input.toString();
 		}
 
-		const requestInit = {
-			...init,
-			headers: {
-				'user-agent': BOT_USER_AGENT,
-				'accept': 'application/ld+json'
-			},
+		const { query, ...initWithoutQuery } = init ?? {};
+		const requestHeaders = new Headers(this.headers);
+		this._mergeHeaders(requestHeaders, init?.headers);
+
+		const requestInit: RequestInit = {
+			...initWithoutQuery,
+			headers: requestHeaders
 		};
 
 		let requestUrl = this.baseUrl ? URLPath.from(input, this.baseUrl) : URLPath.from(input);
 
-		if (init?.query) {
-			requestUrl = requestUrl.withQuery(init.query);
+		if (query) {
+			requestUrl = requestUrl.withQuery(query);
 		}
 
 		const requestId = `${this.name}-${this.requestNum}`;
@@ -122,6 +131,14 @@ export class HTTPClient {
 
 		return res;
 	}
+
+	private _mergeHeaders(target: Headers, source?: HeadersInit) {
+		if (!source) {
+			return;
+		}
+
+		new Headers(source).forEach((value, key) => target.set(key, value));
+	}
 }
 
 @injectable()
@@ -147,7 +164,8 @@ export class HTTPService {
 
 		const retry   = options?.retry ?? true;
 		const baseUrl = options?.baseUrl;
-		const client  = new HTTPClient({ name, baseUrl, retry });
+		const headers = options?.headers;
+		const client  = new HTTPClient({ name, baseUrl, headers, retry });
 
 		this.clients.set(name, client);
 		this.logger.withMetadata({ name, ...options }).info('Created HTTP client');

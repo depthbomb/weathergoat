@@ -27,7 +27,12 @@ export class LocationService {
 		private readonly http  = inject(HTTPService),
 		private readonly redis = inject(RedisService),
 	) {
-		this.client            = this.http.getClient('location', { baseUrl: API_BASE_ENDPOINT });
+		this.client = this.http.getClient('location', {
+			baseUrl: API_BASE_ENDPOINT,
+			headers: {
+				Accept: 'application/ld+json'
+			}
+		});
 		this.coordinatePattern = /^(-?\d+(?:\.\d+)?)$/;
 	}
 

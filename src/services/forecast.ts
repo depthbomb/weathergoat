@@ -15,7 +15,11 @@ export class ForecastService {
 		private readonly location = inject(LocationService)
 	) {
 
-		this.client = this.http.getClient('forecasts');
+		this.client = this.http.getClient('forecasts', {
+			headers: {
+				Accept: 'application/ld+json'
+			}
+		});
 	}
 
 	/**

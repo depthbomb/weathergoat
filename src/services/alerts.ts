@@ -13,7 +13,12 @@ export class AlertsService {
 	public constructor(
 		private readonly http = inject(HTTPService)
 	) {
-		this.client = this.http.getClient('alerts', { baseUrl: API_BASE_ENDPOINT });
+		this.client = this.http.getClient('alerts', {
+			baseUrl: API_BASE_ENDPOINT,
+			headers: {
+				Accept: 'application/ld+json'
+			}
+		});
 	}
 
 	/**
