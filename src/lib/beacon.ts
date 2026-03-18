@@ -5,7 +5,7 @@ import { EmbedBuilder, WebhookClient } from 'discord.js';
 import type { WeatherGoat } from './client';
 
 export class Beacon {
-	public install(client: WeatherGoat<true>) {
+	public install(client: WeatherGoat) {
 		const webhook = new WebhookClient({
 			url: env.get('BEACON_WEBHOOK_URL')
 		});

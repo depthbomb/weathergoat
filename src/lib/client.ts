@@ -1,6 +1,7 @@
 import { env } from '@env';
 import { Cron } from 'croner';
 import { Flag } from './flag';
+import { Beacon } from './beacon';
 import { container } from '@container';
 import { inject } from '@needle-di/core';
 import { RedisService } from '@services/redis';
@@ -21,8 +22,8 @@ import {
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
-import type { Maybe } from '@depthbomb/common';
 import type { ClientEvents } from 'discord.js';
+import type { Maybe } from '@depthbomb/common';
 import type { BaseComponent, ComponentMatch } from '@components';
 
 type BaseModule<T>   = { default: new() => T };
@@ -40,10 +41,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly maintenanceModeReason = new ResettableString('No reason specified');
 	public readonly commandLinks          = new Collection<string, string>();
 
-	private readonly logger            = logger.child().withPrefix('[Client]');
-	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 	private commandLinksLoaded        = false;
 	private commandLinksLoadPromise?: Promise<void>;
+
+	private readonly beacon            = new Beacon();
+	private readonly logger            = logger.child().withPrefix('[Client]');
+	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 
 	public constructor(
 		private readonly redis = inject(RedisService)
@@ -77,6 +80,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		const res = await this.login(env.get('BOT_TOKEN'));
 
 		await this.application?.fetch();
+
+		this.beacon.install(this);
 
 		return res;
 	}
