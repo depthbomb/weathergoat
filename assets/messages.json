@@ -50,8 +50,9 @@
 				"-# I apologize if this is not an appropriate channel for this introduction."
 			]
 		},
-		"interactions": {
-			"errors": {
+		"interaction": {
+			"create": {
+				"maintenanceEnabled": "Maintenance in progress: {reason:string}",
 				"commandFailed": "I've encountered a problem executing that command. Please try again later."
 			}
 		}

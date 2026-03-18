@@ -5,7 +5,7 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { isWeatherGoatError } from '@lib/errors';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { INTERACTION_ERROR, WEATHERGOAT_ERROR, PRECONDITION_ERROR } from '@lib/messages';
+import { $msg, INTERACTION_ERROR, WEATHERGOAT_ERROR, PRECONDITION_ERROR } from '@lib/messages';
 import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
@@ -20,10 +20,10 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				return;
 			}
 
-			if (command.name !== 'maintenance' && interaction.client.maintenanceModeFlag.isTrue) {
+			if (interaction.client.maintenanceModeFlag.isTrue && command.name !== 'maintenance') {
 				const reason = interaction.client.maintenanceModeReason.value;
 				await interaction.reply({
-					content: `Maintenance in progress: ${reason.toInlineCode()}`,
+					content: $msg.events.interaction.create.maintenanceEnabled(reason.toInlineCode()),
 					flags: MessageFlags.Ephemeral
 				});
 				return;

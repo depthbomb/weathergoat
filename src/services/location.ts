@@ -70,25 +70,16 @@ export class LocationService {
 		const latitude = combinedCoordinatesOrLatitude.trim();
 		const lon      = longitude.trim();
 
-		return this.isCoordinateInRange(latitude, -90, 90)
-			&& this.isCoordinateInRange(lon, -180, 180);
-	}
-
-	private isCoordinateInRange(input: string, min: number, max: number): boolean {
-		if (!this.coordinatePattern.test(input)) {
-			return false;
-		}
-
-		const value = Number.parseFloat(input);
-		return Number.isFinite(value) && value >= min && value <= max;
+		return this.isCoordinateInRange(latitude, -90, 90) && this.isCoordinateInRange(lon, -180, 180);
 	}
 
 	/**
 	 * Retrieves basic information about a location based on coordinates.
 	 * @param latitude The latitude of the location to retrieve.
 	 * @param longitude The longitude of the location to retrieve.
+	 * @param cacheTTL How long the coordinate info should be cached.
 	 */
-	public async getInfoFromCoordinates(latitude: string, longitude: string): Promise<CoordinateInfo> {
+	public async getInfoFromCoordinates(latitude: string, longitude: string, cacheTTL = '1w'): Promise<CoordinateInfo> {
 		const cacheKey = `${latitude},${longitude}`;
 		const cached   = await this.redis.get(cacheKey);
 		if (cached) {
@@ -105,7 +96,7 @@ export class LocationService {
 		const json = await res.json();
 		const data = deserialize(Point, json);
 
-		const info: CoordinateInfo = {
+		const info = {
 			latitude,
 			longitude,
 			location: data.relativeLocation.cityState,
@@ -114,11 +105,20 @@ export class LocationService {
 			forecastUrl: data.forecast,
 			radarStation: data.radarStation,
 			radarImageUrl: data.radarImageUrl
-		};
+		} as CoordinateInfo;
 
-		await this.redis.set(cacheKey, JSON.stringify(info), '1w');
+		await this.redis.set(cacheKey, JSON.stringify(info), cacheTTL);
 
 		return info;
+	}
+
+	private isCoordinateInRange(input: string, min: number, max: number): boolean {
+		if (!this.coordinatePattern.test(input)) {
+			return false;
+		}
+
+		const value = Number.parseFloat(input);
+		return Number.isFinite(value) && value >= min && value <= max;
 	}
 }
 

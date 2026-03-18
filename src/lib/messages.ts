@@ -38,7 +38,7 @@ export function PRECONDITION_ERROR(err: PreconditionError) {
 
 export function INTERACTION_ERROR() {
 	return new MessageBuilder().setEmbeds([
-		createErrorEmbed($msg.events.interactions.errors.commandFailed())
+		createErrorEmbed($msg.events.interaction.create.commandFailed())
 	]);
 }
 
