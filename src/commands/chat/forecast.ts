@@ -4,20 +4,20 @@ import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
-import { LocationService } from '@services/location';
 import { inject, injectable } from '@needle-di/core';
+import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
 	time,
-	ChannelType,
 	ButtonStyle,
+	ChannelType,
 	MessageFlags,
 	ButtonBuilder,
 	ActionRowBuilder,
+	DiscordjsErrorCodes,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
-	DiscordjsErrorCodes
+	SlashCommandBuilder
 } from 'discord.js';
 import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';

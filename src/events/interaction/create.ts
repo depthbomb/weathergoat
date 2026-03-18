@@ -1,11 +1,11 @@
 import { BaseEvent } from '@events';
-import { reportError } from '@lib/logger';
 import { MessageFlags } from 'discord.js';
+import { reportError } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { isWeatherGoatError } from '@lib/errors';
 import { tryToRespond } from '@utils/interactions';
 import { isPreconditionError } from '@preconditions';
-import { WEATHERGOAT_ERROR, INTERACTION_ERROR, PRECONDITION_ERROR } from '@lib/messages';
+import { INTERACTION_ERROR, WEATHERGOAT_ERROR, PRECONDITION_ERROR } from '@lib/messages';
 import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {

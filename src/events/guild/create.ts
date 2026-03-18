@@ -1,6 +1,7 @@
 import { BaseEvent } from '@events';
 import { $msg } from '@lib/messages';
 import type { Guild } from 'discord.js';
+import type { WeatherGoat } from '@lib/client';
 
 export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 
@@ -22,7 +23,17 @@ export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 				return;
 			}
 
-			await channel.send($msg.events.guildCreate.introMessage());
+			const client = guild.client as WeatherGoat<true>;
+			const [alerts, forecasts, autoRadar, radar, announcement, feedback] = await Promise.all([
+				client.getCommandLink('alerts'),
+				client.getCommandLink('forecasts'),
+				client.getCommandLink('auto-radar'),
+				client.getCommandLink('radar'),
+				client.getCommandLink('announcement'),
+				client.getCommandLink('feedback')
+			]);
+
+			await channel.send($msg.events.guildCreate.introMessage(alerts, forecasts, autoRadar, radar, announcement, feedback));
 
 			l.info(`Successfully sent introduction to channel "${channel.name}" (${channel.id})`);
 		} catch (err) {

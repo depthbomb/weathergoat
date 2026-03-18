@@ -1,6 +1,6 @@
 import { logger } from '@lib/logger';
 import { tryToRespond } from '@utils/interactions';
-import { AsyncLocalStorage } from 'node:async_hooks'
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { InvalidPermissionsError } from '@lib/errors';
 import { ApplicationCommandOptionType } from 'discord.js';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
@@ -210,5 +210,14 @@ export abstract class BaseCommand {
 	 */
 	public async tryToRespond(options: string | InteractionReplyOptions) {
 		return tryToRespond(this.ctx?.interaction!, options);
+	}
+
+	public async getCommandLink(commandName: string, ...path: string[]) {
+		const interaction = this.ctx?.interaction;
+		if (!interaction) {
+			return `/${[commandName, ...path].join(' ')}`;
+		}
+
+		return interaction.client.getCommandLink(commandName, ...path);
 	}
 }

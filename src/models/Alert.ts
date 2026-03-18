@@ -2,7 +2,7 @@ import { Geocode } from './Geocode';
 import { URLPath } from '@depthbomb/common';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
-import { Serializable, JSONProperty } from '@depthbomb/serde';
+import { JSONProperty, Serializable } from '@depthbomb/serde';
 import type { Nullable } from '@depthbomb/common/types';
 
 export enum AlertStatus {

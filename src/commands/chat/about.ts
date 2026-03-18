@@ -4,9 +4,8 @@ import { GithubService } from '@services/github';
 import { inject, injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { MessageLimits } from '@sapphire/discord-utilities';
-import { CooldownPrecondition } from '@preconditions/cooldown';
 import { REPO, Color, REPO_NAME, REPO_OWNER } from '@constants';
-import { arch, uptime, version, platform, hostname } from 'node:os';
+import { arch, uptime, version, hostname, platform } from 'node:os';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -21,39 +20,13 @@ export default class AboutCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('about')
 			.setDescription('Read about me!')
-			.addSubcommand(sc => sc
-				.setName('bot')
-				.setDescription('Returns basic info about my inner workings')
-			)
-			.addSubcommand(sc => sc
-				.setName('changelog')
-				.setDescription('Retrieve the latest commits made to my repository')
-			)
-			.addSubcommand(sc => sc
-				.setName('stats')
-				.setDescription('Lists some of my technical stats')
-			)
 		});
 
 		this.formatter = new DurationFormatter();
-
-		this.createSubcommandMap<'bot' | 'changelog' | 'stats'>({
-			bot: {
-				handler: this._handleBotSubcommand
-			},
-			changelog: {
-				handler: this._handleChangelogSubcommand,
-				preconditions: [
-					new CooldownPrecondition({ duration: '3s', global: true })
-				]
-			},
-			stats: {
-				handler: this._handleStatsSubcommand
-			}
-		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
+		// TODO consolidate subcommands into single command
 		await this.handleSubcommand(interaction);
 	}
 

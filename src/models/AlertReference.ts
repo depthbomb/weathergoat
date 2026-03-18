@@ -1,6 +1,6 @@
 import { URLPath } from '@depthbomb/common';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
-import { Serializable, JSONProperty } from '@depthbomb/serde';
+import { JSONProperty, Serializable } from '@depthbomb/serde';
 
 @Serializable()
 export class AlertReference {

@@ -1,5 +1,5 @@
 import { RelativeLocation } from '@models/RelativeLocation';
-import { Serializable, JSONProperty } from '@depthbomb/serde';
+import { JSONProperty, Serializable } from '@depthbomb/serde';
 
 @Serializable()
 export class Point {

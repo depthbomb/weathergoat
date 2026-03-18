@@ -1,4 +1,4 @@
-import { spoiler, codeBlock, inlineCode, hyperlink, userMention, roleMention, channelLink, channelMention } from 'discord.js';
+import { spoiler, codeBlock, hyperlink, inlineCode, channelLink, roleMention, userMention, channelMention } from 'discord.js';
 
 export default {}
 

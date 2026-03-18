@@ -1,8 +1,8 @@
 import { env } from '@env';
 import { logger } from '@lib/logger';
 import { container } from '@container';
-import { WeatherGoat } from '@lib/client';
 import { REST, Routes } from 'discord.js';
+import { WeatherGoat } from '@lib/client';
 import { Option, Command } from 'clipanion';
 import { Stopwatch } from '@sapphire/stopwatch';
 import type { LogLayer } from 'loglayer';

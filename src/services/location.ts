@@ -1,9 +1,9 @@
 import { HTTPService } from './http';
 import { Point } from '@models/Point';
 import { RedisService } from './redis';
+import { API_BASE_ENDPOINT } from '@constants';
 import { deserialize } from '@depthbomb/serde';
 import { HTTPRequestError } from '@lib/errors';
-import { API_BASE_ENDPOINT } from '@constants';
 import { inject, injectable } from '@needle-di/core';
 import type { HTTPClient } from './http';
 

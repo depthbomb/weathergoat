@@ -3,21 +3,21 @@ import { env } from '@env';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
-import { LocationService } from '@services/location';
 import { inject, injectable } from '@needle-di/core';
+import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import {
-	ChannelType,
 	ButtonStyle,
+	ChannelType,
 	EmbedBuilder,
 	ButtonBuilder,
 	ActionRowBuilder,
+	DiscordjsErrorCodes,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
-	DiscordjsErrorCodes
+	SlashCommandBuilder
 } from 'discord.js';
 import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -96,6 +96,7 @@ export default class AlertsCommand extends BaseCommand {
 
 		try {
 			const info = await this.location.getInfoFromCoordinates(latitude, longitude);
+			const removeLink = await this.getCommandLink('alerts', 'remove');
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -135,7 +136,7 @@ export default class AlertsCommand extends BaseCommand {
 				this.eventBus.emit('alert-destinations:updated');
 
 				await interaction.editReply({
-					content: $msg.commands.alerts.created(channel.toString(), destination.snowflake),
+					content: $msg.commands.alerts.created(channel.toString(), removeLink, destination.snowflake),
 					components: []
 				});
 			} else {

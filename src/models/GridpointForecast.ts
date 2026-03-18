@@ -1,4 +1,4 @@
-import { Serializable, JSONProperty } from '@depthbomb/serde';
+import { JSONProperty, Serializable } from '@depthbomb/serde';
 import { GridpointForecastPeriod } from '@models/GridpointForecastPeriod';
 
 @Serializable()

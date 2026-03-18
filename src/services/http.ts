@@ -1,9 +1,8 @@
-import { fetch } from 'bun';
 import { logger } from '@lib/logger';
 import { hrtime } from 'node:process';
 import { Collection } from 'discord.js';
-import { URLPath } from '@depthbomb/common';
 import { BOT_USER_AGENT } from '@constants';
+import { URLPath } from '@depthbomb/common';
 import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
 import { retry, ConstantBackoff, handleResultType } from 'cockatiel';

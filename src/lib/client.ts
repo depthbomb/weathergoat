@@ -9,7 +9,15 @@ import { compareComponentMatch } from '@components';
 import { ResettableString } from './resettable-string';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR, COMPONENTS_DIR } from '@constants';
-import { Client, Options, Partials, Collection, GatewayIntentBits } from 'discord.js';
+import {
+	Client,
+	Options,
+	Partials,
+	Collection,
+	GatewayIntentBits,
+	ApplicationCommandOptionType,
+	chatInputApplicationCommandMention
+} from 'discord.js';
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
@@ -30,9 +38,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly components            = new Collection<string, BaseComponent>();
 	public readonly maintenanceModeFlag   = new Flag(false);
 	public readonly maintenanceModeReason = new ResettableString('No reason specified');
+	public readonly commandLinks          = new Collection<string, string>();
 
 	private readonly logger            = logger.child().withPrefix('[Client]');
 	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
+	private commandLinksLoaded        = false;
+	private commandLinksLoadPromise?: Promise<void>;
 
 	public constructor(
 		private readonly redis = inject(RedisService)
@@ -167,6 +178,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	 */
 	public async registerCommands() {
 		this.commands.clear();
+		this.commandLinks.clear();
+		this.commandLinksLoaded = false;
+		this.commandLinksLoadPromise = undefined;
 
 		const commandSourceByName = new Map<string, string>();
 
@@ -192,6 +206,70 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 			this.logger.withMetadata({ name: command.name }).info('Registered command');
 		}
+	}
+
+	public async getCommandLink(commandName: string, ...path: string[]) {
+		const fullPath = this.formatCommandPath(commandName, ...path);
+		const cached = this.commandLinks.get(fullPath);
+		if (cached) {
+			return cached;
+		}
+
+		if (!this.commandLinksLoaded) {
+			await this.loadCommandLinksOnce();
+			const loaded = this.commandLinks.get(fullPath);
+			if (loaded) {
+				return loaded;
+			}
+		}
+
+		return `/${fullPath}`;
+	}
+
+	private async loadCommandLinks() {
+		if (!this.application) {
+			return;
+		}
+
+		const commands = await this.application.commands.fetch();
+		for (const command of commands.values()) {
+			const commandPath = this.formatCommandPath(command.name);
+			this.commandLinks.set(commandPath, chatInputApplicationCommandMention(commandPath, command.id));
+
+			for (const option of command.options) {
+				if (option.type === ApplicationCommandOptionType.Subcommand) {
+					const subcommandPath = this.formatCommandPath(command.name, option.name);
+					this.commandLinks.set(subcommandPath, chatInputApplicationCommandMention(subcommandPath, command.id));
+				} else if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
+					for (const subcommand of option.options ?? []) {
+						if (subcommand.type === ApplicationCommandOptionType.Subcommand) {
+							const groupedPath = this.formatCommandPath(command.name, option.name, subcommand.name);
+							this.commandLinks.set(groupedPath, chatInputApplicationCommandMention(groupedPath, command.id));
+						}
+					}
+				}
+			}
+		}
+
+		this.commandLinksLoaded = true;
+	}
+
+	private async loadCommandLinksOnce() {
+		if (this.commandLinksLoaded) {
+			return;
+		}
+
+		this.commandLinksLoadPromise ??= this.loadCommandLinks();
+
+		try {
+			await this.commandLinksLoadPromise;
+		} finally {
+			this.commandLinksLoadPromise = undefined;
+		}
+	}
+
+	private formatCommandPath(commandName: string, ...path: string[]) {
+		return [commandName, ...path].join(' ');
 	}
 
 	/**

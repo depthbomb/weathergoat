@@ -1,5 +1,5 @@
 import { Alert } from '@models/Alert';
-import { Serializable, JSONProperty } from '@depthbomb/serde';
+import { JSONProperty, Serializable } from '@depthbomb/serde';
 
 @Serializable()
 export class AlertCollection {
