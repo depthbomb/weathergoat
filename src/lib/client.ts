@@ -13,6 +13,7 @@ import { Client, Options, Partials, Collection, GatewayIntentBits } from 'discor
 import type { BaseJob } from '@jobs';
 import type { BaseEvent } from '@events';
 import type { BaseCommand } from '@commands';
+import type { Maybe } from '@depthbomb/common';
 import type { ClientEvents } from 'discord.js';
 import type { BaseComponent, ComponentMatch } from '@components';
 
@@ -227,7 +228,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public getComponentForCustomId(customId: string) {
-		let best: { component: BaseComponent; match: ComponentMatch } | undefined;
+		let best: Maybe<{ component: BaseComponent; match: ComponentMatch }>;
 
 		for (const component of this.components.values()) {
 			const match = component.getMatch(customId);

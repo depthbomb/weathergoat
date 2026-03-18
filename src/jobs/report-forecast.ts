@@ -81,7 +81,7 @@ export default class ReportForecastsJob extends BaseJob {
 					.setTimestamp();
 
 				if (radarImageUrl) {
-					embed.setImage(radarImageUrl + `?${generateSnowflake()}`);
+					embed.setImage(radarImageUrl + `?v=${generateSnowflake()}`);
 				}
 
 				const deleteButton = new ButtonBuilder()
