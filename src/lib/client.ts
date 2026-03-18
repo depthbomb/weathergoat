@@ -186,7 +186,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.commandLinksLoaded      = false;
 		this.commandLinksLoadPromise = undefined;
 
-		const commandSourceByName = new Map<string, string>();
+		const commandSourceByName = new Collection<string, string>();
 
 		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: CommandModule = await import(file);
@@ -283,7 +283,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async registerComponents() {
 		this.components.clear();
 
-		const componentSourceByName = new Map<string, string>();
+		const componentSourceByName = new Collection<string, string>();
 
 		for await (const file of findFilesRecursivelyRegex(COMPONENTS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: ComponentModule = await import(file);

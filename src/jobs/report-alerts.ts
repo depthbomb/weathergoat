@@ -67,7 +67,7 @@ export default class ReportAlertsJob extends BaseJob {
 			this.logger.info(`Finished indexing ${allDestinations.length} destination(s)`);
 		}
 
-		const destinationMap = new Map<string, AlertDestination[]>();
+		const destinationMap = new Collection<string, AlertDestination[]>();
 		const alerts         = await this.alerts.getActiveAlerts();
 		for (const alert of alerts) {
 			const ugcs = alert.geocode.UGC;
@@ -205,7 +205,7 @@ export default class ReportAlertsJob extends BaseJob {
 							}
 						});
 
-						const byAlertId = new Map<string, typeof expiredSentAlerts[number]>();
+						const byAlertId = new Collection<string, typeof expiredSentAlerts[number]>();
 						for (const sent of expiredSentAlerts) {
 							byAlertId.set(sent.alertId, sent);
 						}
