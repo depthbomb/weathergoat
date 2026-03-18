@@ -14,7 +14,7 @@ export default class DispatchAnnouncementsJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'dispatch_announcements',
+			name: DispatchAnnouncementsJob.name,
 			pattern: '* * * * *'
 		});
 	}

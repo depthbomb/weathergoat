@@ -22,7 +22,7 @@ export default class UpdateRadarMessagesJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'update_radar_messages',
+			name: UpdateRadarMessagesJob.name,
 			pattern: '* * * * *',
 			runImmediately: true
 		});

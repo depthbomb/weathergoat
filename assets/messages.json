@@ -58,34 +58,20 @@
 	},
 	"commands": {
 		"about": {
-			"bot": {
-				"embedTitle": "My Inner Workings",
-				"softwareTitle": "Software",
-				"softwareBody": [
-					"I'm built on the following software:",
-					"- [Bun](https://bun.sh)",
-					"- [discord.js](https://discord.js.org)",
-					"- [Prisma ORM](https://prisma.io)",
-					"- [Redis](https://redis.io)",
-					"... and I'm hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server)."
-				],
-				"apiTitle": "Where do you get your weather data?",
-				"apiBody": "I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api).",
-				"aiUseTitle": "Do you use any AI?",
-				"aiUseBody": "**Nope!** I neither use AI to parse or transform data nor is any of my code written in AI. All of my code is written by a human, mistakes and all!"
-			},
-			"stats": {
-				"title": "My Stats",
-				"uptimeTitle": "Uptime",
-				"applicationPrefix": "Application:",
-				"systemPrefix": "System:",
-				"runtimeTitle": "Runtime",
-				"systemTitle": "System",
-				"hostNameTitle": "Host Name"
-			},
-			"changelog": {
-				"responseTooLong": "A preview of my commits is currently too large to send. You can view my commits [here](https://github.com/{repo:string}/commits)."
-			}
+			"title": "# About Me",
+			"gutsSection": [
+				"## What's your technology stack?",
+				"I'm built with the [discord.js](https://discord.js.org) library, use [Prisma ORM](https://prisma.io) to persist data, cache data with [Redis](https://redis.io), and I run on the [Bun](https://bun.sh) runtime ({bunVersion:string}).",
+				"I'm currently hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server) ({hostname:string}). My hardware's uptime is {systemUptime:string} and I have been running for {serviceRuntime:string}."
+			],
+			"dataSourceSection": [
+				"## Where do you get your data?",
+				"I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api) and the [U.S. Geological Survey API](https://usgs.gov/products/web-tools/apis)."
+			],
+			"aiUsageSection": [
+				"## Do you use AI?",
+				"**Nope**! I neither use AI to parse or transform data nor is any of my code written with AI. All of my code is written by a human, mistakes and all!"
+			]
 		},
 		"alerts": {
 			"errors": {

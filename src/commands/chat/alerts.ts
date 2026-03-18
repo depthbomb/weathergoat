@@ -8,7 +8,12 @@ import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
+import {
+	isDiscordJSError,
+	isWeatherGoatError,
+	MaxDestinationError,
+	GuildOnlyInvocationInNonGuildError
+} from '@lib/errors';
 import {
 	ButtonStyle,
 	ChannelType,

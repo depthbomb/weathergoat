@@ -10,7 +10,7 @@ export default class SweepMessagesJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'sweep_messages',
+			name: SweepMessagesJob.name,
 			pattern: '* * * * *',
 			runImmediately: true
 		});

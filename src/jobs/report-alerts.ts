@@ -32,7 +32,7 @@ export default class ReportAlertsJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'report_alerts',
+			name: ReportAlertsJob.name,
 			pattern: '*/30 * * * * *',
 			runImmediately: true
 		});

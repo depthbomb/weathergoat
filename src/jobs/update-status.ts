@@ -34,7 +34,7 @@ export default class UpdateStatusJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'update_status',
+			name: UpdateStatusJob.name,
 			pattern: '*/15 * * * * *',
 			runImmediately: true
 		});

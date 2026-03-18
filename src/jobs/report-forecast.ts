@@ -26,7 +26,7 @@ export default class ReportForecastsJob extends BaseJob {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			name: 'report_forecasts',
+			name: ReportForecastsJob.name,
 			pattern: '0 * * * *',
 			runImmediately: true
 		});
