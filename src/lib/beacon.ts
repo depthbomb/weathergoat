@@ -4,6 +4,8 @@ import { Color } from '@constants';
 import { EmbedBuilder, WebhookClient } from 'discord.js';
 import type { WeatherGoat } from './client';
 
+const WEBHOOK_USERNAME = 'WeatherGoat#Beacon' as const;
+
 export class Beacon {
 	public install(client: WeatherGoat) {
 		const webhook = new WebhookClient({
@@ -36,7 +38,11 @@ export class Beacon {
 				embed.setImage(guild.bannerURL());
 			}
 
-			await webhook.send({ embeds: [embed] });
+			await webhook.send({
+				username: WEBHOOK_USERNAME,
+				avatarURL: client.user!.avatarURL()!,
+				embeds: [embed]
+			});
 		});
 
 		client.on('guildDelete', async guild => {
@@ -48,7 +54,11 @@ export class Beacon {
 					value: `${guild.name} (${guild.id})`
 				}]);
 
-			await webhook.send({ embeds: [embed] });
+			await webhook.send({
+				username: WEBHOOK_USERNAME,
+				avatarURL: client.user!.avatarURL()!,
+				embeds: [embed]
+			});
 		});
 	}
 }
