@@ -1,11 +1,14 @@
+import { Color } from '@constants';
 import { BaseEvent } from '@events';
-import { MessageFlags } from 'discord.js';
+import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { Stopwatch } from '@sapphire/stopwatch';
-import { isWeatherGoatError } from '@lib/errors';
 import { tryToRespond } from '@utils/interactions';
-import { isPreconditionError } from '@preconditions';
-import { $msg, INTERACTION_ERROR, WEATHERGOAT_ERROR, PRECONDITION_ERROR } from '@lib/messages';
+import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { MessageBuilder } from '@sapphire/discord.js-utilities';
+import { isWeatherGoatError, MaxDestinationError } from '@lib/errors';
+import { PreconditionError, isPreconditionError } from '@preconditions';
+import type { WeatherGoatError } from '@lib/errors';
 import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
@@ -47,13 +50,13 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				await command.callHandler(interaction);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
-					await tryToRespond(interaction, WEATHERGOAT_ERROR(err));
+					await tryToRespond(interaction, this.createWeatherGoatErrorMessage(err));
 				} else if (isPreconditionError(err)) {
-					await tryToRespond(interaction, PRECONDITION_ERROR(err));
+					await tryToRespond(interaction, this.createPreconditionErrorMessage(err));
 				} else {
 					reportError('Error in interaction handler', err, { interaction: interaction.commandName });
 
-					await tryToRespond(interaction, INTERACTION_ERROR());
+					await tryToRespond(interaction, this.createInteractionFailedErrorMessage());
 				}
 			} finally {
 				this.logger.debug(`Interaction completed in ${sw.toString()}`);
@@ -84,18 +87,54 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				await component.callHandler(interaction, match);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
-					await tryToRespond(interaction, WEATHERGOAT_ERROR(err));
+					await tryToRespond(interaction, this.createWeatherGoatErrorMessage(err));
 				} else if (isPreconditionError(err)) {
-					await tryToRespond(interaction, PRECONDITION_ERROR(err));
+					await tryToRespond(interaction, this.createPreconditionErrorMessage(err));
 				} else {
 					reportError('Error in component interaction handler', err, { interaction: interaction.customId });
 
-					await tryToRespond(interaction, INTERACTION_ERROR());
+					await tryToRespond(interaction, this.createInteractionFailedErrorMessage());
 				}
 			} finally {
 				this.logger.debug(`Component interaction completed in ${sw.toString()}`);
 			}
 		}
+	}
+
+	private createErrorEmbed(message: string, footerText?: string) {
+		const embed = new EmbedBuilder()
+			.setColor(Color.Danger)
+			.setDescription(message)
+			.setTimestamp();
+
+		if (footerText) {
+			embed.setFooter({ text: footerText });
+		}
+
+		return embed;
+	}
+
+	private createWeatherGoatErrorMessage(err: WeatherGoatError) {
+		let message = err.message;
+		if (err instanceof MaxDestinationError) {
+			message = `${message} (${err.max})`;
+		}
+
+		return new MessageBuilder().setEmbeds([
+			this.createErrorEmbed(message, err.name)
+		]);
+	}
+
+	private createPreconditionErrorMessage(err: PreconditionError) {
+		return new MessageBuilder().setEmbeds([
+			this.createErrorEmbed(err.message)
+		]);
+	}
+
+	private createInteractionFailedErrorMessage() {
+		return new MessageBuilder().setEmbeds([
+			this.createErrorEmbed($msg.events.interaction.create.commandFailed())
+		]);
 	}
 
 	private getCommand(interaction: Interaction) {
