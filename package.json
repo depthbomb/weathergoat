@@ -39,7 +39,6 @@
 		"discord.js": "^14.25.1",
 		"fejl": "^4.0.1",
 		"loglayer": "^9.1.0",
-		"octokit": "^5.0.5",
 		"serialize-error": "^13.0.1",
 		"temporal-polyfill": "^0.3.2",
 		"utf-8-validate": "^6.0.6"
