@@ -201,7 +201,7 @@
 			"nextUpdateTitle": "Next Update"
 		},
 		"status": {
-			"activity": "{emoji:string} Forecasting for {duration:string}"
+			"activity": "{emoji:string} Forecasting for {duration:string} (v{calver:string})"
 		}
 	},
 	"beacon": {

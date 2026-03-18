@@ -1,4 +1,5 @@
 import { BaseJob } from '@jobs';
+import { CALVER } from '@constants';
 import { $msg } from '@lib/messages';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
@@ -52,7 +53,7 @@ export default class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration),
+					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration, CALVER),
 					type: ActivityType.Custom
 				}
 			]
