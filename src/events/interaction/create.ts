@@ -6,9 +6,9 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { tryToRespond } from '@utils/interactions';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
-import { isWeatherGoatError, MaxDestinationError } from '@lib/errors';
+import { isWeatherGoatError, MaxDestinationError } from '@errors';
 import { PreconditionError, isPreconditionError } from '@preconditions';
-import type { WeatherGoatError } from '@lib/errors';
+import type { WeatherGoatError } from '@errors';
 import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
 export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
@@ -79,7 +79,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 			}
 
 			const { component, match } = resolved;
-			const sw = new Stopwatch();
+			const sw                   = new Stopwatch();
 
 			try {
 				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) used component ${component.name}`);

@@ -7,8 +7,8 @@ import { reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { GuildOnlyInvocationInNonGuildError } from '@lib/errors';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 

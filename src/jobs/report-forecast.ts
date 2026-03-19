@@ -8,7 +8,7 @@ import { ForecastService } from '@services/forecast';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 

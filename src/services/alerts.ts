@@ -1,7 +1,7 @@
 import { HTTPService } from './http';
+import { HTTPRequestError } from '@errors';
 import { API_BASE_ENDPOINT } from '@constants';
 import { deserialize } from '@depthbomb/serde';
-import { HTTPRequestError } from '@lib/errors';
 import { inject, injectable } from '@needle-di/core';
 import { AlertCollection } from '@models/AlertCollection';
 import type { HTTPClient } from './http';

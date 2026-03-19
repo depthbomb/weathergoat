@@ -31,11 +31,9 @@
 	},
 	"errors": {
 		"invalidCoordinates": "The provided latitude or longitude is not valid.",
-		"guildOnly": "This action can only be performed inside a server channel.",
 		"noDestinationsForType": "There are no {type:string} destinations in this server.",
 		"tooManyDestinationsForType": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
 		"locationLookupHttpError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
-		"invalidSnowflake": "The provided [snowflake](https://en.wikipedia.org/wiki/Snowflake_ID) `{snowflake:string}` is invalid.",
 		"unknown": "An unknown error has occurred"
 	},
 	"features": {
@@ -207,6 +205,18 @@
 			"name": "Name",
 			"members": "Members",
 			"channels": "Channels"
+		}
+	},
+	"preconditions": {
+		"cooldown": {
+			"activeCooldown": "You are under an active cooldown that expires {timestamp:string}."
+		},
+		"owner": {
+			"userMustBeTeamMember": "You must be an admin or developer of team **{team:string}** to call this command.",
+			"userMustBeOwner": "This command may only be called by {owner:string}."
+		},
+		"permissions": {
+			"noPermission": "You do not have permission to call this command."
 		}
 	}
 }

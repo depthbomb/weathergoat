@@ -1,7 +1,7 @@
 import { HTTPService } from './http';
+import { HTTPRequestError } from '@errors';
 import { LocationService } from './location';
 import { deserialize } from '@depthbomb/serde';
-import { HTTPRequestError } from '@lib/errors';
 import { inject, injectable } from '@needle-di/core';
 import { GridpointForecast } from '@models/GridpointForecast';
 import type { HTTPClient } from './http';

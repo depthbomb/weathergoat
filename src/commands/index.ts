@@ -1,7 +1,7 @@
 import { logger } from '@lib/logger';
+import { InvalidPermissionsError } from '@errors';
 import { tryToRespond } from '@utils/interactions';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { InvalidPermissionsError } from '@lib/errors';
 import { ApplicationCommandOptionType } from 'discord.js';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';

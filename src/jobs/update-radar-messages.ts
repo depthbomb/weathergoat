@@ -6,7 +6,7 @@ import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { isDiscordAPIError, isDiscordAPIErrorCode } from '@lib/errors';
+import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { time, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 

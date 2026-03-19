@@ -6,7 +6,13 @@ import { generateSnowflake } from '@lib/snowflake';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isDiscordJSError, isWeatherGoatError, MaxDestinationError, GuildOnlyInvocationInNonGuildError } from '@lib/errors';
+import {
+	HTTPRequestError,
+	isDiscordJSError,
+	isWeatherGoatError,
+	MaxDestinationError,
+	GuildOnlyInvocationInNonGuildError
+} from '@errors';
 import {
 	ButtonStyle,
 	ChannelType,
@@ -17,7 +23,6 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
@@ -106,7 +111,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				await initialReply.delete();
 			}
 		} catch (err) {
-			if (isWeatherGoatError<HTTPRequestError>(err)) {
+			if (isWeatherGoatError(err, HTTPRequestError)) {
 				return interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				return interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });

@@ -9,11 +9,13 @@ import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import {
+	HTTPRequestError,
 	isDiscordJSError,
 	isWeatherGoatError,
 	MaxDestinationError,
+	InvalidSnowflakeError,
 	GuildOnlyInvocationInNonGuildError
-} from '@lib/errors';
+} from '@errors';
 import {
 	ButtonStyle,
 	ChannelType,
@@ -24,7 +26,6 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { HTTPRequestError } from '@lib/errors';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
@@ -148,7 +149,7 @@ export default class AlertsCommand extends BaseCommand {
 				await initialReply.delete();
 			}
 		} catch (err: unknown) {
-			if (isWeatherGoatError<HTTPRequestError>(err)) {
+			if (isWeatherGoatError(err, HTTPRequestError)) {
 				await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
@@ -162,15 +163,8 @@ export default class AlertsCommand extends BaseCommand {
 		const { guildId } = interaction;
 		const snowflake   = interaction.options.getString('snowflake', true);
 
-		if (!guildId) {
-			await interaction.reply($msg.errors.guildOnly());
-			return;
-		}
-
-		if (!isValidSnowflake(snowflake)) {
-			await interaction.reply($msg.errors.invalidSnowflake(snowflake));
-			return;
-		}
+		GuildOnlyInvocationInNonGuildError.assert(guildId);
+		InvalidSnowflakeError.assert(isValidSnowflake(snowflake));
 
 		await interaction.deferReply();
 

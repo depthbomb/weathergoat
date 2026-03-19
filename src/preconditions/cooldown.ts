@@ -1,4 +1,5 @@
 import { time } from 'discord.js';
+import { $msg } from '@lib/messages';
 import { Duration } from '@sapphire/duration';
 import { RateLimitManager } from '@sapphire/ratelimits';
 import { isGuildBasedChannel } from '@sapphire/discord.js-utilities';
@@ -45,7 +46,7 @@ export class CooldownPrecondition extends BasePrecondition {
 		if (ratelimit.limited) {
 			const expiresAt = new Date(ratelimit.expires);
 
-			return PreconditionResult.fromFailure(`You are under a cooldown that expires ${time(expiresAt, 'R')}.`);
+			return PreconditionResult.fromFailure($msg.preconditions.cooldown.activeCooldown(time(expiresAt, 'R')));
 		}
 
 		ratelimit.consume();

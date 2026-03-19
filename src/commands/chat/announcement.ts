@@ -5,7 +5,7 @@ import { reportError } from '@lib/logger';
 import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
-import { GuildOnlyInvocationInNonGuildError } from '@lib/errors';
+import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { PermissionsPrecondition } from '@preconditions/permissions';
 import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
