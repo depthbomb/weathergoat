@@ -6,7 +6,6 @@ import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
-import { PermissionsPrecondition } from '@preconditions/permissions';
 import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -17,6 +16,7 @@ export default class AnnouncementCommand extends BaseCommand {
 			data: new SlashCommandBuilder()
 			.setName('announcement')
 			.setDescription('Commands related to developer announcements')
+			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 			.addSubcommand(sc => sc
 				.setName('subscribe')
 				.setDescription('Subscribe to announcements and post them to a channel (limit one per guild)')
@@ -50,15 +50,9 @@ export default class AnnouncementCommand extends BaseCommand {
 		this.createSubcommandMap<'subscribe' | 'unsubscribe' | 'create'>({
 			subscribe: {
 				handler: this._handleSubscribeSubcommand,
-				preconditions: [
-					new PermissionsPrecondition(PermissionFlagsBits.ManageGuild)
-				]
 			},
 			unsubscribe: {
 				handler: this._handleUnsubscribeSubcommand,
-				preconditions: [
-					new PermissionsPrecondition(PermissionFlagsBits.ManageGuild)
-				]
 			},
 			create: {
 				handler: this._handleCreateSubcommand,
