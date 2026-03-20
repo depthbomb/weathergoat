@@ -32,7 +32,7 @@ async function main() {
 		const wg = container.get(WeatherGoat);
 		await wg.start();
 
-		process.once('beforeExit', async () => {
+		process.on('beforeExit', async () => {
 			await wg.destroy();
 			process.exit(0);
 		});

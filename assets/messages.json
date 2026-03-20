@@ -59,7 +59,7 @@
 	},
 	"commands": {
 		"about": {
-			"title": "# About Me",
+			"title": "# About Me (v{version:string})",
 			"gutsSection": [
 				"## What's your technology stack?",
 				"I'm built with the [discord.js](https://discord.js.org) library, use [Prisma ORM](https://prisma.io) to persist data, cache data with [Redis](https://redis.io), and I run on the [Bun](https://bun.sh) runtime ({bunVersion:string}).",

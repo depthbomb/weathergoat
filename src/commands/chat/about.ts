@@ -1,6 +1,6 @@
-import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
+import { Color, CALVER } from '@constants';
 import { uptime, hostname } from 'node:os';
 import { injectable } from '@needle-di/core';
 import { DurationFormatter } from '@sapphire/duration';
@@ -26,7 +26,7 @@ export default class AboutCommand extends BaseCommand {
 		const container = new ContainerBuilder()
 			.setAccentColor(Color.Primary)
 			.addSectionComponents(s => s
-				.addTextDisplayComponents(d => d.setContent($msg.commands.about.title()))
+				.addTextDisplayComponents(d => d.setContent($msg.commands.about.title(CALVER)))
 				.setThumbnailAccessory(tn => tn.setURL(interaction.client.user.avatarURL()!))
 			)
 			.addTextDisplayComponents(d => d.setContent($msg.commands.about.gutsSection(

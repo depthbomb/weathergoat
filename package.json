@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.3.19",
+	"calver": "2026.3.20",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
