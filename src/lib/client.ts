@@ -156,7 +156,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				container.bind(mod);
 			}
 
-			const event    = new mod();
+			const event    = container.get<BaseEvent<any>>(mod);
 			const name     = event.name;
 			const once     = event.once ?? false;
 			const disabled = event.disabled ?? false;
