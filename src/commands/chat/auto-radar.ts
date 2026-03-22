@@ -2,6 +2,7 @@ import { db } from '@db';
 import { env } from '@env';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
+import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
@@ -112,12 +113,13 @@ export default class AutoRadarCommand extends BaseCommand {
 			}
 		} catch (err) {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
-				return interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+				await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				return interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+			} else {
+				reportError('Error creating auto-radar destination', err);
+				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 			}
-
-			await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 		}
 	}
 }

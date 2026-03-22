@@ -2,6 +2,7 @@ import { db } from '@db';
 import { env } from '@env';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
+import { reportError } from '@lib/logger';
 import { BaseCommand } from '@commands';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
@@ -153,9 +154,10 @@ export default class AlertsCommand extends BaseCommand {
 				await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+			} else {
+				reportError('Error creating forecast destination', err);
+				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 			}
-
-			await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 		}
 	}
 
