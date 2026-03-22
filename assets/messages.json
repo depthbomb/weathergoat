@@ -33,7 +33,10 @@
 		"invalidCoordinates": "The provided latitude or longitude is not valid.",
 		"noDestinationsForType": "There are no {type:string} destinations in this server.",
 		"tooManyDestinationsForType": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
-		"locationLookupHttpError": "There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
+		"locationLookupHttpError": [
+			"There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
+			"Only locations within the United States of America are valid."
+		],
 		"unknown": "An unknown error has occurred"
 	},
 	"features": {
