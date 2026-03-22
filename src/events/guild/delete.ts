@@ -1,9 +1,10 @@
 import { db } from '@db';
 import { BaseEvent } from '@events';
-import { inject } from '@needle-di/core';
+import { inject, injectable } from '@needle-di/core';
 import { EventBusService } from '@services/event-bus';
 import type { Guild } from 'discord.js';
 
+@injectable()
 export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 	public constructor(
 		private readonly eventBus = inject(EventBusService),

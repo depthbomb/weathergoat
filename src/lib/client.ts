@@ -147,12 +147,14 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	/**
-	 * Iterates the events directory and subdirectories and registers all client events. Event
-	 * classes are not currently added to the container since none of them require any services.
+	 * Iterates the events directory and subdirectories and registers all client events.
 	 */
 	public async registerEvents() {
 		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this.moduleFilePattern)) {
 			const { default: mod }: EventModule = await import(file);
+			if (!container.has(mod)) {
+				container.bind(mod);
+			}
 
 			const event    = new mod();
 			const name     = event.name;
