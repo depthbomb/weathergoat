@@ -113,7 +113,11 @@ export default class AutoRadarCommand extends BaseCommand {
 			}
 		} catch (err) {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
-				await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+				if (err.code === 404) {
+					await interaction.editReply({ content: $msg.errors.locationNotFound(), components: [] });
+				} else {
+					await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
 			} else {
