@@ -34,7 +34,9 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 
 			const sw = new Stopwatch();
 			try {
-				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) executed ${command.name}`);
+				this.logger
+					.withMetadata({ options: JSON.stringify(interaction.options.data) })
+					.info(`${interaction.user.tag} (${interaction.user.id}) executed /${command.name}`);
 
 				await interaction.channel.sendTyping();
 
