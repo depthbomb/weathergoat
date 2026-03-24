@@ -10,6 +10,29 @@ import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { CliService } from '@services/cli';
 import { logger, reportError } from '@lib/logger';
+import { Flag } from '@lib/flag';
+
+const shuttingDownFlag = new Flag(false);
+
+async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
+	if (shuttingDownFlag.isTrue) {
+		return;
+	}
+
+	shuttingDownFlag.setTrue();
+
+	try {
+		if (reason && typeof reason === 'object' && (reason as any)?.code !== 'ABORT_ERR') {
+			reportError('Shutdown triggered', reason);
+		}
+
+		await app.destroy();
+	} catch (err) {
+		reportError('Error during shutdown', err);
+	} finally {
+		process.exit(code);
+	}
+}
 
 async function main() {
 	const mode      = env.get('MODE');
@@ -32,20 +55,29 @@ async function main() {
 		const wg = container.get(WeatherGoat);
 		await wg.start();
 
-		process.on('beforeExit', async () => {
-			await wg.destroy();
-			process.exit(0);
+		process.on('SIGINT',  () => shutdown(wg, 0));
+		process.on('SIGTERM', () => shutdown(wg, 0));
+
+		process.on('unhandledRejection', (reason) => {
+			reportError('Unhandled rejection', reason);
 		});
 
-		for (const err of ['uncaughtException', 'unhandledRejection']) process.on(err, async (err) => {
-			if (err.code !== 'ABORT_ERR') {
-				reportError('Unhandled error', err);
-				await wg.destroy();
-			}
+		process.on('uncaughtException', (err) => {
+			reportError('Uncaught exception', err);
+			shutdown(wg, 1, err);
+		});
 
-			process.exit(1);
+		process.on('unhandledRejection', (reason) => {
+			reportError('Unhandled rejection', reason);
+
+			if (reason instanceof Error) {
+				shutdown(wg, 1, reason);
+			}
 		});
 	}
 }
 
-main();
+main().catch(err => {
+	reportError('Fatal error in main()', err);
+	process.exit(1);
+});
