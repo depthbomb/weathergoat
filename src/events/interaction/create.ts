@@ -38,8 +38,6 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					.withMetadata({ options: JSON.stringify(interaction.options.data) })
 					.info(`${interaction.user.tag} (${interaction.user.id}) executed /${command.name}`);
 
-				await interaction.channel.sendTyping();
-
 				if (command.preconditions) {
 					for (const precondition of command.preconditions) {
 						const result = await precondition.check(interaction);

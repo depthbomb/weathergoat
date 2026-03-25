@@ -135,7 +135,7 @@ export default class AlertsCommand extends BaseCommand {
 				components: [row]
 			});
 
-			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 15_000 });
+			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
 				const snowflake   = generateSnowflake();
 				const destination = await db.alertDestination.create({

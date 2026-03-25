@@ -93,7 +93,7 @@ export default class AutoRadarCommand extends BaseCommand {
 				components: [row]
 			});
 
-			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
+			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
 				const guildId            = interaction.guildId!;
 				const channelId          = channel.id;

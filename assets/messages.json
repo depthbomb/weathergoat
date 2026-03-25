@@ -8,17 +8,18 @@
 		"prompts": {
 			"locationConfirm": [
 				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.",
+				"**Note:** This location may have been generalized to a known location if it was located outside of the regions covered by the [National Weather Service](https://weather.gov).",
 				"Is this correct?"
 			],
 			"locationConfirmAdjusted": [
 				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
-				"Using nearest supported coordinates `{latitude:string},{longitude:string}` for **{location:string}**.",
-				"Is this correct?"
+				"Coordinates have been resolved to `{latitude:string},{longitude:string}` for **{location:string}**.",
+				"Would you like to use this location?"
 			],
 			"locationConfirmAdjustedWithImage": [
 				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
-				"Using nearest supported coordinates `{latitude:string},{longitude:string}` for **{location:string}** with the radar image below.",
-				"Is this correct?",
+				"Coordinates have been resolved to `{latitude:string},{longitude:string}` for **{location:string}** with the radar image below.",
+				"Would you like to use this location?",
 				"{radarImageUrl:string}"
 			]
 		},

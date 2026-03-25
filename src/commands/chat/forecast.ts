@@ -93,7 +93,7 @@ export default class ForecastCommand extends BaseCommand {
 				components: [row]
 			});
 
-			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
+			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
 				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === 'report_forecasts')!;
 				const initialMessage = await channel.send({

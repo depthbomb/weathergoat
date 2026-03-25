@@ -7,6 +7,19 @@ import { inject, injectable } from '@needle-di/core';
 import { HTTPRequestError, isWeatherGoatError } from '@errors';
 import type { HTTPClient } from './http';
 
+type CoverageSeed = {
+	latitude: number;
+	longitude: number;
+};
+
+type CoverageRegion = {
+	minLatitude: number;
+	maxLatitude: number;
+	minLongitude: number;
+	maxLongitude: number;
+	seed: CoverageSeed;
+};
+
 export type CoordinateInfo = {
 	latitude: string;
 	longitude: string;
@@ -30,7 +43,9 @@ export class LocationService {
 	private readonly client: HTTPClient;
 	private readonly coordinatePattern: RegExp;
 	private readonly nearestSearchRadii: readonly number[];
+	private readonly seedSearchRadii: readonly number[];
 	private readonly nearestSearchBearings: readonly number[];
+	private readonly coverageRegions: readonly CoverageRegion[];
 
 	public constructor(
 		private readonly http  = inject(HTTPService),
@@ -44,7 +59,66 @@ export class LocationService {
 		});
 		this.coordinatePattern     = /^(-?\d+(?:\.\d+)?)$/;
 		this.nearestSearchRadii    = [0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
+		this.seedSearchRadii       = [0.1, 0.25, 0.5, 1];
 		this.nearestSearchBearings = [0, 45, 90, 135, 180, 225, 270, 315];
+		this.coverageRegions       = [
+			{
+				// Contiguous US
+				minLatitude: 24,
+				maxLatitude: 50,
+				minLongitude: -126,
+				maxLongitude: -66,
+				seed: { latitude: 39.8283, longitude: -98.5795 }
+			},
+			{
+				// Alaska (western hemisphere range)
+				minLatitude: 51,
+				maxLatitude: 72,
+				minLongitude: -180,
+				maxLongitude: -129,
+				seed: { latitude: 61.2181, longitude: -149.9003 }
+			},
+			{
+				// Alaska Aleutians (eastern hemisphere overlap near dateline)
+				minLatitude: 51,
+				maxLatitude: 72,
+				minLongitude: 170,
+				maxLongitude: 180,
+				seed: { latitude: 61.2181, longitude: -149.9003 }
+			},
+			{
+				// Hawaii
+				minLatitude: 18,
+				maxLatitude: 23,
+				minLongitude: -161,
+				maxLongitude: -154,
+				seed: { latitude: 21.3069, longitude: -157.8583 }
+			},
+			{
+				// Puerto Rico + USVI
+				minLatitude: 17,
+				maxLatitude: 19,
+				minLongitude: -68,
+				maxLongitude: -64,
+				seed: { latitude: 18.4655, longitude: -66.1057 }
+			},
+			{
+				// Guam + Northern Mariana Islands
+				minLatitude: 13,
+				maxLatitude: 21,
+				minLongitude: 143,
+				maxLongitude: 147,
+				seed: { latitude: 13.4757, longitude: 144.7489 }
+			},
+			{
+				// American Samoa
+				minLatitude: -15,
+				maxLatitude: -11,
+				minLongitude: -171,
+				maxLongitude: -168,
+				seed: { latitude: -14.2756, longitude: -170.702 }
+			}
+		];
 	}
 
 	/**
@@ -177,22 +251,73 @@ export class LocationService {
 	private async findNearestValidCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<CoordinateInfo | null> {
 		const originLatitude  = Number.parseFloat(latitude);
 		const originLongitude = Number.parseFloat(longitude);
-		for (const radius of this.nearestSearchRadii) {
-			const candidates = this.generateNearbyCandidates(originLatitude, originLongitude, radius);
-			let best: { info: CoordinateInfo; distanceKm: number; } | null = null;
-			for (const candidate of candidates) {
-				try {
-					const info       = await this.getInfoFromCoordinates(candidate.latitude, candidate.longitude, cacheTTL);
-					const distanceKm = this.calculateDistanceKm(originLatitude, originLongitude, Number.parseFloat(info.latitude), Number.parseFloat(info.longitude));
-					if (!best || distanceKm < best.distanceKm) {
-						best = { info, distanceKm };
-					}
-				} catch (err: unknown) {
-					if (isWeatherGoatError(err, HTTPRequestError) && err.code === 404) {
-						continue;
-					}
 
-					throw err;
+		if (this.isLikelyNearCoverageRegion(originLatitude, originLongitude)) {
+			const nearby = await this.findNearestFromRings(
+				originLatitude,
+				originLongitude,
+				originLatitude,
+				originLongitude,
+				this.nearestSearchRadii,
+				cacheTTL
+			);
+			if (nearby) {
+				return nearby;
+			}
+		}
+
+		const seed = this.findNearestCoverageSeed(originLatitude, originLongitude);
+		const seedLatitude  = this.normalizeCoordinate(seed.latitude);
+		const seedLongitude = this.normalizeCoordinate(seed.longitude);
+		const directSeed    = await this.tryGetInfoFromCoordinates(seedLatitude, seedLongitude, cacheTTL);
+		if (directSeed) {
+			return directSeed;
+		}
+
+		return this.findNearestFromRings(
+			originLatitude,
+			originLongitude,
+			seed.latitude,
+			seed.longitude,
+			this.seedSearchRadii,
+			cacheTTL
+		);
+	}
+
+	private async findNearestFromRings(
+		originLatitude: number,
+		originLongitude: number,
+		searchCenterLatitude: number,
+		searchCenterLongitude: number,
+		radii: readonly number[],
+		cacheTTL: string
+	): Promise<CoordinateInfo | null> {
+		for (const radius of radii) {
+			const candidates = this.generateNearbyCandidates(searchCenterLatitude, searchCenterLongitude, radius);
+			const evaluations = await Promise.all(candidates.map(async candidate => {
+				const info = await this.tryGetInfoFromCoordinates(candidate.latitude, candidate.longitude, cacheTTL);
+				if (!info) {
+					return null;
+				}
+
+				const distanceKm = this.calculateDistanceKm(
+					originLatitude,
+					originLongitude,
+					Number.parseFloat(info.latitude),
+					Number.parseFloat(info.longitude)
+				);
+
+				return { info, distanceKm };
+			}));
+
+			let best: { info: CoordinateInfo; distanceKm: number; } | null = null;
+			for (const evaluation of evaluations) {
+				if (!evaluation) {
+					continue;
+				}
+
+				if (!best || evaluation.distanceKm < best.distanceKm) {
+					best = evaluation;
 				}
 			}
 
@@ -204,7 +329,57 @@ export class LocationService {
 		return null;
 	}
 
+	private async tryGetInfoFromCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<CoordinateInfo | null> {
+		try {
+			return await this.getInfoFromCoordinates(latitude, longitude, cacheTTL);
+		} catch (err: unknown) {
+			if (isWeatherGoatError(err, HTTPRequestError) && err.code === 404) {
+				return null;
+			}
+
+			throw err;
+		}
+	}
+
+	private isLikelyNearCoverageRegion(latitude: number, longitude: number): boolean {
+		const margin = 6;
+		for (const region of this.coverageRegions) {
+			if (
+				latitude >= (region.minLatitude - margin)
+				&& latitude <= (region.maxLatitude + margin)
+				&& longitude >= (region.minLongitude - margin)
+				&& longitude <= (region.maxLongitude + margin)
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private findNearestCoverageSeed(latitude: number, longitude: number): CoverageSeed {
+		let bestSeed = this.coverageRegions[0]!.seed;
+		let bestDistance = Number.POSITIVE_INFINITY;
+
+		for (const region of this.coverageRegions) {
+			const distanceKm = this.calculateDistanceKm(latitude, longitude, region.seed.latitude, region.seed.longitude);
+			if (distanceKm < bestDistance) {
+				bestDistance = distanceKm;
+				bestSeed = region.seed;
+			}
+		}
+
+		return bestSeed;
+	}
+
 	private generateNearbyCandidates(latitude: number, longitude: number, radius: number) {
+		if (radius === 0) {
+			return [{
+				latitude: this.normalizeCoordinate(latitude),
+				longitude: this.normalizeCoordinate(longitude)
+			}];
+		}
+
 		const latitudeRadians = (latitude * Math.PI) / 180;
 		const longitudeScale  = Math.max(Math.cos(latitudeRadians), 0.2);
 		const candidates      = [] as Array<{ latitude: string; longitude: string; }>;
@@ -273,4 +448,3 @@ export class LocationService {
 		return Number.isFinite(value) && value >= min && value <= max;
 	}
 }
-
