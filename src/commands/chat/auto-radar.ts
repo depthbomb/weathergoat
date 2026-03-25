@@ -4,6 +4,7 @@ import { $msg } from '@lib/messages';
 import { BaseCommand } from '@commands';
 import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
+import { appendReviewerNote } from '@utils/strings';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
@@ -125,9 +126,15 @@ export default class AutoRadarCommand extends BaseCommand {
 		} catch (err) {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
-					await interaction.editReply({ content: $msg.errors.locationNotFound(), components: [] });
+					await interaction.editReply({
+						content: guildId === env.get('REVIEWER_GUILD_ID') ? appendReviewerNote($msg.errors.locationNotFound()) : $msg.errors.locationNotFound(),
+						components: []
+					});
 				} else {
-					await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+					await interaction.editReply({
+						content: guildId === env.get('REVIEWER_GUILD_ID') ? appendReviewerNote($msg.errors.locationLookupHttpError(err.code, err.status)) : $msg.errors.locationLookupHttpError(err.code, err.status),
+						components: []
+					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });

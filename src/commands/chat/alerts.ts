@@ -2,8 +2,9 @@ import { db } from '@db';
 import { env } from '@env';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
-import { reportError } from '@lib/logger';
 import { BaseCommand } from '@commands';
+import { reportError } from '@lib/logger';
+import { appendReviewerNote } from '@utils/strings';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
@@ -166,9 +167,15 @@ export default class AlertsCommand extends BaseCommand {
 		} catch (err: unknown) {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
-					await interaction.editReply({ content: $msg.errors.locationNotFound(), components: [] });
+					await interaction.editReply({
+						content: guildId === env.get('REVIEWER_GUILD_ID') ? appendReviewerNote($msg.errors.locationNotFound()) : $msg.errors.locationNotFound(),
+						components: []
+					});
 				} else {
-					await interaction.editReply({ content: $msg.errors.locationLookupHttpError(err.code, err.status), components: [] });
+					await interaction.editReply({
+						content: guildId === env.get('REVIEWER_GUILD_ID') ? appendReviewerNote($msg.errors.locationLookupHttpError(err.code, err.status)) : $msg.errors.locationLookupHttpError(err.code, err.status),
+						components: []
+					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
