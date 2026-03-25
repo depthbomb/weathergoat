@@ -77,8 +77,8 @@ export default class AlertsCommand extends BaseCommand {
 	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount     = env.get('MAX_ALERT_DESTINATIONS_PER_GUILD');
 		const guildId      = interaction.guildId;
-		const latitude     = interaction.options.getString('latitude', true);
-		const longitude    = interaction.options.getString('longitude', true);
+		const latitude     = interaction.options.getString('latitude', true).trim();
+		const longitude    = interaction.options.getString('longitude', true).trim();
 		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
 		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
@@ -95,14 +95,28 @@ export default class AlertsCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const exists = await db.alertDestination.exists({ latitude, longitude, channelId: channel.id });
-		if (exists) {
-			await interaction.editReply($msg.commands.alerts.errors.destinationExists());
-			return;
-		}
-
 		try {
-			const info = await this.location.getInfoFromCoordinates(latitude, longitude);
+			const lookup = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
+			const info   = lookup.info;
+			const exists = await db.alertDestination.exists({
+				latitude: info.latitude,
+				longitude: info.longitude,
+				channelId: channel.id
+			});
+			if (exists) {
+				await interaction.editReply($msg.commands.alerts.errors.destinationExists());
+				return;
+			}
+
+			const locationPrompt = lookup.wasAdjusted
+				? $msg.common.prompts.locationConfirmAdjusted(
+					lookup.requestedLatitude,
+					lookup.requestedLongitude,
+					info.latitude,
+					info.longitude,
+					info.location
+				)
+				: $msg.common.prompts.locationConfirm(info.latitude, info.longitude, info.location);
 			const removeLink = await this.getCommandLink('alerts', 'remove');
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
@@ -117,7 +131,7 @@ export default class AlertsCommand extends BaseCommand {
 				);
 
 			const initialReply = await interaction.editReply({
-				content: $msg.common.prompts.locationConfirm(latitude, longitude, info.location),
+				content: locationPrompt,
 				components: [row]
 			});
 
@@ -127,8 +141,8 @@ export default class AlertsCommand extends BaseCommand {
 				const destination = await db.alertDestination.create({
 					data: {
 						snowflake,
-						latitude,
-						longitude,
+						latitude: info.latitude,
+						longitude: info.longitude,
 						zoneId: info.zoneId,
 						guildId,
 						countyId: info.countyId,

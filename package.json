@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.3.24.1",
+	"calver": "2026.3.25",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
@@ -45,7 +45,6 @@
 	},
 	"devDependencies": {
 		"@types/bun": "1.3.11",
-		"@typescript/native-preview": "7.0.0-dev.20260325.1",
 		"prisma": "^7.5.0",
 		"typescript": "6.0.2"
 	}

@@ -9,6 +9,17 @@
 			"locationConfirm": [
 				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}**.",
 				"Is this correct?"
+			],
+			"locationConfirmAdjusted": [
+				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
+				"Using nearest supported coordinates `{latitude:string},{longitude:string}` for **{location:string}**.",
+				"Is this correct?"
+			],
+			"locationConfirmAdjustedWithImage": [
+				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
+				"Using nearest supported coordinates `{latitude:string},{longitude:string}` for **{location:string}** with the radar image below.",
+				"Is this correct?",
+				"{radarImageUrl:string}"
 			]
 		},
 		"notices": {

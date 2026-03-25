@@ -63,25 +63,36 @@ export default class AutoRadarCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const location = await this.location.getInfoFromCoordinates(latitude, longitude);
-		const row = new ActionRowBuilder<ButtonBuilder>()
-			.addComponents(
-				new ButtonBuilder()
-					.setCustomId('confirm')
-					.setLabel($msg.common.buttons.yes())
-					.setStyle(ButtonStyle.Success),
-				new ButtonBuilder()
-					.setCustomId('deny')
-					.setLabel($msg.common.buttons.no())
-					.setStyle(ButtonStyle.Danger)
-			);
-
-		const initialReply = await interaction.editReply({
-			content: $msg.commands.autoRadar.locationConfirmWithImage(latitude, longitude, location.location, location.radarImageUrl),
-			components: [row]
-		});
-
 		try {
+			const lookup   = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
+			const location = lookup.info;
+			const locationPrompt = lookup.wasAdjusted
+				? $msg.common.prompts.locationConfirmAdjustedWithImage(
+					lookup.requestedLatitude,
+					lookup.requestedLongitude,
+					location.latitude,
+					location.longitude,
+					location.location,
+					location.radarImageUrl
+				)
+				: $msg.commands.autoRadar.locationConfirmWithImage(location.latitude, location.longitude, location.location, location.radarImageUrl);
+			const row = new ActionRowBuilder<ButtonBuilder>()
+				.addComponents(
+					new ButtonBuilder()
+						.setCustomId('confirm')
+						.setLabel($msg.common.buttons.yes())
+						.setStyle(ButtonStyle.Success),
+					new ButtonBuilder()
+						.setCustomId('deny')
+						.setLabel($msg.common.buttons.no())
+						.setStyle(ButtonStyle.Danger)
+				);
+
+			const initialReply = await interaction.editReply({
+				content: locationPrompt,
+				components: [row]
+			});
+
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 10_000 });
 			if (customId === 'confirm') {
 				const guildId            = interaction.guildId!;

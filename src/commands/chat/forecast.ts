@@ -49,8 +49,8 @@ export default class ForecastCommand extends BaseCommand {
 	public async handle(interaction: ChatInputCommandInteraction) {
 		const maxCount  = env.get('MAX_FORECAST_DESTINATIONS_PER_GUILD');
 		const guildId   = interaction.guildId!;
-		const latitude  = interaction.options.getString('latitude', true);
-		const longitude = interaction.options.getString('longitude', true);
+		const latitude  = interaction.options.getString('latitude', true).trim();
+		const longitude = interaction.options.getString('longitude', true).trim();
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
@@ -65,7 +65,17 @@ export default class ForecastCommand extends BaseCommand {
 		await interaction.deferReply();
 
 		try {
-			const info = await this.location.getInfoFromCoordinates(latitude, longitude);
+			const lookup = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
+			const info   = lookup.info;
+			const locationPrompt = lookup.wasAdjusted
+				? $msg.common.prompts.locationConfirmAdjusted(
+					lookup.requestedLatitude,
+					lookup.requestedLongitude,
+					info.latitude,
+					info.longitude,
+					info.location
+				)
+				: $msg.common.prompts.locationConfirm(info.latitude, info.longitude, info.location);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -79,7 +89,7 @@ export default class ForecastCommand extends BaseCommand {
 			);
 
 			const initialReply = await interaction.editReply({
-				content: $msg.common.prompts.locationConfirm(latitude, longitude, info.location),
+				content: locationPrompt,
 				components: [row]
 			});
 
@@ -95,8 +105,8 @@ export default class ForecastCommand extends BaseCommand {
 				await db.forecastDestination.create({
 					data: {
 						snowflake,
-						latitude,
-						longitude,
+						latitude: info.latitude,
+						longitude: info.longitude,
 						guildId,
 						channelId: channel.id,
 						messageId: initialMessage.id,

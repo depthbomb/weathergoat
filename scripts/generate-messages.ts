@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 type TranslationLeaf = string | string[];
@@ -10,15 +11,18 @@ interface ITranslationObject {
 	[key: string]: TranslationLeaf | ITranslationValue;
 }
 
-function escapeBackticks(str: string): string {
-	return str.replace(/`/g, '\\`');
-}
-
 interface IParsedParam {
 	name: string;
 	type: string;
 	optional: boolean;
 	defaultValue?: string;
+}
+
+const inputFile  = process.argv[2] || 'translations.json';
+const outputFile = process.argv[3] || 'translations.ts';
+
+function escapeBackticks(str: string): string {
+	return str.replace(/`/g, '\\`');
 }
 
 function parseTemplate(template: string) {
@@ -126,6 +130,7 @@ function generateRootObject(data: ITranslationObject) {
 	const lines = [] as string[];
 	lines.push('{');
 	lines.push(`$generated:${JSON.stringify(new Date().toISOString())},`);
+	lines.push(`$source:${JSON.stringify(resolve(inputFile))},`);
 	lines.push(`$raw:${JSON.stringify(JSON.stringify(data))},`);
 
 	const entries = Object.entries(data);
@@ -161,8 +166,5 @@ function generateTypeScriptFromJSON(jsonFilePath: string, outputFilePath: string
 
 	console.log(`Generated TypeScript file: ${outputFilePath}`);
 }
-
-const inputFile  = process.argv[2] || 'translations.json';
-const outputFile = process.argv[3] || 'translations.ts';
 
 generateTypeScriptFromJSON(inputFile, outputFile);
