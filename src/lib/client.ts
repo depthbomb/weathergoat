@@ -1,15 +1,18 @@
 import { env } from '@env';
 import { Cron } from 'croner';
 import { Flag } from './flag';
+import { join } from 'node:path';
 import { Beacon } from './beacon';
 import { container } from '@container';
+import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
+import { DomainModuleKind } from '@domain';
 import { RedisService } from '@services/redis';
+import { stat, readdir } from 'node:fs/promises';
 import { logger, reportError } from '@lib/logger';
-import { compareComponentMatch } from '@components';
 import { ResettableString } from './resettable-string';
+import { compareComponentMatch } from '@infra/components';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
-import { JOBS_DIR, EVENTS_DIR, COMMANDS_DIR, COMPONENTS_DIR } from '@constants';
 import {
 	Client,
 	Options,
@@ -19,18 +22,24 @@ import {
 	ApplicationCommandOptionType,
 	chatInputApplicationCommandMention
 } from 'discord.js';
-import type { BaseJob } from '@jobs';
-import type { BaseEvent } from '@events';
-import type { BaseCommand } from '@commands';
+import type { BaseJob } from '@infra/jobs';
+import type { BaseEvent } from '@infra/events';
 import type { ClientEvents } from 'discord.js';
 import type { Maybe } from '@depthbomb/common';
-import type { BaseComponent, ComponentMatch } from '@components';
+import type { DomainDefinition } from '@domain';
+import type { BaseCommand } from '@infra/commands';
+import type { BaseComponent, ComponentMatch } from '@infra/components';
 
-type BaseModule<T>   = { default: new() => T };
-type JobModule       = BaseModule<BaseJob>;
-type EventModule     = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule   = BaseModule<BaseCommand>;
-type ComponentModule = BaseModule<BaseComponent>;
+type BaseModule<T>    = { default: new() => T };
+type JobModule        = BaseModule<BaseJob>;
+type EventModule      = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule    = BaseModule<BaseCommand>;
+type ComponentModule  = BaseModule<BaseComponent>;
+type DomainModule     = { default: DomainDefinition };
+type RegisteredDomain = {
+	definition: DomainDefinition;
+	rootPath: string;
+};
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();
@@ -103,85 +112,94 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	/**
-	 * Iterates the jobs directory and registers all recurring background jobs, adding them to the
+	 * Iterates registered domain job directories and registers recurring background jobs, adding them to the
 	 * container to utilize dependency injection.
 	 */
 	public async registerJobs() {
-		for await (const file of findFilesRecursivelyRegex(JOBS_DIR, this.moduleFilePattern)) {
-			const { default: mod }: JobModule = await import(file);
-			if (!container.has(mod)) {
-				container.bind(mod);
-			}
-
-			const job            = container.get<BaseJob>(mod);
-			const name           = job.name;
-			const pattern        = job.pattern;
-			const runImmediately = job.runImmediately ?? false;
-			const cron = new Cron(pattern, async self => await job.execute(this, self), {
-				name,
-				paused: true,
-				protect: (job) => this.logger.withMetadata({ name, calledAt: job.currentRun()?.getDate() }).warn('Job overrun'),
-				catch: (err) => reportError('Job error', err, { name })
-			});
-
-			this.jobs.add({ job, cron });
-
-			this.once('clientReady', async () => {
-				try {
-					if (runImmediately) {
-						await job.execute(this, cron);
-					}
-				} catch (err) {
-					reportError('Error executing `runImmediately` job', err, { name });
-				} finally {
-					cron.resume();
+		for (const domain of await this.getRegisteredDomains()) {
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Jobs)) {
+				const { default: mod }: JobModule = await import(file);
+				if (!container.has(mod)) {
+					container.bind(mod);
 				}
-			});
 
-			this.logger.withMetadata({
-				name,
-				pattern,
-				runImmediately,
-			}).info('Registered job');
+				const job            = container.get<BaseJob>(mod);
+				const name           = job.name;
+				const pattern        = job.pattern;
+				const runImmediately = job.runImmediately ?? false;
+				const cron = new Cron(pattern, async self => await job.execute(this, self), {
+					name,
+					paused: true,
+					protect: (job) => this.logger.withMetadata({ name, calledAt: job.currentRun()?.getDate() }).warn('Job overrun'),
+					catch: (err) => reportError('Job error', err, { name })
+				});
+
+				this.jobs.add({ job, cron });
+
+				this.once('clientReady', async () => {
+					try {
+						if (runImmediately) {
+							await job.execute(this, cron);
+						}
+					} catch (err) {
+						reportError('Error executing `runImmediately` job', err, { name });
+					} finally {
+						cron.resume();
+					}
+				});
+
+				this.logger.withMetadata({
+					domain: domain.definition.id,
+					name,
+					pattern,
+					runImmediately,
+				}).info('Registered job');
+			}
 		}
 	}
 
 	/**
-	 * Iterates the events directory and subdirectories and registers all client events.
+	 * Iterates registered domain event directories and registers client events.
 	 */
 	public async registerEvents() {
-		for await (const file of findFilesRecursivelyRegex(EVENTS_DIR, this.moduleFilePattern)) {
-			const { default: mod }: EventModule = await import(file);
-			if (!container.has(mod)) {
-				container.bind(mod);
+		for (const domain of await this.getRegisteredDomains()) {
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Events)) {
+				const { default: mod }: EventModule = await import(file);
+				if (!container.has(mod)) {
+					container.bind(mod);
+				}
+
+				const event    = container.get<BaseEvent<any>>(mod);
+				const name     = event.name;
+				const once     = event.once ?? false;
+				const disabled = event.disabled ?? false;
+				if (disabled) {
+					continue;
+				}
+
+				if (this.events.has(name)) {
+					continue;
+				}
+
+				if (once) {
+					this.once(name, async (...args) => await event.handle(...args));
+				} else {
+					this.on(name, async (...args) => await event.handle(...args));
+				}
+
+				this.events.set(name, event);
+
+				this.logger.withMetadata({
+					domain: domain.definition.id,
+					name,
+					once
+				}).info('Registered event');
 			}
-
-			const event    = container.get<BaseEvent<any>>(mod);
-			const name     = event.name;
-			const once     = event.once ?? false;
-			const disabled = event.disabled ?? false;
-			if (disabled) {
-				continue;
-			}
-
-			if (this.events.has(name)) {
-				continue;
-			}
-
-			if (once) {
-				this.once(name, async (...args) => await event.handle(...args));
-			} else {
-				this.on(name, async (...args) => await event.handle(...args));
-			}
-
-			this.events.set(name, event);
-
-			this.logger.withMetadata({ name, once }).info('Registered event');
 		}
 	}
 
 	/**
-	 * Iterates the commands directory and subdirectories and registers all commands, adding them to
+	 * Iterates registered domain command directories and registers all commands, adding them to
 	 * the container to utilize dependency injection.
 	 */
 	public async registerCommands() {
@@ -192,27 +210,32 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		const commandSourceByName = new Collection<string, string>();
 
-		for await (const file of findFilesRecursivelyRegex(COMMANDS_DIR, this.moduleFilePattern)) {
-			const { default: mod }: CommandModule = await import(file);
-			if (!container.has(mod)) {
-				container.bind(mod);
+		for (const domain of await this.getRegisteredDomains()) {
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Commands)) {
+				const { default: mod }: CommandModule = await import(file);
+				if (!container.has(mod)) {
+					container.bind(mod);
+				}
+
+				const command        = container.get<BaseCommand>(mod);
+				const previousSource = commandSourceByName.get(command.name);
+				if (previousSource) {
+					throw new Error([
+						`Duplicate command name "${command.name}" detected during registration.`,
+						`First seen in: ${previousSource}`,
+						`Duplicate found in: ${file}`
+					].join('\n'));
+				}
+
+				this.commands.set(command.name, command);
+
+				commandSourceByName.set(command.name, file);
+
+				this.logger.withMetadata({
+					domain: domain.definition.id,
+					name: command.name
+				}).info('Registered command');
 			}
-
-			const command        = container.get<BaseCommand>(mod);
-			const previousSource = commandSourceByName.get(command.name);
-			if (previousSource) {
-				throw new Error([
-					`Duplicate command name "${command.name}" detected during registration.`,
-					`First seen in: ${previousSource}`,
-					`Duplicate found in: ${file}`
-				].join('\n'));
-			}
-
-			this.commands.set(command.name, command);
-
-			commandSourceByName.set(command.name, file);
-
-			this.logger.withMetadata({ name: command.name }).info('Registered command');
 		}
 	}
 
@@ -281,7 +304,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	/**
-	 * Iterates the components directory and subdirectories and registers all component handlers,
+	 * Iterates registered domain component directories and registers component handlers,
 	 * adding them to the container to utilize dependency injection.
 	 */
 	public async registerComponents() {
@@ -289,27 +312,32 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		const componentSourceByName = new Collection<string, string>();
 
-		for await (const file of findFilesRecursivelyRegex(COMPONENTS_DIR, this.moduleFilePattern)) {
-			const { default: mod }: ComponentModule = await import(file);
-			if (!container.has(mod)) {
-				container.bind(mod);
+		for (const domain of await this.getRegisteredDomains()) {
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Components)) {
+				const { default: mod }: ComponentModule = await import(file);
+				if (!container.has(mod)) {
+					container.bind(mod);
+				}
+
+				const component      = container.get<BaseComponent>(mod);
+				const previousSource = componentSourceByName.get(component.name);
+				if (previousSource) {
+					throw new Error([
+						`Duplicate component name "${component.name}" detected during registration.`,
+						`First seen in: ${previousSource}`,
+						`Duplicate found in: ${file}`
+					].join('\n'));
+				}
+
+				this.components.set(component.name, component);
+
+				componentSourceByName.set(component.name, file);
+
+				this.logger.withMetadata({
+					domain: domain.definition.id,
+					name: component.name
+				}).info('Registered component');
 			}
-
-			const component      = container.get<BaseComponent>(mod);
-			const previousSource = componentSourceByName.get(component.name);
-			if (previousSource) {
-				throw new Error([
-					`Duplicate component name "${component.name}" detected during registration.`,
-					`First seen in: ${previousSource}`,
-					`Duplicate found in: ${file}`
-				].join('\n'));
-			}
-
-			this.components.set(component.name, component);
-
-			componentSourceByName.set(component.name, file);
-
-			this.logger.withMetadata({ name: component.name }).info('Registered component');
 		}
 	}
 
@@ -328,5 +356,55 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 
 		return best;
+	}
+
+	private async getRegisteredDomains() {
+		const entries = await readdir(DOMAINS_DIR, { withFileTypes: true });
+		const seen    = new Set<string>();
+		const domains = [] as RegisteredDomain[];
+
+		for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+			if (!entry.isDirectory()) {
+				continue;
+			}
+
+			const rootPath = join(DOMAINS_DIR, entry.name);
+			const { default: definition }: DomainModule = await import(join(rootPath, 'index.ts'));
+			if (definition.enabled === false) {
+				continue;
+			}
+
+			if (seen.has(definition.id)) {
+				throw new Error(`Duplicate domain id "${definition.id}" detected.`);
+			}
+
+			seen.add(definition.id);
+			domains.push({
+				definition,
+				rootPath
+			});
+		}
+
+		return domains;
+	}
+
+	private async *getDomainModuleFiles(domain: RegisteredDomain, kind: DomainModuleKind) {
+		const directory = join(domain.rootPath, kind);
+		if (!(await this.directoryExists(directory))) {
+			return;
+		}
+
+		for await (const file of findFilesRecursivelyRegex(directory, this.moduleFilePattern)) {
+			yield file;
+		}
+	}
+
+	private async directoryExists(path: string) {
+		try {
+			const entry = await stat(path);
+			return entry.isDirectory();
+		} catch {
+			return false;
+		}
 	}
 }

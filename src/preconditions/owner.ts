@@ -1,6 +1,6 @@
 import { $msg } from '@lib/messages';
 import { TeamMemberRole } from 'discord.js';
-import { BasePrecondition, PreconditionResult } from '@preconditions';
+import { BasePrecondition, PreconditionResult } from '@infra/preconditions';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export class OwnerPrecondition extends BasePrecondition {

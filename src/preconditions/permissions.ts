@@ -1,6 +1,6 @@
 import { $msg } from '@lib/messages';
 import { isGuildMember } from '@sapphire/discord.js-utilities';
-import { BasePrecondition, PreconditionResult } from '@preconditions';
+import { BasePrecondition, PreconditionResult } from '@infra/preconditions';
 import type { PermissionResolvable, ChatInputCommandInteraction } from 'discord.js';
 
 export class PermissionsPrecondition extends BasePrecondition {

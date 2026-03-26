@@ -1,4 +1,4 @@
-import { db } from '@db';
+import { db } from '@database';
 import { logger } from '@lib/logger';
 import { WeatherGoat } from '@lib/client';
 import { Duration } from '@sapphire/duration';
