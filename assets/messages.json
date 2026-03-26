@@ -118,6 +118,31 @@
 				"notSubscribed": "This guild is not subscribed to announcements.",
 				"success": "This guild will no longer receive announcements.",
 				"error": "Unable to remove announcement subscription. Please try again later."
+			},
+			"create": {
+				"emptyTitleOrBody": "Title and body cannot be empty.",
+				"success": "Announcement created! Dispatching to guilds should begin shortly.",
+				"error": [
+					"Unable to create announcement.",
+					"```",
+					"{errorName:string}",
+					"{errorStack?:string}",
+					"```"
+				]
+			},
+			"count": {
+				"success": {
+					"_one": "There is currently only 1 announcement subscription.",
+					"_other": "There are currently {count:number} announcement subscriptions.",
+					"_zero": "There are no announcement subscriptions :(."
+				},
+				"error": [
+					"Unable to count announcement subscriptions.",
+					"```",
+					"{errorName:string}",
+					"{errorStack?:string}",
+					"```"
+				]
 			}
 		},
 		"autoRadar": {

@@ -1,1 +1,1 @@
-export { $msg } from './messages.generated';
+export * from './messages.generated';

@@ -45,9 +45,13 @@ export default class AnnouncementCommand extends BaseCommand {
 					.setRequired(true)
 				)
 			)
+			.addSubcommand(sc => sc
+				.setName('count-subscriptions')
+				.setDescription('Returns the total amount of announcement subscriptions. Owner only.')
+			)
 		});
 
-		this.createSubcommandMap<'subscribe' | 'unsubscribe' | 'create'>({
+		this.createSubcommandMap<'subscribe' | 'unsubscribe' | 'create' | 'count-subscriptions'>({
 			subscribe: {
 				handler: this._handleSubscribeSubcommand,
 			},
@@ -56,6 +60,12 @@ export default class AnnouncementCommand extends BaseCommand {
 			},
 			create: {
 				handler: this._handleCreateSubcommand,
+				preconditions: [
+					new OwnerPrecondition()
+				]
+			},
+			'count-subscriptions': {
+				handler: this._handleCountSubcommand,
 				preconditions: [
 					new OwnerPrecondition()
 				]
@@ -120,7 +130,7 @@ export default class AnnouncementCommand extends BaseCommand {
 		const colorInput = interaction.options.getString('color')?.trim();
 
 		if (!title.length || !body.length) {
-			await interaction.reply({ content: 'Title and body cannot be empty.', flags: MessageFlags.Ephemeral });
+			await interaction.reply({ content: $msg.commands.announcements.create.emptyTitleOrBody(), flags: MessageFlags.Ephemeral });
 			return;
 		}
 
@@ -139,10 +149,35 @@ export default class AnnouncementCommand extends BaseCommand {
 
 			const subscriptions = await db.announcementSubscription.findMany();
 			const deliveries    = subscriptions.map(s => ({ announcementId: announcement.id, subscriptionId: s.id }));
+
 			await db.announcementDelivery.createMany({ data: deliveries });
+			await interaction.editReply($msg.commands.announcements.create.success());
 		} catch (err) {
 			reportError('Unable to create announcement record', err, { snowflake });
-			await interaction.editReply('Unable to create announcement. Please try again later.');
+			await interaction.editReply(
+				$msg.commands.announcements.create.error(
+					(err as Error).name,
+					(err as Error).stack,
+				)
+			);
+		}
+	}
+
+	private async _handleCountSubcommand(interaction: ChatInputCommandInteraction) {
+		await interaction.deferReply();
+
+		try {
+			const count = await db.announcementSubscription.count();
+
+			await interaction.editReply($msg.commands.announcements.count.success(count));
+		} catch (err) {
+			reportError('Unable to count announcement records', err);
+			await interaction.editReply(
+				$msg.commands.announcements.count.error(
+					(err as Error).name,
+					(err as Error).stack,
+				)
+			);
 		}
 	}
 }
