@@ -1,9 +1,9 @@
 import { Geocode } from './Geocode';
-import { URLPath } from '@depthbomb/common';
+import { URLPath } from '@depthbomb/common/url';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { AlertReference } from '@models/AlertReference';
 import { JSONProperty, Serializable } from '@depthbomb/serde';
-import type { Nullable } from '@depthbomb/common/types';
+import type { Nullable } from '@depthbomb/common/typing';
 
 export enum AlertStatus {
 	Actual = 'Actual',

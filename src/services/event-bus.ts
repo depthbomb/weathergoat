@@ -1,6 +1,6 @@
 import EventEmitter from 'node:events';
 import { injectable } from '@needle-di/core';
-import type { Awaitable } from '@depthbomb/common/types';
+import type { Awaitable } from '@depthbomb/common/typing';
 
 type Events = {
 	'alert-destinations:updated': [void];

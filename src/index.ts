@@ -1,6 +1,6 @@
-if (!process.versions.bun) {
-	throw new Error('WeatherGoat requires the Bun runtime to operate.');
-}
+import { assertRuntime } from '@depthbomb/node-common/platform';
+
+assertRuntime('bun');
 
 import '@extensions/string';
 import '@abraham/reflection';
@@ -9,8 +9,8 @@ import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
 import { CliService } from '@services/cli';
+import { Flag } from '@depthbomb/common/state';
 import { logger, reportError } from '@lib/logger';
-import { Flag } from '@lib/flag';
 
 const shuttingDownFlag = new Flag(false);
 

@@ -1,6 +1,6 @@
 import { MakeErrorClass } from 'fejl';
 import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';
-import type { Awaitable } from '@depthbomb/common';
+import type { Awaitable } from '@depthbomb/common/typing';
 
 export class InvalidPermissionsError extends MakeErrorClass() {}
 export class GuildOnlyInvocationInNonGuildError extends MakeErrorClass() {}

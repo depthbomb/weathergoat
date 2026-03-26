@@ -1,4 +1,4 @@
-import { ResettableValue } from './resettable-value';
+import { ResettableValue } from '@depthbomb/common/state';
 
 export class ResettableString extends ResettableValue<string> {
 	public constructor(value: string) {

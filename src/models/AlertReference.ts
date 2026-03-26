@@ -1,4 +1,4 @@
-import { URLPath } from '@depthbomb/common';
+import { URLPath } from '@depthbomb/common/url';
 import { ALERTS_SEARCH_BASE_URL } from '@constants';
 import { JSONProperty, Serializable } from '@depthbomb/serde';
 

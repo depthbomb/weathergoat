@@ -1,6 +1,6 @@
 import { db } from '@database';
-import { assume } from '@depthbomb/common';
 import { $msg } from '@lib/messages.generated';
+import { assume } from '@depthbomb/common/typing';
 import { BaseComponent } from '@infra/components';
 import { isGuildMember } from '@sapphire/discord.js-utilities';
 import { MessageFlags, PermissionFlagsBits } from 'discord.js';

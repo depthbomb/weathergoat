@@ -1,12 +1,12 @@
 import { env } from '@env';
 import { Cron } from 'croner';
-import { Flag } from './flag';
 import { join } from 'node:path';
 import { Beacon } from './beacon';
 import { container } from '@container';
 import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
 import { DomainModuleKind } from '@domain';
+import { Flag } from '@depthbomb/common/state';
 import { RedisService } from '@services/redis';
 import { stat, readdir } from 'node:fs/promises';
 import { logger, reportError } from '@lib/logger';
@@ -25,9 +25,9 @@ import {
 import type { BaseJob } from '@infra/jobs';
 import type { BaseEvent } from '@infra/events';
 import type { ClientEvents } from 'discord.js';
-import type { Maybe } from '@depthbomb/common';
 import type { DomainDefinition } from '@domain';
 import type { BaseCommand } from '@infra/commands';
+import type { Maybe } from '@depthbomb/common/typing';
 import type { BaseComponent, ComponentMatch } from '@infra/components';
 
 type BaseModule<T>    = { default: new() => T };
@@ -36,10 +36,7 @@ type EventModule      = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule    = BaseModule<BaseCommand>;
 type ComponentModule  = BaseModule<BaseComponent>;
 type DomainModule     = { default: DomainDefinition };
-type RegisteredDomain = {
-	definition: DomainDefinition;
-	rootPath: string;
-};
+type RegisteredDomain = { definition: DomainDefinition; rootPath: string; };
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();

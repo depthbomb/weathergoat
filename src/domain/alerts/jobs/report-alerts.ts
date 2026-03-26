@@ -1,10 +1,10 @@
 import { db } from '@database';
-import { Flag } from '@lib/flag';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { reportError } from '@lib/logger';
 import { HTTPRequestError } from '@errors';
 import { AlertSeverity } from '@models/Alert';
+import { Flag } from '@depthbomb/common/state';
 import { AlertsService } from '@services/alerts';
 import { Color, IMAGE_ASSETS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';

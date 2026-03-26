@@ -1,4 +1,9 @@
-import type { CacheType, RepliableInteraction, InteractionReplyOptions, InteractionEditReplyOptions } from 'discord.js';
+import type {
+	CacheType,
+	RepliableInteraction,
+	InteractionReplyOptions,
+	InteractionEditReplyOptions
+} from 'discord.js';
 
 type ReplyLike = string | InteractionReplyOptions | InteractionEditReplyOptions;
 
