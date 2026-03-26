@@ -27,7 +27,7 @@ export class CommandManagerCommand extends Command<BaseContext> {
 
 		const sw     = new Stopwatch();
 		const global = this.guilds.length === 0;
-		const rest   = new REST().setToken(env.get('BOT_TOKEN'));
+		const rest   = new REST().setToken(env.get('BOT_TOKEN').release());
 		const botId  = env.get('BOT_ID');
 
 		switch (this.action) {

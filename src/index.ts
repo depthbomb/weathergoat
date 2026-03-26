@@ -43,7 +43,7 @@ async function main() {
 	if (sentryDSN && mode === 'production') {
 		const { init: initSentry } = await import('@sentry/bun');
 
-		initSentry({ dsn: sentryDSN });
+		initSentry({ dsn: sentryDSN.release() });
 	}
 
 	container.bind(WeatherGoat);

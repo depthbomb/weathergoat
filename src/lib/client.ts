@@ -83,7 +83,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await this.registerCommands();
 		await this.registerComponents();
 
-		const res = await this.login(env.get('BOT_TOKEN'));
+		const res = await this.login(env.get('BOT_TOKEN').release());
 
 		await this.application?.fetch();
 
