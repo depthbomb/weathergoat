@@ -10,6 +10,7 @@ import { Flag } from '@depthbomb/common/state';
 import { RedisService } from '@services/redis';
 import { stat, readdir } from 'node:fs/promises';
 import { logger, reportError } from '@lib/logger';
+import { FeaturesService } from '@services/features';
 import { ResettableString } from './resettable-string';
 import { compareComponentMatch } from '@infra/components';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
@@ -55,7 +56,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 
 	public constructor(
-		private readonly redis = inject(RedisService)
+		private readonly redis = inject(RedisService),
+		private readonly features = inject(FeaturesService)
 	) {
 		super({
 			shards: 'auto',
@@ -103,6 +105,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		this.user?.setPresence({ status: 'invisible' });
 
+		this.features.closeWatcher();
 		this.redis.close();
 
 		await super.destroy();

@@ -1,0 +1,40 @@
+defaults: &defaults
+  enabled: !!bool true
+  rolloutPercentage: !!int 100
+
+# -------------------------- #
+
+disableAlertReporting:
+  description: Alert reporting killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableForecastReporting:
+  description: Forecast reporting killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableMessageSweeping:
+  description: Message sweeping killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableRadarMessageUpdating:
+  description: Radar message updating killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableStatusUpdating:
+  description: Status updating killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableFeedbackSubmissions:
+  description: Feedback submission killswitch
+  enabled: !!bool false
+  <<: *defaults
+
+disableAnnouncementDispatching:
+  description: Announcement dispatching killswitch
+  enabled: !!bool false
+  <<: *defaults

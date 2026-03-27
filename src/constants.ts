@@ -1,7 +1,7 @@
 import { main } from 'bun';
 import { join, dirname } from 'node:path';
 
-export const CALVER = '2026.3.26' as const;
+export const CALVER = '2026.3.26.1' as const;
 
 export const REPO_OWNER = 'depthbomb' as const;
 export const REPO_NAME  = 'weathergoat' as const;
@@ -12,42 +12,28 @@ export const ALERTS_SEARCH_BASE_URL = 'https://alerts.weather.gov/search' as con
 
 export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 
-export const ROOT_DIR       = dirname(main);
-export const PROJECT_ROOT   = join(ROOT_DIR, '..');
-export const DATA_DIR       = join(PROJECT_ROOT, '.data');
-export const LOGS_DIR       = join(DATA_DIR, 'logs');
-export const DOMAINS_DIR    = join(ROOT_DIR, 'domain');
+export const ROOT_DIR      = dirname(main);
+export const PROJECT_ROOT  = join(ROOT_DIR, '..');
+export const DATA_DIR      = join(PROJECT_ROOT, '.data');
+export const LOGS_DIR      = join(DATA_DIR, 'logs');
+export const DOMAINS_DIR   = join(ROOT_DIR, 'domain');
+export const FEATURES_FILE = join(PROJECT_ROOT, 'features.yaml');
 
-export const FEATURE_DEFINITIONS = {
-	disableAlertReporting: {
-		fraction: 0.0,
-		description: 'Alert reporting killswitch'
-	},
-	disableForecastReporting: {
-		fraction: 0.0,
-		description: 'Forecast reporting killswitch'
-	},
-	disableMessageSweeping: {
-		fraction: 0.0,
-		description: 'Message sweeping killswitch'
-	},
-	disableRadarMessageUpdating: {
-		fraction: 0.0,
-		description: 'Radar message updating killswitch'
-	},
-	disableStatusUpdating: {
-		fraction: 0.0,
-		description: 'Status updating killswitch'
-	},
-	disableFeedbackSubmissions: {
-		fraction: 0.0,
-		description: 'Feedback submission killswitch'
-	},
-	disableAnnouncementDispatching: {
-		fraction: 0.0,
-		description: 'Announcement dispatching killswitch'
-	}
-} as const;
+/**
+ * Feature flags that will be loaded from `FEATURES_FILE`.
+ *
+ * @privateRemarks
+ * Keep this in sync with `FEATURES_FILE`.
+ */
+export const FEATURE_FLAGS = [
+	'disableAlertReporting',
+	'disableForecastReporting',
+	'disableMessageSweeping',
+	'disableRadarMessageUpdating',
+	'disableStatusUpdating',
+	'disableFeedbackSubmissions',
+	'disableAnnouncementDispatching'
+] as const;
 
 export const IMAGE_ASSETS = {
 	'alert-banner-extreme':  'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484203003965.png?size=1024',
