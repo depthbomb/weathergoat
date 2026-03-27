@@ -2,7 +2,7 @@
 
 node_modules/
 
-src/database/generated/
+src/database/generated/**/*
 
 .env
 .env.*
