@@ -49,6 +49,7 @@ export const enum Color {
 	Success          = 0x84cc16,
 	Warning          = 0xeab308,
 	Danger           = 0xdc2626,
+	//
 	SeverityUnknown  = 0x9ca3af,
 	SeverityMinor    = 0xfbbf24,
 	SeverityModerate = 0xf97316,

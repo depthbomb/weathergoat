@@ -56,7 +56,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 
 	public constructor(
-		private readonly redis = inject(RedisService),
+		private readonly redis    = inject(RedisService),
 		private readonly features = inject(FeaturesService)
 	) {
 		super({

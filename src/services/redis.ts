@@ -9,7 +9,7 @@ export class RedisService {
 	private readonly client: RedisClient;
 
 	public constructor() {
-		this.prefix = env.get('REDIS_PREFIX') ?? 'wg';
+		this.prefix = env.get('REDIS_PREFIX');
 		this.client = new RedisClient(env.get('REDIS_URL'));
 	}
 

@@ -7,7 +7,7 @@ export const env = Env.create({
 	BOT_OWNER_ID:                        Env.schema.string(),
 	DATABASE_URL:                        Env.schema.url(),
 	REDIS_URL:                           Env.schema.url(),
-	REDIS_PREFIX:                        Env.schema.string({ required: false }),
+	REDIS_PREFIX:                        Env.schema.string({ defaultValue: 'wg' }),
 	SENTRY_DSN:                          Env.schema.secret({ required: false }),
 	BEACON_WEBHOOK_URL:                  Env.schema.url(),
 	MAX_RADAR_MESSAGES_PER_GUILD:        Env.schema.int({ positive: true }),

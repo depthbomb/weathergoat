@@ -38,12 +38,10 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 					.withMetadata({ options: JSON.stringify(interaction.options.data) })
 					.info(`${interaction.user.tag} (${interaction.user.id}) executed /${command.name}`);
 
-				if (command.preconditions) {
-					for (const precondition of command.preconditions) {
-						const result = await precondition.check(interaction);
-						if (result.err) {
-							throw result.err;
-						}
+				for (const precondition of command.preconditions ?? []) {
+					const result = await precondition.check(interaction);
+					if (result.err) {
+						throw result.err;
 					}
 				}
 
