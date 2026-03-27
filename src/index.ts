@@ -1,4 +1,4 @@
-import { assertRuntime } from '@depthbomb/node-common/platform';
+import { platform, assertRuntime } from '@depthbomb/node-common/platform';
 
 assertRuntime('bun');
 
@@ -15,9 +15,7 @@ import { logger, reportError } from '@lib/logger';
 const shuttingDownFlag = new Flag(false);
 
 async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
-	if (shuttingDownFlag.isTrue) {
-		return;
-	}
+	if (shuttingDownFlag.isTrue) return;
 
 	shuttingDownFlag.setTrue();
 
@@ -30,19 +28,18 @@ async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
 	} catch (err) {
 		reportError('Error during shutdown', err);
 	} finally {
-		process.exit(code);
+		process.exitCode = code;
 	}
 }
 
 async function main() {
-	const mode      = env.get('MODE');
+	const mode = env.get('MODE');
 	const sentryDSN = env.get('SENTRY_DSN');
 
 	logger.withMetadata({ mode }).info('Booting');
 
 	if (sentryDSN && mode === 'production') {
 		const { init: initSentry } = await import('@sentry/bun');
-
 		initSentry({ dsn: sentryDSN.release() });
 	}
 
@@ -55,24 +52,26 @@ async function main() {
 		const wg = container.get(WeatherGoat);
 		await wg.start();
 
-		process.on('SIGINT',  () => shutdown(wg, 0));
-		process.on('SIGTERM', () => shutdown(wg, 0));
+		if (platform === 'win32' && mode === 'development') {
+			process.stdin.setRawMode(true);
+			process.stdin.resume();
+			process.stdin.setEncoding('utf8');
+			process.stdin.on('data', async (data) => {
+				const key = data.toString();
+				if (['q', 'Q', '\u0003', '\u001b'].includes(key)) {
+					await shutdown(wg, 0);
+				}
+			});
+		}
 
-		process.on('unhandledRejection', (reason) => {
-			reportError('Unhandled rejection', reason);
-		});
+		process.on('SIGINT',   () => shutdown(wg, 0)); // Ctrl+C
+		process.on('SIGTERM',  () => shutdown(wg, 0)); // Linux service stop
+		process.on('SIGBREAK', () => shutdown(wg, 0)); // Windows Ctrl+Break
 
+		process.on('unhandledRejection', (reason) => reportError('Unhandled rejection', reason));
 		process.on('uncaughtException', (err) => {
 			reportError('Uncaught exception', err);
 			shutdown(wg, 1, err);
-		});
-
-		process.on('unhandledRejection', (reason) => {
-			reportError('Unhandled rejection', reason);
-
-			if (reason instanceof Error) {
-				shutdown(wg, 1, reason);
-			}
 		});
 	}
 }

@@ -341,9 +341,9 @@ function generateHelper(data: ITranslationObject): string {
 		'for (const part of parts) fn = (fn as Record<string, unknown>)[part];',
 		'return (fn as (...a: unknown[]) => string)(...order.map(name => params[name]));',
 		'}',
-	].join('\n'));
+	].join(''));
 
-	return lines.join('\n');
+	return lines.join('');
 }
 
 function generateRootObject(data: ITranslationObject) {
