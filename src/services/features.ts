@@ -1,9 +1,10 @@
 import { YAML } from 'bun';
 import { Collection } from 'discord.js';
 import { injectable } from '@needle-di/core';
-import { watch, readFileSync, type FSWatcher } from 'node:fs';
+import { watch, readFileSync } from 'node:fs';
 import { logger, reportError } from '@lib/logger';
 import { FEATURE_FLAGS, FEATURES_FILE } from '@constants';
+import type { FSWatcher } from 'node:fs';
 import type { LogLayer } from 'loglayer';
 
 type FeatureName = typeof FEATURE_FLAGS[number];
@@ -22,6 +23,10 @@ class Feature {
 	) { }
 
 	public check() {
+		if (!this.enabled) {
+			return false;
+		}
+
 		return (Math.random() * 100) < this.rolloutPercentage;
 	}
 }
