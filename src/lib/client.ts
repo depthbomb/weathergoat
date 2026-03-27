@@ -6,11 +6,12 @@ import { container } from '@container';
 import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
 import { DomainModuleKind } from '@domain';
+import { readdir } from 'node:fs/promises';
 import { Flag } from '@depthbomb/common/state';
 import { RedisService } from '@services/redis';
-import { stat, readdir } from 'node:fs/promises';
 import { logger, reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
+import { Path } from '@depthbomb/node-common/pathlib';
 import { ResettableString } from './resettable-string';
 import { compareComponentMatch } from '@infra/components';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
@@ -390,21 +391,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	private async *getDomainModuleFiles(domain: RegisteredDomain, kind: DomainModuleKind) {
 		const directory = join(domain.rootPath, kind);
-		if (!(await this.directoryExists(directory))) {
+		if (!Path.from(directory).isDirSync()) {
 			return;
 		}
 
 		for await (const file of findFilesRecursivelyRegex(directory, this.moduleFilePattern)) {
 			yield file;
-		}
-	}
-
-	private async directoryExists(path: string) {
-		try {
-			const entry = await stat(path);
-			return entry.isDirectory();
-		} catch {
-			return false;
 		}
 	}
 }

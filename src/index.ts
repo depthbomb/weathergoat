@@ -61,9 +61,8 @@ async function main() {
 			process.stdin.setRawMode(true);
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
-			process.stdin.on('data', async (data) => {
-				const key = data.toString();
-				if (['q', 'Q', '\u0003', '\u001b'].includes(key)) {
+			process.stdin.on('data', async data => {
+				if (['q', 'Q', '\u0003', '\u001b'].includes(data.toString())) {
 					await shutdown(wg, 0);
 				}
 			});

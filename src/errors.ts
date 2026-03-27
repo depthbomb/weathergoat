@@ -1,6 +1,6 @@
 import { MakeErrorClass } from 'fejl';
 import { DiscordjsError, DiscordAPIError, DiscordjsErrorCodes } from 'discord.js';
-import type { Awaitable } from '@depthbomb/common/typing';
+import type { Class, AwaitableFn } from '@depthbomb/common/typing';
 
 export class InvalidPermissionsError extends MakeErrorClass() {}
 export class GuildOnlyInvocationInNonGuildError extends MakeErrorClass() {}
@@ -45,7 +45,7 @@ export type WeatherGoatErrorConstructor = (typeof WEATHER_GOAT_ERRORS)[number];
  * - The constructor type is loosely typed as {@link Function}, so type safety is not enforced.
  *   For stricter typing, consider using a generic constructor signature.
  */
-export async function matchError(err: unknown, matchers: Array<[Function, () => Awaitable<void>]>): Promise<void> {
+export async function matchError(err: unknown, matchers: Array<[Class<WeatherGoatError>, AwaitableFn<void>]>): Promise<void> {
 	for (const [Type, handler] of matchers) {
 		if (err instanceof (Type as any)) {
 			await handler();
@@ -71,7 +71,7 @@ export async function matchError(err: unknown, matchers: Array<[Function, () => 
  */
 export function isWeatherGoatError(err: unknown): err is WeatherGoatError;
 export function isWeatherGoatError<T extends WeatherGoatErrorConstructor>(err: unknown, type: T): err is InstanceType<T>;
-export function isWeatherGoatError(err: unknown, type?: WeatherGoatErrorConstructor): boolean {
+export function isWeatherGoatError(err: unknown, type?: Class<WeatherGoatError>): boolean {
 	if (type) {
 		return err instanceof type;
 	}

@@ -14,9 +14,9 @@ export async function tryToRespond(interaction: RepliableInteraction<CacheType>,
 			return interaction.editReply(options as string | InteractionEditReplyOptions);
 		}
 
-		const editOpts: InteractionEditReplyOptions = {
+		const editOpts = {
 			content: (options as InteractionReplyOptions).content ?? null,
-		};
+		} as InteractionEditReplyOptions;
 
 		return interaction.editReply(editOpts);
 	}

@@ -1,6 +1,7 @@
 import { logger } from '@lib/logger';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { LogLayer } from 'loglayer';
+import type { Maybe } from '@depthbomb/common/typing';
 import type { MessageComponentInteraction } from 'discord.js';
 
 type ComponentOptions = {
@@ -114,8 +115,8 @@ export abstract class BaseComponent {
 		return this.localStorage.getStore();
 	}
 
-	public getMatch(customId: string): ComponentMatch | undefined {
-		let best: ComponentMatch | undefined;
+	public getMatch(customId: string): Maybe<ComponentMatch> {
+		let best: Maybe<ComponentMatch>;
 		for (const matcher of this.matchers) {
 			const match = toComponentMatch(matcher, customId);
 			if (!match) {

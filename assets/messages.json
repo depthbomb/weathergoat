@@ -224,6 +224,18 @@
 				"instructions": "Instructions",
 				"references": "References"
 			},
+			"term": [
+				"### Validity Period",
+				"This alert is effective as of {effective:string} and expires {expires:string}."
+			],
+			"affectedAreas": [
+				"### Affected Areas",
+				"{areaDesc:string}"
+			],
+			"instructions": [
+				"### Instructions",
+				"{instructions:string}"
+			],
 			"payloadTooLargePlaceholder": "## This alert is too large to display everything. View the full alert [here.](https://beta.weather.gov/point/{lat:string}/{lon:string}/{anchor:string})"
 		},
 		"forecasts": {

@@ -12,6 +12,7 @@ import { SweeperService } from '@services/sweeper';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { EventBusService } from '@services/event-bus';
+import { isUndefined } from '@depthbomb/common/guards';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { time, Collection, MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { Alert } from '@models/Alert';
@@ -135,7 +136,7 @@ export default class ReportAlertsJob extends BaseJob {
 						)
 						.addSeparatorComponents(s => s
 							.setSpacing(SeparatorSpacingSize.Large)
-						)
+						);
 
 					if (description.length > 2_000) {
 						container.addTextDisplayComponents(t => t
@@ -146,23 +147,27 @@ export default class ReportAlertsJob extends BaseJob {
 							))
 						);
 					} else {
-						container.addTextDisplayComponents(t => t
-							.setContent(alert.description.toCodeBlock('md'))
-						);
+						container.addTextDisplayComponents(t => t.setContent(alert.description.toCodeBlock('md')));
 					}
 
-					container.addTextDisplayComponents(t => t
-						.setContent(`This alert is effective as of ${time(alert.effective, 'R')}, expires ${time(alert.expires, 'R')}, and affects the following areas:\n**${alert.areaDesc}**`)
-					);
+					container
+						.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Large))
+						.addTextDisplayComponents(t => t
+							.setContent($msg.jobs.alerts.term(time(alert.effective, 'R'), time(alert.expires, 'R')))
+						)
+						.addTextDisplayComponents(t => t
+							.setContent($msg.jobs.alerts.affectedAreas(alert.areaDesc))
+						);
 
-					if (alert.instruction) {
-						container.addTextDisplayComponents(t => t.setContent(`### Instructions\n${alert.instruction!.toCodeBlock('md')}`));
+					const instructions = alert.instruction;
+					if (!isUndefined(instructions)) {
+						container.addTextDisplayComponents(t => t.setContent($msg.jobs.alerts.instructions(instructions.toCodeBlock('md'))));
 					}
 
 					if (radarImageUrl) {
 						container.addMediaGalleryComponents(g => g
 							.addItems(i => i
-								.setURL(radarImageUrl + `?${generateSnowflake()}`)
+								.setURL(radarImageUrl + `?v=${generateSnowflake()}`)
 							)
 						);
 					}

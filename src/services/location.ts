@@ -6,6 +6,7 @@ import { deserialize } from '@depthbomb/serde';
 import { inject, injectable } from '@needle-di/core';
 import { HTTPRequestError, isWeatherGoatError } from '@errors';
 import type { HTTPClient } from './http';
+import type { Nullable } from '@depthbomb/common/typing';
 
 type CoverageSeed = {
 	latitude: number;
@@ -248,7 +249,7 @@ export class LocationService {
 		return info;
 	}
 
-	private async findNearestValidCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<CoordinateInfo | null> {
+	private async findNearestValidCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<Nullable<CoordinateInfo>> {
 		const originLatitude  = Number.parseFloat(latitude);
 		const originLongitude = Number.parseFloat(longitude);
 
@@ -329,7 +330,7 @@ export class LocationService {
 		return null;
 	}
 
-	private async tryGetInfoFromCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<CoordinateInfo | null> {
+	private async tryGetInfoFromCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<Nullable<CoordinateInfo>> {
 		try {
 			return await this.getInfoFromCoordinates(latitude, longitude, cacheTTL);
 		} catch (err: unknown) {
