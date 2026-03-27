@@ -28,12 +28,17 @@ async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
 	} catch (err) {
 		reportError('Error during shutdown', err);
 	} finally {
+		if (process.stdin.isTTY) {
+			process.stdin.setRawMode(false);
+			process.stdin.pause();
+		}
+
 		process.exitCode = code;
 	}
 }
 
 async function main() {
-	const mode = env.get('MODE');
+	const mode      = env.get('MODE');
 	const sentryDSN = env.get('SENTRY_DSN');
 
 	logger.withMetadata({ mode }).info('Booting');
