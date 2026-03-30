@@ -8,16 +8,10 @@ export class GridpointForecastPeriod {
 	@JSONProperty()
 	public name!: string;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public startTime!: Date;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public endTime!: Date;
 
 	@JSONProperty()

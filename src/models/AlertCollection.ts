@@ -6,10 +6,7 @@ export class AlertCollection {
 	@JSONProperty()
 	public title!: string;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public updated!: Date;
 
 	@JSONProperty({ type: () => Alert, name: '@graph', isArray: true })

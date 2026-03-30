@@ -74,28 +74,16 @@ export class Alert {
 	@JSONProperty({ type: () => AlertReference, isArray: true })
 	public references!: AlertReference[];
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public sent!: Date;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public effective!: Date;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public expires!: Date;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public ends!: Date;
 
 	@JSONProperty({ type: () => AlertStatus })

@@ -13,10 +13,7 @@ export class AlertReference {
 	@JSONProperty()
 	public senderName!: string;
 
-	@JSONProperty({
-		deserializeTransform: (raw) => new Date(raw as string),
-		serializeTransform: (d: Date) => d.toISOString(),
-	})
+	@JSONProperty({ type: Date })
 	public sent!: Date;
 
 	public get url() {
