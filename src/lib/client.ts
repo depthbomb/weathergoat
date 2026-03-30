@@ -7,13 +7,12 @@ import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
 import { DomainModuleKind } from '@domain';
 import { readdir } from 'node:fs/promises';
-import { Flag } from '@depthbomb/common/state';
 import { RedisService } from '@services/redis';
 import { logger, reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
 import { Path } from '@depthbomb/node-common/pathlib';
-import { ResettableString } from './resettable-string';
 import { compareComponentMatch } from '@infra/components';
+import { Flag, ResettableValue } from '@depthbomb/common/state';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import {
 	Client,
@@ -46,7 +45,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly commands              = new Collection<string, BaseCommand>();
 	public readonly components            = new Collection<string, BaseComponent>();
 	public readonly maintenanceModeFlag   = new Flag(false);
-	public readonly maintenanceModeReason = new ResettableString('No reason specified');
+	public readonly maintenanceModeReason = new ResettableValue('No reason specified');
 	public readonly commandLinks          = new Collection<string, string>();
 
 	private commandLinksLoaded        = false;
