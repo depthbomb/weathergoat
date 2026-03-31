@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.3.30",
+	"calver": "2026.3.31",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
@@ -32,12 +32,12 @@
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
-		"@sentry/bun": "^10.46.0",
+		"@sentry/bun": "^10.47.0",
 		"bufferutil": "^4.1.0",
 		"clipanion": "^4.0.0-rc.4",
 		"cockatiel": "^3.2.1",
 		"croner": "^10.0.1",
-		"discord.js": "^14.25.1",
+		"discord.js": "^14.26.0",
 		"fejl": "^4.0.1",
 		"loglayer": "^9.1.0",
 		"serialize-error": "^13.0.1",
