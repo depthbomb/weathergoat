@@ -3,10 +3,10 @@ import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { BaseCommand } from '@infra/commands';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
+import { subcommand, BaseCommand } from '@infra/commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import {
@@ -62,19 +62,10 @@ export default class AlertsCommand extends BaseCommand {
 				new CooldownPrecondition({ duration: '3s', global: true })
 			]
 		});
-
-		this.createSubcommandMap<'add' | 'remove' | 'list'>({
-			add: { handler: this._handleAddSubcommand },
-			remove: { handler: this._handleRemoveSubcommand },
-			list: { handler: this._handleListSubcommand },
-		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	private async _handleAddSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('add')
+	public async handleAddSubcommand(interaction: ChatInputCommandInteraction) {
 		const maxCount     = env.get('MAX_ALERT_DESTINATIONS_PER_GUILD');
 		const guildId      = interaction.guildId;
 		const latitude     = interaction.options.getString('latitude', true).trim();
@@ -185,7 +176,8 @@ export default class AlertsCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('remove')
+	public async handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 		const snowflake   = interaction.options.getString('snowflake', true);
 
@@ -206,7 +198,8 @@ export default class AlertsCommand extends BaseCommand {
 		this.eventBus.emit('alert-destinations:updated');
 	}
 
-	private async _handleListSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('list')
+	public async handleListSubcommand(interaction: ChatInputCommandInteraction) {
 		const guildId = interaction.guildId!;
 
 		await interaction.deferReply();

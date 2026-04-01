@@ -36,10 +36,57 @@ type CommandOptions = {
 	preconditions?: BasePrecondition[];
 };
 
-type SubcommandMap<T extends string = string> = Record<T, {
-	handler: (interaction: ChatInputCommandInteraction) => Promise<unknown>;
+type SubcommandHandler = (interaction: ChatInputCommandInteraction) => Promise<unknown>;
+
+type SubcommandDefinition = {
+	handlerKey: string | symbol;
 	preconditions?: BasePrecondition[];
-}>;
+};
+
+const SUBCOMMAND_METADATA = Symbol('command.subcommands');
+
+function getOwnSubcommandDefinitions(target: object) {
+	const existing = (target as Record<PropertyKey, unknown>)[SUBCOMMAND_METADATA];
+	if (existing instanceof Map) {
+		return existing as Map<string, SubcommandDefinition>;
+	}
+
+	const created = new Map<string, SubcommandDefinition>();
+	Object.defineProperty(target, SUBCOMMAND_METADATA, {
+		value: created,
+		enumerable: false,
+		configurable: false,
+		writable: false
+	});
+
+	return created;
+}
+
+export function subcommand(name: string, ...preconditions: BasePrecondition[]) {
+	return function(
+		target: object,
+		propertyKey: string | symbol,
+		descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
+	) {
+		if (typeof propertyKey !== 'string') {
+			throw new TypeError('Subcommand handlers must use string method names.');
+		}
+
+		if (typeof descriptor.value !== 'function') {
+			throw new TypeError(`Subcommand decorator can only be applied to methods. Received "${propertyKey}".`);
+		}
+
+		const definitions = getOwnSubcommandDefinitions(target);
+		if (definitions.has(name)) {
+			throw new Error(`Duplicate @subcommand declaration for "${name}".`);
+		}
+
+		definitions.set(name, {
+			handlerKey: propertyKey,
+			preconditions
+		});
+	};
+}
 
 export abstract class BaseCommand {
 	public readonly name: string;
@@ -48,7 +95,7 @@ export abstract class BaseCommand {
 	public readonly logger: LogLayer;
 
 	private localStorage: AsyncLocalStorage<CommandContext>;
-	private subcommandMap?: SubcommandMap;
+	private subcommandsValidated = false;
 
 	public constructor(options: CommandOptions) {
 		this.name          = options.data.name;
@@ -73,7 +120,10 @@ export abstract class BaseCommand {
 	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 */
 	public async callHandler(interaction: ChatInputCommandInteraction): Promise<unknown> {
-		return this.localStorage.run({ interaction }, async () => await this.handle(interaction));
+		return this.localStorage.run({ interaction }, async () => {
+			this.ensureSubcommandsValid();
+			return this.handle(interaction);
+		});
 	}
 
 	/**
@@ -81,7 +131,14 @@ export abstract class BaseCommand {
 	 *
 	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 */
-	public abstract handle(interaction: ChatInputCommandInteraction): Promise<unknown>;
+	public async handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
+		const declaredSubcommands = this.getDeclaredSubcommandNames();
+		if (declaredSubcommands.length === 0) {
+			throw new Error(`Command "${this.name}" must implement "handle" because no subcommands are declared in command data.`);
+		}
+
+		return this.handleSubcommand(interaction);
+	}
 
 	/**
 	 * When overridden, handles autocomplete interactions for this command.
@@ -93,31 +150,16 @@ export abstract class BaseCommand {
 	}
 
 	/**
-	 * If this command has a subcommand map, calls the appropriate subcommand method based on the
-	 * interaction.
+	 * Calls the appropriate subcommand method based on the interaction.
 	 *
 	 * @param interaction The {@link ChatInputCommandInteraction}.
-	 *
-	 * @see {@link createSubcommandMap}
 	 */
 	public async handleSubcommand(interaction: ChatInputCommandInteraction) {
-		if (!this.subcommandMap) {
-			throw new Error(`No subcommand map for command "${this.name}".`);
-		}
+		this.ensureSubcommandsValid();
 
 		const subcommandName = interaction.options.getSubcommand(true);
-		const entry          = this.subcommandMap[subcommandName];
-		if (!entry) {
-			const mappedSubcommands = Object.keys(this.subcommandMap);
-			const available         = mappedSubcommands.length === 0 ? '(none)' : mappedSubcommands.join(', ');
-
-			throw new Error([
-				`Subcommand "${subcommandName}" is not mapped for command "${this.name}".`,
-				`Mapped subcommands: ${available}`
-			].join('\n'));
-		}
-
-		const { handler, preconditions } = entry;
+		const handler        = this.getSubcommandHandler(subcommandName);
+		const preconditions  = this.getSubcommandDefinition(subcommandName)?.preconditions;
 
 		if (preconditions) {
 			for (const precondition of preconditions) {
@@ -149,41 +191,112 @@ export abstract class BaseCommand {
 	}
 
 	/**
-	 * Sets a {@link map} on the instance that defines class methods keyed by its "name" for use
-	 * with {@link handleSubcommand}.
-	 *
-	 * @param map The {@link Map} of class instance methods keyed by the name of the subcommand as
-	 * defined in {@link CommandOptions.data}.
+	 * Shortcut method for `tryToRespond(interaction, options)`.
+	 * @param options Message string or {@link InteractionReplyOptions|reply options}.
 	 */
-	public createSubcommandMap<T extends string>(map: SubcommandMap<T>) {
-		if (this.subcommandMap) {
-			throw new Error('A subcommand map has already been defined for this command.');
+	public async tryToRespond(options: string | InteractionReplyOptions) {
+		return tryToRespond(this.ctx?.interaction!, options);
+	}
+
+	public async getCommandLink(commandName: string, ...path: string[]) {
+		const interaction = this.ctx?.interaction;
+		if (!interaction) {
+			return `/${[commandName, ...path].join(' ')}`;
+		}
+
+		return interaction.client.getCommandLink(commandName, ...path);
+	}
+
+	private ensureSubcommandsValid() {
+		if (this.subcommandsValidated) {
+			return;
 		}
 
 		const declaredSubcommands = this.getDeclaredSubcommandNames();
 		if (declaredSubcommands.length === 0) {
-			throw new Error(`Cannot create subcommand map for command "${this.name}" because no subcommands are declared in command data.`);
+			this.subcommandsValidated = true;
+			return;
 		}
 
-		const declaredSet       = new Set(declaredSubcommands);
-		const mappedSubcommands = Object.keys(map);
-		const mappedSet         = new Set(mappedSubcommands);
-		const unknownHandlers   = mappedSubcommands.filter(name => !declaredSet.has(name));
-		const missingHandlers   = declaredSubcommands.filter(name => !mappedSet.has(name));
-		if (missingHandlers.length > 0 || unknownHandlers.length > 0) {
-			const errors = [`Invalid subcommand map for command "${this.name}".`];
-			if (missingHandlers.length > 0) {
-				errors.push(`Missing handler(s) for: ${missingHandlers.join(', ')}`);
+		const declaredSet        = new Set(declaredSubcommands);
+		const decoratedNames     = [...this.getSubcommandDefinitions().keys()];
+		const unknownDecorators  = decoratedNames.filter(name => !declaredSet.has(name));
+		const missingDecorators  = declaredSubcommands.filter(name => !this.getSubcommandDefinition(name));
+		if (missingDecorators.length > 0 || unknownDecorators.length > 0) {
+			const errors = [`Invalid subcommand handlers for command "${this.name}".`];
+			if (missingDecorators.length > 0) {
+				errors.push(`Missing @subcommand decorator(s) for: ${missingDecorators.join(', ')}`);
 			}
 
-			if (unknownHandlers.length > 0) {
-				errors.push(`Mapped subcommand(s) not declared in builder: ${unknownHandlers.join(', ')}`);
+			if (unknownDecorators.length > 0) {
+				errors.push(`Decorated subcommand(s) not declared in builder: ${unknownDecorators.join(', ')}`);
 			}
 
 			throw new Error(errors.join('\n'));
 		}
 
-		this.subcommandMap = map;
+		this.subcommandsValidated = true;
+	}
+
+	private getSubcommandHandler(subcommandName: string) {
+		const definition = this.getSubcommandDefinition(subcommandName);
+		if (!definition) {
+			const available = [...this.getSubcommandDefinitions().keys()].join(', ') || '(none)';
+			throw new Error([
+				`Subcommand "${subcommandName}" is not decorated for command "${this.name}".`,
+				`Available decorated subcommand(s): ${available}`
+			].join('\n'));
+		}
+
+		const handler = this.getSubcommandHandlerMaybe(definition);
+		if (handler) {
+			return handler;
+		}
+
+		const available = [...this.getSubcommandDefinitions().keys()]
+			.filter(name => {
+				const definition = this.getSubcommandDefinition(name);
+				return definition && this.getSubcommandHandlerMaybe(definition);
+			})
+			.join(', ') || '(none)';
+
+		throw new Error([
+			`Subcommand "${subcommandName}" is decorated but no handler method exists for command "${this.name}".`,
+			`Available handler method(s): ${available}`
+		].join('\n'));
+	}
+
+	private getSubcommandDefinition(subcommandName: string) {
+		return this.getSubcommandDefinitions().get(subcommandName);
+	}
+
+	private getSubcommandDefinitions() {
+		const definitions = new Map<string, SubcommandDefinition>();
+
+		let prototype = Object.getPrototypeOf(this);
+		while (prototype && prototype !== BaseCommand.prototype) {
+			const ownDefinitions = (prototype as Record<PropertyKey, unknown>)[SUBCOMMAND_METADATA];
+			if (ownDefinitions instanceof Map) {
+				for (const [name, definition] of ownDefinitions.entries()) {
+					if (!definitions.has(name)) {
+						definitions.set(name, definition as SubcommandDefinition);
+					}
+				}
+			}
+
+			prototype = Object.getPrototypeOf(prototype);
+		}
+
+		return definitions;
+	}
+
+	private getSubcommandHandlerMaybe(definition: SubcommandDefinition) {
+		const handler = (this as Record<PropertyKey, unknown>)[definition.handlerKey];
+		if (typeof handler !== 'function') {
+			return;
+		}
+
+		return handler as SubcommandHandler;
 	}
 
 	private getDeclaredSubcommandNames() {
@@ -202,22 +315,5 @@ export abstract class BaseCommand {
 		}
 
 		return names;
-	}
-
-	/**
-	 * Shortcut method for `tryToRespond(interaction, options)`.
-	 * @param options Message string or {@link InteractionReplyOptions|reply options}.
-	 */
-	public async tryToRespond(options: string | InteractionReplyOptions) {
-		return tryToRespond(this.ctx?.interaction!, options);
-	}
-
-	public async getCommandLink(commandName: string, ...path: string[]) {
-		const interaction = this.ctx?.interaction;
-		if (!interaction) {
-			return `/${[commandName, ...path].join(' ')}`;
-		}
-
-		return interaction.client.getCommandLink(commandName, ...path);
 	}
 }

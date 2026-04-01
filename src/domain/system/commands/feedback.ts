@@ -3,7 +3,7 @@ import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { BaseCommand } from '@infra/commands';
+import { BaseCommand, subcommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
@@ -56,34 +56,10 @@ export default class FeedbackCommand extends BaseCommand {
 				)
 			)
 		});
-
-		this.createSubcommandMap<'submit' | 'ban' | 'unban'>({
-			submit: {
-				handler: this._handleSubmitSubcommand,
-				preconditions: [
-					new CooldownPrecondition({ duration: '1h' })
-				]
-			},
-			ban: {
-				handler: this._handleBanSubcommand,
-				preconditions: [
-					new OwnerPrecondition()
-				]
-			},
-			unban: {
-				handler: this._handleUnbanSubcommand,
-				preconditions: [
-					new OwnerPrecondition()
-				]
-			},
-		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	private async _handleSubmitSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('submit', new CooldownPrecondition({ duration: '1h' }))
+	public async handleSubmitSubcommand(interaction: ChatInputCommandInteraction) {
 		if (this.features.isFeatureEnabled('disableFeedbackSubmissions')) {
 			await interaction.reply($msg.features.disabled());
 			return;
@@ -131,7 +107,8 @@ export default class FeedbackCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleBanSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('ban', new OwnerPrecondition())
+	public async handleBanSubcommand(interaction: ChatInputCommandInteraction) {
 		const userId = interaction.options.getString('user-id', true);
 		const reason = interaction.options.getString('reason') ?? 'No reason specified.';
 
@@ -145,7 +122,8 @@ export default class FeedbackCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleUnbanSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('unban', new OwnerPrecondition())
+	public async handleUnbanSubcommand(interaction: ChatInputCommandInteraction) {
 		const userId = interaction.options.getString('user-id', true);
 
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });

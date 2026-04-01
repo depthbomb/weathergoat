@@ -1,6 +1,6 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
-import { BaseCommand } from '@infra/commands';
+import { BaseCommand, subcommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
@@ -35,25 +35,10 @@ export default class DebugCommand extends BaseCommand {
 				.setDescription('Dumps all of the data in my database to a JSON file')
 			)
 		});
-
-		this.createSubcommandMap<'print' | 'dump-db'>({
-			print: {
-				handler: this._handlePrintSubcommand
-			},
-			'dump-db': {
-				handler: this._handleDumpDbSubcommand,
-				preconditions: [
-					new OwnerPrecondition()
-				]
-			}
-		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	private async _handlePrintSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('print')
+	public async handlePrintSubcommand(interaction: ChatInputCommandInteraction) {
 		const domain = interaction.options.getString('domain', true) as 'jobs' | 'features';
 		let json: string = '';
 		switch (domain) {
@@ -76,7 +61,8 @@ export default class DebugCommand extends BaseCommand {
 		await interaction.reply(json.toCodeBlock('json'));
 	}
 
-	private async _handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('dump-db', new OwnerPrecondition())
+	public async handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
 		const date = new Date();
 
 		await interaction.deferReply();

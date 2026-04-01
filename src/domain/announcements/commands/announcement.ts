@@ -2,7 +2,7 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { injectable } from '@needle-di/core';
-import { BaseCommand } from '@infra/commands';
+import { BaseCommand, subcommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
@@ -50,34 +50,10 @@ export default class AnnouncementCommand extends BaseCommand {
 				.setDescription('Returns the total amount of announcement subscriptions. Owner only.')
 			)
 		});
-
-		this.createSubcommandMap<'subscribe' | 'unsubscribe' | 'create' | 'count-subscriptions'>({
-			subscribe: {
-				handler: this._handleSubscribeSubcommand,
-			},
-			unsubscribe: {
-				handler: this._handleUnsubscribeSubcommand,
-			},
-			create: {
-				handler: this._handleCreateSubcommand,
-				preconditions: [
-					new OwnerPrecondition()
-				]
-			},
-			'count-subscriptions': {
-				handler: this._handleCountSubcommand,
-				preconditions: [
-					new OwnerPrecondition()
-				]
-			},
-		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
-		await this.handleSubcommand(interaction);
-	}
-
-	private async _handleSubscribeSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('subscribe')
+	public async handleSubscribeSubcommand(interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
@@ -102,7 +78,8 @@ export default class AnnouncementCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleUnsubscribeSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('unsubscribe')
+	public async handleUnsubscribeSubcommand(interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
@@ -124,7 +101,8 @@ export default class AnnouncementCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleCreateSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('create', new OwnerPrecondition())
+	public async handleCreateSubcommand(interaction: ChatInputCommandInteraction) {
 		const title      = interaction.options.getString('title', true).trim();
 		const body       = interaction.options.getString('body', true).trim();
 		const colorInput = interaction.options.getString('color')?.trim();
@@ -163,7 +141,8 @@ export default class AnnouncementCommand extends BaseCommand {
 		}
 	}
 
-	private async _handleCountSubcommand(interaction: ChatInputCommandInteraction) {
+	@subcommand('count-subscriptions', new OwnerPrecondition())
+	public async handleCountSubcommand(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
 		try {
