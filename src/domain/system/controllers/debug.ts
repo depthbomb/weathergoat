@@ -1,14 +1,14 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
-import { BaseCommand, subcommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class DebugCommand extends BaseCommand {
+export default class DebugController extends BaseInteractionController {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {

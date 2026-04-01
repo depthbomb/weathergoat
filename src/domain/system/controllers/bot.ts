@@ -1,11 +1,11 @@
 import { injectable } from '@needle-di/core';
-import { BaseCommand, subcommand } from '@infra/commands';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { subcommand, BaseInteractionController } from '@infra/controllers';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class BotCommand extends BaseCommand {
+export default class BotController extends BaseInteractionController {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

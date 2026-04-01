@@ -71,18 +71,18 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 				reportError('Error in interaction autocomplete handler', err, { interaction: interaction.commandName });
 			}
 		} else if (interaction.isMessageComponent()) {
-			const resolved = this.getComponent(interaction);
+			const resolved = this.getCommandComponent(interaction);
 			if (!resolved) {
 				return;
 			}
 
-			const { component, match } = resolved;
-			const sw                   = new Stopwatch();
+			const { command, route } = resolved;
+			const sw                 = new Stopwatch();
 
 			try {
-				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) used component ${component.name}`);
+				this.logger.info(`${interaction.user.tag} (${interaction.user.id}) used component ${route.match.pattern} on command ${command.name}`);
 
-				await component.callHandler(interaction, match);
+				await command.callComponentHandler(interaction, route);
 			} catch (err: unknown) {
 				if (isWeatherGoatError(err)) {
 					await tryToRespond(interaction, this.createWeatherGoatErrorMessage(err));
@@ -143,7 +143,7 @@ export default class InteractionCreateEvent extends BaseEvent<'interactionCreate
 		return interaction.client.commands.get(interaction.commandName);
 	}
 
-	private getComponent(interaction: MessageComponentInteraction) {
-		return interaction.client.getComponentForCustomId(interaction.customId);
+	private getCommandComponent(interaction: MessageComponentInteraction) {
+		return interaction.client.getCommandComponentForCustomId(interaction.customId);
 	}
 }

@@ -3,17 +3,17 @@ import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { BaseCommand, subcommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class FeedbackCommand extends BaseCommand {
+export default class FeedbackController extends BaseInteractionController {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {

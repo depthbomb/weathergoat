@@ -27,23 +27,20 @@ import type { BaseJob } from '@infra/jobs';
 import type { BaseEvent } from '@infra/events';
 import type { ClientEvents } from 'discord.js';
 import type { DomainDefinition } from '@domain';
-import type { BaseCommand } from '@infra/commands';
+import type { BaseInteractionController, ControllerComponentRoute } from '@infra/controllers';
 import type { Maybe } from '@depthbomb/common/typing';
-import type { BaseComponent, ComponentMatch } from '@infra/components';
 
 type BaseModule<T>    = { default: new() => T };
 type JobModule        = BaseModule<BaseJob>;
 type EventModule      = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule    = BaseModule<BaseCommand>;
-type ComponentModule  = BaseModule<BaseComponent>;
+type ControllerModule = BaseModule<BaseInteractionController>;
 type DomainModule     = { default: DomainDefinition };
 type RegisteredDomain = { definition: DomainDefinition; rootPath: string; };
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();
 	public readonly events                = new Collection<string, BaseEvent<keyof ClientEvents>>();
-	public readonly commands              = new Collection<string, BaseCommand>();
-	public readonly components            = new Collection<string, BaseComponent>();
+	public readonly commands              = new Collection<string, BaseInteractionController>();
 	public readonly maintenanceModeFlag   = new Flag(false);
 	public readonly maintenanceModeReason = new ResettableValue('No reason specified');
 	public readonly commandLinks          = new Collection<string, string>();
@@ -83,7 +80,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();
-		await this.registerComponents();
 
 		const res = await this.login(env.get('BOT_TOKEN').release());
 
@@ -199,7 +195,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	/**
-	 * Iterates registered domain command directories and registers all commands, adding them to
+	 * Iterates registered domain controller directories and registers all commands, adding them to
 	 * the container to utilize dependency injection.
 	 */
 	public async registerCommands() {
@@ -211,13 +207,13 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		const commandSourceByName = new Collection<string, string>();
 
 		for (const domain of await this.getRegisteredDomains()) {
-			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Commands)) {
-				const { default: mod }: CommandModule = await import(file);
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Controllers)) {
+				const { default: mod }: ControllerModule = await import(file);
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}
 
-				const command        = container.get<BaseCommand>(mod);
+				const command        = container.get<BaseInteractionController>(mod);
 				const previousSource = commandSourceByName.get(command.name);
 				if (previousSource) {
 					throw new Error([
@@ -303,55 +299,22 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		return [commandName, ...path].join(' ');
 	}
 
-	/**
-	 * Iterates registered domain component directories and registers component handlers,
-	 * adding them to the container to utilize dependency injection.
-	 */
-	public async registerComponents() {
-		this.components.clear();
+	public getCommandComponentForCustomId(customId: string) {
+		let best: Maybe<{ command: BaseInteractionController; route: ControllerComponentRoute }>;
 
-		const componentSourceByName = new Collection<string, string>();
-
-		for (const domain of await this.getRegisteredDomains()) {
-			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Components)) {
-				const { default: mod }: ComponentModule = await import(file);
-				if (!container.has(mod)) {
-					container.bind(mod);
-				}
-
-				const component      = container.get<BaseComponent>(mod);
-				const previousSource = componentSourceByName.get(component.name);
-				if (previousSource) {
-					throw new Error([
-						`Duplicate component name "${component.name}" detected during registration.`,
-						`First seen in: ${previousSource}`,
-						`Duplicate found in: ${file}`
-					].join('\n'));
-				}
-
-				this.components.set(component.name, component);
-
-				componentSourceByName.set(component.name, file);
-
-				this.logger.withMetadata({
-					domain: domain.definition.id,
-					name: component.name
-				}).info('Registered component');
+		for (const command of this.commands.values()) {
+			const route = command.getComponentRoute(customId);
+			if (!route) {
+				continue;
 			}
-		}
-	}
 
-	public getComponentForCustomId(customId: string) {
-		let best: Maybe<{ component: BaseComponent; match: ComponentMatch }>;
-
-		for (const component of this.components.values()) {
-			const match = component.getMatch(customId);
+			const match = route.match;
 			if (!match) {
 				continue;
 			}
 
-			if (!best || compareComponentMatch(match, best.match) > 0) {
-				best = { component, match };
+			if (!best || compareComponentMatch(match, best.route.match) > 0) {
+				best = { command, route };
 			}
 		}
 

@@ -1,11 +1,11 @@
 import { $msg } from '@lib/messages';
 import { injectable } from '@needle-di/core';
-import { BaseCommand } from '@infra/commands';
 import { SlashCommandBuilder } from 'discord.js';
+import { command, BaseInteractionController } from '@infra/controllers';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class AbouHelpCommand extends BaseCommand {
+export default class HelpController extends BaseInteractionController {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
@@ -14,7 +14,8 @@ export default class AbouHelpCommand extends BaseCommand {
 		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
+	@command()
+	private async showHelpCommand(interaction: ChatInputCommandInteraction) {
 		const client = interaction.client;
 		const [alerts, forecasts, autoRadar, radar, announcement] = await Promise.all([
 			client.getCommandLink('alerts', 'add'),

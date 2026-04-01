@@ -2,15 +2,15 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { injectable } from '@needle-di/core';
-import { BaseCommand, subcommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
+import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class AnnouncementCommand extends BaseCommand {
+export default class AnnouncementController extends BaseInteractionController {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

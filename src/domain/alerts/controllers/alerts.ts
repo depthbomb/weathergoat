@@ -6,9 +6,9 @@ import { reportError } from '@lib/logger';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
-import { subcommand, BaseCommand } from '@infra/commands';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
+import { subcommand, BaseInteractionController } from '@infra/controllers';
 import {
 	HTTPRequestError,
 	isDiscordJSError,
@@ -30,7 +30,7 @@ import {
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
-export default class AlertsCommand extends BaseCommand {
+export default class AlertsController extends BaseInteractionController {
 	public constructor(
 		private readonly eventBus = inject(EventBusService),
 		private readonly location = inject(LocationService)

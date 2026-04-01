@@ -2,11 +2,13 @@ import { env } from '@env';
 import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { BaseCommand } from '@infra/commands';
+import { assume } from '@depthbomb/common/typing';
 import { generateSnowflake } from '@lib/snowflake';
 import { inject, injectable } from '@needle-di/core';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { isGuildMember } from '@sapphire/discord.js-utilities';
+import { command, component, BaseInteractionController } from '@infra/controllers';
 import {
 	HTTPRequestError,
 	isDiscordJSError,
@@ -24,10 +26,11 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder
 } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ComponentMatch } from '@infra/components';
+import type { ChatInputCommandInteraction, MessageComponentInteraction } from 'discord.js';
 
 @injectable()
-export default class AutoRadarCommand extends BaseCommand {
+export default class AutoRadarController extends BaseInteractionController {
 	public constructor(
 		private readonly location = inject(LocationService)
 	) {
@@ -45,7 +48,8 @@ export default class AutoRadarCommand extends BaseCommand {
 		});
 	}
 
-	public async handle(interaction: ChatInputCommandInteraction) {
+	@command()
+	private async createAutoRadarCommand(interaction: ChatInputCommandInteraction) {
 		const maxCount  = env.get('MAX_RADAR_MESSAGES_PER_GUILD');
 		const guildId   = interaction.guildId;
 		const latitude  = interaction.options.getString('latitude', true).trim();
@@ -142,5 +146,42 @@ export default class AutoRadarCommand extends BaseCommand {
 				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
 			}
 		}
+	}
+
+	@component('delete-auto-radar:*')
+	private async handleDeleteAutoRadarComponent(interaction: MessageComponentInteraction, match: ComponentMatch) {
+		if (!interaction.member || !isGuildMember(interaction.member)) {
+			return;
+		}
+
+		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
+			await interaction.reply({
+				content: $msg.components.deleteAutoRadarButton.noPermission(),
+				flags: MessageFlags.Ephemeral
+			});
+			return;
+		}
+
+		await interaction.deferUpdate();
+
+		const { guildId, channelId } = interaction;
+		const [messageId]            = match.wildcards;
+
+		assume<string>(guildId);
+		assume<string>(channelId);
+
+		const where = { guildId, channelId, messageId };
+
+		const autoRadarMessage = await db.autoRadarMessage.findFirst({ where });
+		if (!autoRadarMessage) {
+			await interaction.reply({
+				content: $msg.components.deleteAutoRadarButton.couldNotFindMessage(),
+				flags: MessageFlags.Ephemeral
+			});
+			return;
+		}
+
+		await db.autoRadarMessage.delete({ where });
+		await interaction.message.delete();
 	}
 }

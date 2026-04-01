@@ -1,11 +1,11 @@
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
-import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
+import { command, BaseInteractionController } from '@infra/controllers';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
-export default class RadarCommand extends BaseCommand {
+export default class RadarController extends BaseInteractionController {
 	private readonly radars: Collection<string, string>;
 
 	public constructor() {
@@ -200,7 +200,8 @@ export default class RadarCommand extends BaseCommand {
 		]);
 	}
 
-	public handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
+	@command()
+	private showRadarCommand(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
 		if (!this.radars.find(v => v === station)) {
 			return interaction.reply($msg.commands.radar.errors.invalidStation(station));
