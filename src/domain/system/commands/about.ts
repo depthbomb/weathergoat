@@ -21,7 +21,7 @@ export default class AboutCommand extends BaseCommand {
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		const bunCommitSha = Bun.revision.slice(0, 7);
-		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${Bun.revision.slice(0, 7)}`;
+		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${bunCommitSha}`;
 
 		const container = new ContainerBuilder()
 			.setAccentColor(Color.Primary)

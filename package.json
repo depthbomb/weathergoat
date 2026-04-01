@@ -23,7 +23,7 @@
 		"@loglayer/plugin-sprintf": "^3.0.2",
 		"@loglayer/transport-log-file-rotation": "^3.0.2",
 		"@loglayer/transport-simple-pretty-terminal": "^3.0.2",
-		"@needle-di/core": "^1.1.1",
+		"@needle-di/core": "^1.1.2",
 		"@prisma/adapter-libsql": "^7.6.0",
 		"@prisma/client": "^7.6.0",
 		"@sapphire/discord.js-utilities": "^7.3.3",
