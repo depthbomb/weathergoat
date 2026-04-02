@@ -1,3 +1,28 @@
+import { logger } from '@lib/logger';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import type { LogLayer } from 'loglayer';
+import type { Maybe } from '@depthbomb/common/typing';
+import type { MessageComponentInteraction } from 'discord.js';
+
+type ComponentOptions = {
+	/**
+	 * The custom_id pattern(s) this component handler matches.
+	 *
+	 * Supports Discord.NET-style wildcards via `*`.
+	 * Example: `button:*`.
+	 */
+	customId: string | string[];
+	/**
+	 * Optional display name for logging.
+	 */
+	name?: string;
+};
+
+type ComponentContext = {
+	interaction: MessageComponentInteraction;
+	match: ComponentMatch;
+};
+
 export type ComponentMatcher = {
 	pattern: string;
 	regex: RegExp;
@@ -28,7 +53,7 @@ export function createComponentMatcher(pattern: string) {
 		regex: new RegExp(regexSource),
 		wildcardCount,
 		specificity: pattern.length - wildcardCount
-	} satisfies ComponentMatcher;
+	} as ComponentMatcher;
 }
 
 export function toComponentMatch(matcher: ComponentMatcher, customId: string) {
@@ -44,7 +69,7 @@ export function toComponentMatch(matcher: ComponentMatcher, customId: string) {
 		exact: matcher.wildcardCount === 0 && matcher.pattern === customId,
 		wildcardCount: matcher.wildcardCount,
 		specificity: matcher.specificity
-	} satisfies ComponentMatch;
+	} as ComponentMatch;
 }
 
 export function compareComponentMatch(a: ComponentMatch, b: ComponentMatch) {
@@ -65,4 +90,50 @@ export function compareComponentMatch(a: ComponentMatch, b: ComponentMatch) {
 	}
 
 	return 0;
+}
+
+export abstract class BaseComponent {
+	public readonly name: string;
+	public readonly customIds: string[];
+	public readonly logger: LogLayer;
+
+	private readonly localStorage: AsyncLocalStorage<ComponentContext>;
+	private readonly matchers: ComponentMatcher[];
+
+	public constructor(options: ComponentOptions) {
+		this.customIds    = Array.isArray(options.customId) ? options.customId : [options.customId];
+		this.name         = options.name ?? this.customIds.join(', ');
+		this.logger       = logger.child().withPrefix(`[Component(${this.name})]`);
+		this.localStorage = new AsyncLocalStorage();
+		this.matchers     = this.customIds.map(createComponentMatcher);
+	}
+
+	/**
+	 * When called via {@link callHandler} contains information specific to that component call.
+	 */
+	public get ctx() {
+		return this.localStorage.getStore();
+	}
+
+	public getMatch(customId: string): Maybe<ComponentMatch> {
+		let best: Maybe<ComponentMatch>;
+		for (const matcher of this.matchers) {
+			const match = toComponentMatch(matcher, customId);
+			if (!match) {
+				continue;
+			}
+
+			if (!best || compareComponentMatch(match, best) > 0) {
+				best = match;
+			}
+		}
+
+		return best;
+	}
+
+	public async callHandler(interaction: MessageComponentInteraction, match: ComponentMatch): Promise<unknown> {
+		return this.localStorage.run({ interaction, match }, async () => await this.handle(interaction, match));
+	}
+
+	public abstract handle(interaction: MessageComponentInteraction, match: ComponentMatch): Promise<unknown>;
 }

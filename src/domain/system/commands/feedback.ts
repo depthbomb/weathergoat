@@ -2,59 +2,64 @@ import { env } from '@env';
 import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
+import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
+import { BaseCommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class FeedbackController extends BaseInteractionController {
+const enum Subcommands {
+	Submit = 'submit',
+	Ban    = 'ban',
+	Unban  = 'unban'
+}
+
+export default class FeedbackCommand extends BaseCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('feedback')
-			.setDescription('Commands related to submitting feedback')
-			.addSubcommand(sc => sc
-				.setName('submit')
-				.setDescription('Sends a feedback message to my creator')
-				.addStringOption(o => o
-					.setName('content')
-					.setDescription('The feedback message to send to my creator')
-					.setMinLength(20)
-					.setMaxLength(1000)
-					.setRequired(true)
+				.setName('feedback')
+				.setDescription('Commands related to submitting feedback')
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Submit)
+					.setDescription('Sends a feedback message to my creator')
+					.addStringOption(o => o
+						.setName('content')
+						.setDescription('The feedback message to send to my creator')
+						.setMinLength(20)
+						.setMaxLength(1000)
+						.setRequired(true)
+					)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('ban')
-				.setDescription('Bans a user from submitting feedback. Owner only.')
-				.addStringOption(o => o
-					.setName('user-id')
-					.setDescription('The ID of the user to ban from submitting feedback.')
-					.setRequired(true)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Ban)
+					.setDescription('Bans a user from submitting feedback. Owner only.')
+					.addStringOption(o => o
+						.setName('user-id')
+						.setDescription('The ID of the user to ban from submitting feedback.')
+						.setRequired(true)
+					)
+					.addStringOption(o => o
+						.setName('reason')
+						.setDescription('The ID of the user to ban from submitting feedback.')
+						.setRequired(false)
+					)
 				)
-				.addStringOption(o => o
-					.setName('reason')
-					.setDescription('The ID of the user to ban from submitting feedback.')
-					.setRequired(false)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Unban)
+					.setDescription('Unbans a user from submitting feedback. Owner only.')
+					.addStringOption(o => o
+						.setName('user-id')
+						.setDescription('The ID of the user to unban from submitting feedback.')
+						.setRequired(true)
+					)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('unban')
-				.setDescription('Unbans a user from submitting feedback. Owner only.')
-				.addStringOption(o => o
-					.setName('user-id')
-					.setDescription('The ID of the user to unban from submitting feedback.')
-					.setRequired(true)
-				)
-			)
 		});
 
 		this.createSubcommandMap<Subcommands>({

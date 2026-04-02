@@ -9,6 +9,6 @@ export type DomainDefinition = {
 export const enum DomainModuleKind {
 	Jobs = 'jobs',
 	Events = 'events',
-	Controllers = 'controllers',
+	Commands = 'commands',
 	Components = 'components'
 }

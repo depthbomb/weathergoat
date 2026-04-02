@@ -3,12 +3,12 @@ import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { inject, injectable } from '@needle-di/core';
+import { inject } from '@needle-di/core';
+import { BaseCommand } from '@infra/commands';
 import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
-import { subcommand, BaseInteractionController } from '@infra/controllers';
 import {
 	HTTPRequestError,
 	isDiscordJSError,
@@ -29,35 +29,40 @@ import {
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class AlertsController extends BaseInteractionController {
+const enum Subcommands {
+	Add    = 'add',
+	Remove = 'remove',
+	List   = 'list',
+}
+
+export default class AlertsCommand extends BaseCommand {
 	public constructor(
 		private readonly eventBus = inject(EventBusService),
 		private readonly location = inject(LocationService)
 	) {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('alerts')
-			.setDescription('Alerts super command')
-			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			.addSubcommand(sc => sc
-				.setName('add')
-				.setDescription('Designates a channel for posting weather alerts to')
-				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to check for active alerts').setRequired(true))
-				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
-				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
-				.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
-				.addBooleanOption(o => o.setName('ping-on-severe').setDescription('Whether to ping everyone when a severe or extreme alert is posted (false by default)').setRequired(false))
-			)
-			.addSubcommand(sc => sc
-				.setName('remove')
-				.setDescription('Removes an alert reporting destination')
-				.addStringOption(o => o.setName('snowflake').setDescription('The snowflake of the alert destination to delete').setRequired(true))
-			)
-			.addSubcommand(sc => sc
-				.setName('list')
-				.setDescription('Lists all alert reporting destinations in the server')
-			),
+				.setName('alerts')
+				.setDescription('Alerts super command')
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Add)
+					.setDescription('Designates a channel for posting weather alerts to')
+					.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to check for active alerts').setRequired(true))
+					.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
+					.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
+					.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
+					.addBooleanOption(o => o.setName('ping-on-severe').setDescription('Whether to ping everyone when a severe or extreme alert is posted (false by default)').setRequired(false))
+				)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Remove)
+					.setDescription('Removes an alert reporting destination')
+					.addStringOption(o => o.setName('snowflake').setDescription('The snowflake of the alert destination to delete').setRequired(true))
+				)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.List)
+					.setDescription('Lists all alert reporting destinations in the server')
+				),
 			preconditions: [
 				new CooldownPrecondition({ duration: '3s', global: true })
 			]

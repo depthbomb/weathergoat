@@ -1,28 +1,27 @@
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { generateSnowflake } from '@lib/snowflake';
-import { command, BaseInteractionController } from '@infra/controllers';
+import { BaseCommand } from '@infra/commands';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
-export default class RadarController extends BaseInteractionController {
+export default class RadarCommand extends BaseCommand {
 	private readonly radars: Collection<string, string>;
 
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('radar')
-			.setDescription('View an animated weather radar loop of a region of the US')
-			.addStringOption(o => o
-				.setName('station')
-				.setDescription('Station location, some stations may cover multiple areas')
-				.setAutocomplete(true)
-				.setRequired(true)
-			)
+				.setName('radar')
+				.setDescription('View an animated weather radar loop of a region of the US')
+				.addStringOption(o => o
+					.setName('station')
+					.setDescription('Station location, some stations may cover multiple areas')
+					.setAutocomplete(true)
+					.setRequired(true)
+				)
 		});
 
 		this.radars = new Collection([
-			// Stations
 			['Aberdeen, South Dakota', 'KABR'],
 			['Albuquerque, New Mexico', 'KABX'],
 			['Wakefield, Virginia', 'KAKQ'],
@@ -182,7 +181,6 @@ export default class RadarController extends BaseInteractionController {
 			['South Kauai/Honolulu, Hawai\'i', 'PHKI'],
 			['South Shore/Honolulu, Hawai\'i', 'PHWA'],
 			['Agana/Tiyan, Guam', 'PGUA'],
-			// Regions
 			['Pacific Northwest', 'PACNORTHWEST'],
 			['North Rockies', 'NORTHROCKIES'],
 			['Upper Mississippi Valley', 'UPPERMISSVLY'],
@@ -200,8 +198,7 @@ export default class RadarController extends BaseInteractionController {
 		]);
 	}
 
-	@command()
-	private showRadarCommand(interaction: ChatInputCommandInteraction): Promise<unknown> {
+	public async handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
 		if (!this.radars.find(v => v === station)) {
 			return interaction.reply($msg.commands.radar.errors.invalidStation(station));
@@ -223,9 +220,8 @@ export default class RadarController extends BaseInteractionController {
 		}
 
 		const filtered = this.radars.filter((v, k) => k.toLowerCase().includes(value) || v.toLowerCase().includes(value));
-		const limited  = [...filtered.entries()].slice(0, 25); // Limit the results to 25
+		const limited  = [...filtered.entries()].slice(0, 25);
 
-		return interaction.respond(limited.map(([name, value]) => ({ name, value })));
+		return interaction.respond(limited.map(([name, station]) => ({ name, value: station })));
 	}
 }
-

@@ -3,14 +3,17 @@ import { InvalidPermissionsError } from '@errors';
 import { tryToRespond } from '@utils/interactions';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { ApplicationCommandOptionType } from 'discord.js';
+import { toComponentMatch, createComponentMatcher } from '@infra/components';
 import { isGuildMember, isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
 import type { BasePrecondition } from '@infra/preconditions';
+import type { ComponentMatch, ComponentMatcher } from '@infra/components';
 import type {
 	PermissionResolvable,
 	AutocompleteInteraction,
 	InteractionReplyOptions,
 	ChatInputCommandInteraction,
+	MessageComponentInteraction,
 	SlashCommandOptionsOnlyBuilder,
 	SlashCommandSubcommandsOnlyBuilder
 } from 'discord.js';
@@ -38,6 +41,25 @@ type CommandOptions = {
 
 type SubcommandMap<T extends string = string> = Record<T, BasePrecondition[]>;
 
+type ComponentRouteHandler = (interaction: MessageComponentInteraction, match: ComponentMatch) => Promise<unknown>;
+
+type ComponentRouteDefinition = {
+	pattern: string;
+	handler: ComponentRouteHandler;
+};
+
+type RegisteredComponentRoute = {
+	pattern: string;
+	handler: ComponentRouteHandler;
+	matcher: ComponentMatcher;
+};
+
+export type CommandComponentRoute = {
+	pattern: string;
+	handler: ComponentRouteHandler;
+	match: ComponentMatch;
+};
+
 export abstract class BaseCommand {
 	public readonly name: string;
 	public readonly data: SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
@@ -46,6 +68,7 @@ export abstract class BaseCommand {
 
 	private localStorage: AsyncLocalStorage<CommandContext>;
 	private subcommandMap?: SubcommandMap;
+	private componentRoutes: RegisteredComponentRoute[] = [];
 
 	public constructor(options: CommandOptions) {
 		this.name          = options.data.name;
@@ -174,6 +197,32 @@ export abstract class BaseCommand {
 		}
 
 		this.subcommandMap = map;
+	}
+
+	public createComponentRoutes(routes: ComponentRouteDefinition[]) {
+		this.componentRoutes = routes.map(route => ({
+			...route,
+			matcher: createComponentMatcher(route.pattern)
+		}));
+	}
+
+	public getComponentRoute(customId: string) {
+		for (const route of this.componentRoutes) {
+			const match = toComponentMatch(route.matcher, customId);
+			if (!match) {
+				continue;
+			}
+
+			return {
+				pattern: route.pattern,
+				handler: route.handler,
+				match
+			} satisfies CommandComponentRoute;
+		}
+	}
+
+	public async callComponentHandler(interaction: MessageComponentInteraction, route: CommandComponentRoute) {
+		await route.handler.call(this, interaction, route.match);
 	}
 
 	/**

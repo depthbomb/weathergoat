@@ -1,36 +1,39 @@
 import { $msg } from '@lib/messages';
-import { injectable } from '@needle-di/core';
+import { BaseCommand } from '@infra/commands';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { subcommand, BaseInteractionController } from '@infra/controllers';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class MaintenanceController extends BaseInteractionController {
+const enum Subcommands {
+	Enable  = 'enable',
+	Disable = 'disable',
+}
+
+export default class MaintenanceCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('maintenance')
-			.setDescription('Commands related to maintenance mode. Owner only.')
-			.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-			.addSubcommand(sc => sc
-				.setName('enable')
-				.setDescription('Enables maintenance mode, disabling use of commands.')
-				.addStringOption(o => o
-					.setName('reason')
-					.setDescription('The reason for maintenance being enabled')
-					.setRequired(false)
+				.setName('maintenance')
+				.setDescription('Commands related to maintenance mode. Owner only.')
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Enable)
+					.setDescription('Enables maintenance mode, disabling use of commands.')
+					.addStringOption(o => o
+						.setName('reason')
+						.setDescription('The reason for maintenance being enabled')
+						.setRequired(false)
+					)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('disable')
-				.setDescription('Disables maintenance mode')
-			)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Disable)
+					.setDescription('Disables maintenance mode')
+				)
 		});
 
 		this.createSubcommandMap<Subcommands>({
-			enable: [new OwnerPrecondition()],
-			disable: [new OwnerPrecondition()]
+			[Subcommands.Enable]: [new OwnerPrecondition()],
+			[Subcommands.Disable]: [new OwnerPrecondition()]
 		});
 	}
 

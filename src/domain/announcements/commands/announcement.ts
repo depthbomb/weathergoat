@@ -1,54 +1,59 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
-import { injectable } from '@needle-di/core';
+import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
-import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class AnnouncementController extends BaseInteractionController {
+const enum Subcommands {
+	Subscribe          = 'subscribe',
+	Unsubscribe        = 'unsubscribe',
+	Create             = 'create',
+	CountSubscriptions = 'count-subscriptions',
+}
+
+export default class AnnouncementCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('announcement')
-			.setDescription('Commands related to developer announcements')
-			.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-			.addSubcommand(sc => sc
-				.setName('subscribe')
-				.setDescription('Subscribe to announcements and post them to a channel (limit one per guild)')
-				.addChannelOption(o => o
-					.setName('channel')
-					.setDescription('The channel to post announcements to')
-					.addChannelTypes(ChannelType.GuildText)
-					.setRequired(true)
+				.setName('announcement')
+				.setDescription('Commands related to developer announcements')
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Subscribe)
+					.setDescription('Subscribe to announcements and post them to a channel (limit one per guild)')
+					.addChannelOption(o => o
+						.setName('channel')
+						.setDescription('The channel to post announcements to')
+						.addChannelTypes(ChannelType.GuildText)
+						.setRequired(true)
+					)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('unsubscribe')
-				.setDescription('Removes an announcement subscription for this guild')
-			)
-			.addSubcommand(sc => sc
-				.setName('create')
-				.setDescription('Creates an announcement to be dispatched to subscribed guilds. Owner only.')
-				.addStringOption(o => o
-					.setName('title')
-					.setDescription('The title of the announcement')
-					.setRequired(true)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Unsubscribe)
+					.setDescription('Removes an announcement subscription for this guild')
 				)
-				.addStringOption(o => o
-					.setName('body')
-					.setDescription('The content of the announcement')
-					.setRequired(true)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Create)
+					.setDescription('Creates an announcement to be dispatched to subscribed guilds. Owner only.')
+					.addStringOption(o => o
+						.setName('title')
+						.setDescription('The title of the announcement')
+						.setRequired(true)
+					)
+					.addStringOption(o => o
+						.setName('body')
+						.setDescription('The content of the announcement')
+						.setRequired(true)
+					)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('count-subscriptions')
-				.setDescription('Returns the total amount of announcement subscriptions. Owner only.')
-			)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.CountSubscriptions)
+					.setDescription('Returns the total amount of announcement subscriptions. Owner only.')
+				)
 		});
 
 		this.createSubcommandMap<Subcommands>({
@@ -111,9 +116,8 @@ export default class AnnouncementController extends BaseInteractionController {
 	}
 
 	public async [Subcommands.Create](interaction: ChatInputCommandInteraction) {
-		const title      = interaction.options.getString('title', true).trim();
-		const body       = interaction.options.getString('body', true).trim();
-		const colorInput = interaction.options.getString('color')?.trim();
+		const title = interaction.options.getString('title', true).trim();
+		const body  = interaction.options.getString('body', true).trim();
 
 		if (!title.length || !body.length) {
 			await interaction.reply({ content: $msg.commands.announcements.create.emptyTitleOrBody(), flags: MessageFlags.Ephemeral });
@@ -154,7 +158,6 @@ export default class AnnouncementController extends BaseInteractionController {
 
 		try {
 			const count = await db.announcementSubscription.count();
-
 			await interaction.editReply($msg.commands.announcements.count.success(count));
 		} catch (err) {
 			reportError('Unable to count announcement records', err);

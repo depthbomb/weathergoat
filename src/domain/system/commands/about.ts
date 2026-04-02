@@ -1,26 +1,23 @@
 import { $msg } from '@lib/messages';
 import { Color, CALVER } from '@constants';
 import { uptime, hostname } from 'node:os';
-import { injectable } from '@needle-di/core';
+import { BaseCommand } from '@infra/commands';
 import { DurationFormatter } from '@sapphire/duration';
-import { command, BaseInteractionController } from '@infra/controllers';
 import { MessageFlags, ContainerBuilder, SlashCommandBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class AboutController extends BaseInteractionController {
+export default class AboutCommand extends BaseCommand {
 	private readonly formatter = new DurationFormatter();
 
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('about')
-			.setDescription('Read about me!')
+				.setName('about')
+				.setDescription('Read about me!')
 		});
 	}
 
-	@command()
-	private async showAboutCommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
 		const bunCommitSha = Bun.revision.slice(0, 7);
 		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${bunCommitSha}`;
 

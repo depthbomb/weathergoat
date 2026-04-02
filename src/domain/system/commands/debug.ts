@@ -1,39 +1,43 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
+import { inject } from '@needle-di/core';
+import { BaseCommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { OwnerPrecondition } from '@preconditions/owner';
-import { subcommand, BaseInteractionController } from '@infra/controllers';
 import { AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-@injectable()
-export default class DebugController extends BaseInteractionController {
+const enum Subcommands {
+	Print  = 'print',
+	DumpDb = 'dump-db',
+}
+
+export default class DebugCommand extends BaseCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
 			data: new SlashCommandBuilder()
-			.setName('debug')
-			.setDescription('Owner-only debug commands')
-			.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-			.addSubcommand(sc => sc
-				.setName('print')
-				.setDescription('Prints string representations of various domains of my application')
-				.addStringOption(o => o
-					.setName('domain')
-					.setDescription('The domain in which to print')
-					.addChoices(
-						{ name: 'Jobs', value: 'jobs' },
-						{ name: 'Features', value: 'features' },
+				.setName('debug')
+				.setDescription('Owner-only debug commands')
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.Print)
+					.setDescription('Prints string representations of various domains of my application')
+					.addStringOption(o => o
+						.setName('domain')
+						.setDescription('The domain in which to print')
+						.addChoices(
+							{ name: 'Jobs', value: 'jobs' },
+							{ name: 'Features', value: 'features' },
+						)
+						.setRequired(true)
 					)
-					.setRequired(true)
 				)
-			)
-			.addSubcommand(sc => sc
-				.setName('dump-db')
-				.setDescription('Dumps all of the data in my database to a JSON file')
-			)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.DumpDb)
+					.setDescription('Dumps all of the data in my database to a JSON file')
+				)
 		});
 
 		this.createSubcommandMap<Subcommands>({
@@ -48,7 +52,7 @@ export default class DebugController extends BaseInteractionController {
 
 	public async [Subcommands.Print](interaction: ChatInputCommandInteraction) {
 		const domain = interaction.options.getString('domain', true) as 'jobs' | 'features';
-		let json: string = '';
+		let json = '';
 		switch (domain) {
 			case 'jobs':
 				const jobs = Array.from(interaction.client.jobs.values());
