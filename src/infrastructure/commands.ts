@@ -113,16 +113,16 @@ export abstract class BaseCommand {
 	}
 
 	/**
-	 * If this command has a subcommand map, calls the appropriate subcommand method based on the
-	 * interaction.
+	 * Calls the configured subcommand handler for the interaction and runs any preconditions
+	 * registered for that subcommand.
 	 *
 	 * @param interaction The {@link ChatInputCommandInteraction}.
 	 *
-	 * @see {@link createSubcommandMap}
+	 * @see {@link configureSubcommands}
 	 */
 	public async handleSubcommand(interaction: ChatInputCommandInteraction) {
 		if (!this.subcommandMap) {
-			throw new Error(`No subcommand map for command "${this.name}".`);
+			throw new Error(`Subcommands have not been configured for command "${this.name}".`);
 		}
 
 		const subcommandName = interaction.options.getSubcommand(true);
@@ -157,20 +157,21 @@ export abstract class BaseCommand {
 	}
 
 	/**
-	 * Sets a {@link map} on the instance for use with {@link handleSubcommand}. Handlers are
-	 * resolved automatically from instance methods whose names match declared subcommands.
+	 * Configures the subcommands declared by this command for use with {@link handleSubcommand}.
+	 * Handler methods are resolved automatically from instance methods whose names match the
+	 * declared subcommand names.
 	 *
-	 * @param map The {@link Map} of subcommand-specific preconditions keyed by the name of the
-	 * subcommand as defined in {@link CommandOptions.data}.
+	 * @param map A record keyed by declared subcommand name where each value is the ordered list of
+	 * preconditions to run before that subcommand handler.
 	 */
-	public createSubcommandMap<T extends string>(map: SubcommandMap<T>) {
+	public configureSubcommands<T extends string>(map: SubcommandMap<T>) {
 		if (this.subcommandMap) {
-			throw new Error('A subcommand map has already been defined for this command.');
+			throw new Error('Subcommands have already been configured for this command.');
 		}
 
 		const declaredSubcommands = this.getDeclaredSubcommandNames();
 		if (declaredSubcommands.length === 0) {
-			throw new Error(`Cannot create subcommand map for command "${this.name}" because no subcommands are declared in command data.`);
+			throw new Error(`Cannot configure subcommands for command "${this.name}" because no subcommands are declared in command data.`);
 		}
 
 		const declaredSet         = new Set(declaredSubcommands);
@@ -180,7 +181,7 @@ export abstract class BaseCommand {
 		const missingConfigs      = declaredSubcommands.filter(name => !configuredSet.has(name));
 		const missingHandlerNames = declaredSubcommands.filter(name => !this.hasSubcommandHandler(name));
 		if (missingHandlerNames.length > 0 || missingConfigs.length > 0 || unknownConfigs.length > 0) {
-			const errors = [`Invalid subcommand map for command "${this.name}".`];
+			const errors = [`Invalid subcommand configuration for command "${this.name}".`];
 			if (missingHandlerNames.length > 0) {
 				errors.push(`Missing handler method(s) for: ${missingHandlerNames.join(', ')}`);
 			}

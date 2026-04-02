@@ -56,7 +56,7 @@ export default class AnnouncementCommand extends BaseCommand {
 				)
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.Subscribe]: [],
 			[Subcommands.Unsubscribe]: [],
 			[Subcommands.Create]: [new OwnerPrecondition()],

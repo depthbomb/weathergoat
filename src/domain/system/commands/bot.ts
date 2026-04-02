@@ -31,7 +31,7 @@ export default class BotCommand extends BaseCommand {
 			preconditions: [new OwnerPrecondition()]
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.ListGuilds]: [],
 			[Subcommands.LeaveGuild]: []
 		});

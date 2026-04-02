@@ -62,7 +62,7 @@ export default class FeedbackCommand extends BaseCommand {
 				)
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.Submit]: [new CooldownPrecondition({ duration: '1h' })],
 			[Subcommands.Ban]: [new OwnerPrecondition()],
 			[Subcommands.Unban]: [new OwnerPrecondition()],

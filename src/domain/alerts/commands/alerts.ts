@@ -68,7 +68,7 @@ export default class AlertsCommand extends BaseCommand {
 			]
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.Add]: [],
 			[Subcommands.Remove]: [],
 			[Subcommands.List]: []

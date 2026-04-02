@@ -31,7 +31,7 @@ export default class MaintenanceCommand extends BaseCommand {
 				)
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.Enable]: [new OwnerPrecondition()],
 			[Subcommands.Disable]: [new OwnerPrecondition()]
 		});

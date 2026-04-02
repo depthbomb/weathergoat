@@ -40,7 +40,7 @@ export default class DebugCommand extends BaseCommand {
 				)
 		});
 
-		this.createSubcommandMap<Subcommands>({
+		this.configureSubcommands<Subcommands>({
 			[Subcommands.Print]: [],
 			[Subcommands.DumpDb]: [new OwnerPrecondition()]
 		});
