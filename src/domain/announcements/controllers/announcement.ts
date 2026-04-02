@@ -50,10 +50,20 @@ export default class AnnouncementController extends BaseInteractionController {
 				.setDescription('Returns the total amount of announcement subscriptions. Owner only.')
 			)
 		});
+
+		this.createSubcommandMap<Subcommands>({
+			[Subcommands.Subscribe]: [],
+			[Subcommands.Unsubscribe]: [],
+			[Subcommands.Create]: [new OwnerPrecondition()],
+			[Subcommands.CountSubscriptions]: [new OwnerPrecondition()],
+		});
 	}
 
-	@subcommand('subscribe')
-	public async handleSubscribeSubcommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
+		await this.handleSubcommand(interaction);
+	}
+
+	public async [Subcommands.Subscribe](interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
@@ -78,8 +88,7 @@ export default class AnnouncementController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('unsubscribe')
-	public async handleUnsubscribeSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Unsubscribe](interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
@@ -101,8 +110,7 @@ export default class AnnouncementController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('create', new OwnerPrecondition())
-	public async handleCreateSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Create](interaction: ChatInputCommandInteraction) {
 		const title      = interaction.options.getString('title', true).trim();
 		const body       = interaction.options.getString('body', true).trim();
 		const colorInput = interaction.options.getString('color')?.trim();
@@ -141,8 +149,7 @@ export default class AnnouncementController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('count-subscriptions', new OwnerPrecondition())
-	public async handleCountSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.CountSubscriptions](interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
 		try {

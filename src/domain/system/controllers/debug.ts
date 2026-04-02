@@ -35,10 +35,18 @@ export default class DebugController extends BaseInteractionController {
 				.setDescription('Dumps all of the data in my database to a JSON file')
 			)
 		});
+
+		this.createSubcommandMap<Subcommands>({
+			[Subcommands.Print]: [],
+			[Subcommands.DumpDb]: [new OwnerPrecondition()]
+		});
 	}
 
-	@subcommand('print')
-	public async handlePrintSubcommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
+		await this.handleSubcommand(interaction);
+	}
+
+	public async [Subcommands.Print](interaction: ChatInputCommandInteraction) {
 		const domain = interaction.options.getString('domain', true) as 'jobs' | 'features';
 		let json: string = '';
 		switch (domain) {
@@ -61,8 +69,7 @@ export default class DebugController extends BaseInteractionController {
 		await interaction.reply(json.toCodeBlock('json'));
 	}
 
-	@subcommand('dump-db', new OwnerPrecondition())
-	public async handleDumpDbSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.DumpDb](interaction: ChatInputCommandInteraction) {
 		const date = new Date();
 
 		await interaction.deferReply();

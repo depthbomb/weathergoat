@@ -25,15 +25,20 @@ export default class MaintenanceController extends BaseInteractionController {
 			.addSubcommand(sc => sc
 				.setName('disable')
 				.setDescription('Disables maintenance mode')
-			),
-			preconditions: [
-				new OwnerPrecondition()
-			]
+			)
+		});
+
+		this.createSubcommandMap<Subcommands>({
+			enable: [new OwnerPrecondition()],
+			disable: [new OwnerPrecondition()]
 		});
 	}
 
-	@subcommand('enable')
-	public async handleEnableSubcommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
+		await this.handleSubcommand(interaction);
+	}
+
+	public async [Subcommands.Enable](interaction: ChatInputCommandInteraction) {
 		const reason = interaction.options.getString('reason', false);
 
 		interaction.client.maintenanceModeFlag.setTrue();
@@ -45,8 +50,7 @@ export default class MaintenanceController extends BaseInteractionController {
 		await interaction.reply($msg.commands.maintenance.enabled());
 	}
 
-	@subcommand('disable')
-	public async handleDisableSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Disable](interaction: ChatInputCommandInteraction) {
 		interaction.client.maintenanceModeFlag.setFalse();
 		interaction.client.maintenanceModeReason.reset();
 

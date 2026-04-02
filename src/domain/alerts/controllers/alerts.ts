@@ -62,10 +62,19 @@ export default class AlertsController extends BaseInteractionController {
 				new CooldownPrecondition({ duration: '3s', global: true })
 			]
 		});
+
+		this.createSubcommandMap<Subcommands>({
+			[Subcommands.Add]: [],
+			[Subcommands.Remove]: [],
+			[Subcommands.List]: []
+		});
 	}
 
-	@subcommand('add')
-	public async handleAddSubcommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
+		await this.handleSubcommand(interaction);
+	}
+
+	public async [Subcommands.Add](interaction: ChatInputCommandInteraction) {
 		const maxCount     = env.get('MAX_ALERT_DESTINATIONS_PER_GUILD');
 		const guildId      = interaction.guildId;
 		const latitude     = interaction.options.getString('latitude', true).trim();
@@ -176,8 +185,7 @@ export default class AlertsController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('remove')
-	public async handleRemoveSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Remove](interaction: ChatInputCommandInteraction) {
 		const { guildId } = interaction;
 		const snowflake   = interaction.options.getString('snowflake', true);
 
@@ -198,8 +206,7 @@ export default class AlertsController extends BaseInteractionController {
 		this.eventBus.emit('alert-destinations:updated');
 	}
 
-	@subcommand('list')
-	public async handleListSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.List](interaction: ChatInputCommandInteraction) {
 		const guildId = interaction.guildId!;
 
 		await interaction.deferReply();

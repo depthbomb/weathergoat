@@ -56,10 +56,19 @@ export default class FeedbackController extends BaseInteractionController {
 				)
 			)
 		});
+
+		this.createSubcommandMap<Subcommands>({
+			[Subcommands.Submit]: [new CooldownPrecondition({ duration: '1h' })],
+			[Subcommands.Ban]: [new OwnerPrecondition()],
+			[Subcommands.Unban]: [new OwnerPrecondition()],
+		});
 	}
 
-	@subcommand('submit', new CooldownPrecondition({ duration: '1h' }))
-	public async handleSubmitSubcommand(interaction: ChatInputCommandInteraction) {
+	public async handle(interaction: ChatInputCommandInteraction) {
+		await this.handleSubcommand(interaction);
+	}
+
+	public async [Subcommands.Submit](interaction: ChatInputCommandInteraction) {
 		if (this.features.isFeatureEnabled('disableFeedbackSubmissions')) {
 			await interaction.reply($msg.features.disabled());
 			return;
@@ -107,8 +116,7 @@ export default class FeedbackController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('ban', new OwnerPrecondition())
-	public async handleBanSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Ban](interaction: ChatInputCommandInteraction) {
 		const userId = interaction.options.getString('user-id', true);
 		const reason = interaction.options.getString('reason') ?? 'No reason specified.';
 
@@ -122,8 +130,7 @@ export default class FeedbackController extends BaseInteractionController {
 		}
 	}
 
-	@subcommand('unban', new OwnerPrecondition())
-	public async handleUnbanSubcommand(interaction: ChatInputCommandInteraction) {
+	public async [Subcommands.Unban](interaction: ChatInputCommandInteraction) {
 		const userId = interaction.options.getString('user-id', true);
 
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
