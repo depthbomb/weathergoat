@@ -1,5 +1,6 @@
 import { BaseCommand } from '@infra/commands';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { preconditionStore } from '@infra/preconditions';
 import { AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -10,25 +11,27 @@ const enum Subcommands {
 
 export default class BotCommand extends BaseCommand {
 	public constructor() {
+		const ownerPrecondition = preconditionStore.get(OwnerPrecondition);
+
 		super({
 			data: new SlashCommandBuilder()
-			.setName('bot')
-			.setDescription('Owner-only bot-related commands')
-			.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-			.addSubcommand(sc => sc
-				.setName(Subcommands.ListGuilds)
-				.setDescription('Lists all guilds that I\'m in.')
-			)
-			.addSubcommand(sc => sc
-				.setName(Subcommands.LeaveGuild)
-				.setDescription('Makes me leave a guild.')
-				.addStringOption(o => o
-					.setName('guild-id')
-					.setDescription('The ID of the guild to leave')
-					.setRequired(true)
+				.setName('bot')
+				.setDescription('Owner-only bot-related commands')
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.addSubcommand(sc => sc
+					.setName(Subcommands.ListGuilds)
+					.setDescription('Lists all guilds that I\'m in.')
 				)
-			),
-			preconditions: [new OwnerPrecondition()]
+				.addSubcommand(sc => sc
+					.setName(Subcommands.LeaveGuild)
+					.setDescription('Makes me leave a guild.')
+					.addStringOption(o => o
+						.setName('guild-id')
+						.setDescription('The ID of the guild to leave')
+						.setRequired(true)
+					)
+				),
+			preconditions: [ownerPrecondition]
 		});
 
 		this.configureSubcommands<Subcommands>({

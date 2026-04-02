@@ -1,6 +1,6 @@
 import { MakeErrorClass } from 'fejl';
-import type { Nullable } from '@depthbomb/common/typing';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import type { Class, Nullable } from '@depthbomb/common/typing';
 
 export const enum CheckResult {
 	Success,
@@ -8,6 +8,22 @@ export const enum CheckResult {
 }
 
 export class PreconditionError extends MakeErrorClass('Precondition failed') {}
+
+export class PreconditionStore {
+	private readonly cache = new Map<Class<BasePrecondition>, BasePrecondition>();
+
+	/**
+	 * Returns a cached singleton instance of a zero-argument precondition,
+	 * creating it on first access.
+	 */
+	public get<T extends BasePrecondition>(ctor: new () => T): T {
+		if (!this.cache.has(ctor)) {
+			this.cache.set(ctor, new ctor());
+		}
+
+		return this.cache.get(ctor) as T;
+	}
+}
 
 export class PreconditionResult {
 	private constructor(
@@ -90,3 +106,5 @@ export abstract class BasePrecondition {
 export function isPreconditionError(err: unknown): err is PreconditionError {
 	return err instanceof PreconditionError;
 }
+
+export const preconditionStore = new PreconditionStore();

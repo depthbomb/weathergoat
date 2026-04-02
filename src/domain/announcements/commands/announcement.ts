@@ -4,6 +4,7 @@ import { reportError } from '@lib/logger';
 import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { preconditionStore } from '@infra/preconditions';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { ChannelType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -17,6 +18,8 @@ const enum Subcommands {
 
 export default class AnnouncementCommand extends BaseCommand {
 	public constructor() {
+		const ownerPrecondition = preconditionStore.get(OwnerPrecondition);
+
 		super({
 			data: new SlashCommandBuilder()
 				.setName('announcement')
@@ -59,8 +62,8 @@ export default class AnnouncementCommand extends BaseCommand {
 		this.configureSubcommands<Subcommands>({
 			[Subcommands.Subscribe]: [],
 			[Subcommands.Unsubscribe]: [],
-			[Subcommands.Create]: [new OwnerPrecondition()],
-			[Subcommands.CountSubscriptions]: [new OwnerPrecondition()],
+			[Subcommands.Create]: [ownerPrecondition],
+			[Subcommands.CountSubscriptions]: [ownerPrecondition],
 		});
 	}
 

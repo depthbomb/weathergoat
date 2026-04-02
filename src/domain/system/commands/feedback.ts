@@ -7,6 +7,7 @@ import { reportError } from '@lib/logger';
 import { BaseCommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { preconditionStore } from '@infra/preconditions';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
@@ -22,6 +23,8 @@ export default class FeedbackCommand extends BaseCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {
+		const ownerPrecondition = preconditionStore.get(OwnerPrecondition);
+
 		super({
 			data: new SlashCommandBuilder()
 				.setName('feedback')
@@ -64,8 +67,8 @@ export default class FeedbackCommand extends BaseCommand {
 
 		this.configureSubcommands<Subcommands>({
 			[Subcommands.Submit]: [new CooldownPrecondition({ duration: '1h' })],
-			[Subcommands.Ban]: [new OwnerPrecondition()],
-			[Subcommands.Unban]: [new OwnerPrecondition()],
+			[Subcommands.Ban]:    [ownerPrecondition],
+			[Subcommands.Unban]:  [ownerPrecondition],
 		});
 	}
 

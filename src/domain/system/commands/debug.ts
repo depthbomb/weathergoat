@@ -4,6 +4,7 @@ import { inject } from '@needle-di/core';
 import { BaseCommand } from '@infra/commands';
 import { FeaturesService } from '@services/features';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { preconditionStore } from '@infra/preconditions';
 import { AttachmentBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -16,6 +17,8 @@ export default class DebugCommand extends BaseCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {
+		const ownerPrecondition = preconditionStore.get(OwnerPrecondition);
+
 		super({
 			data: new SlashCommandBuilder()
 				.setName('debug')
@@ -42,7 +45,7 @@ export default class DebugCommand extends BaseCommand {
 
 		this.configureSubcommands<Subcommands>({
 			[Subcommands.Print]: [],
-			[Subcommands.DumpDb]: [new OwnerPrecondition()]
+			[Subcommands.DumpDb]: [ownerPrecondition]
 		});
 	}
 

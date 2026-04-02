@@ -1,6 +1,7 @@
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
 import { OwnerPrecondition } from '@preconditions/owner';
+import { preconditionStore } from '@infra/preconditions';
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -11,6 +12,8 @@ const enum Subcommands {
 
 export default class MaintenanceCommand extends BaseCommand {
 	public constructor() {
+		const ownerPrecondition = preconditionStore.get(OwnerPrecondition);
+
 		super({
 			data: new SlashCommandBuilder()
 				.setName('maintenance')
@@ -28,12 +31,13 @@ export default class MaintenanceCommand extends BaseCommand {
 				.addSubcommand(sc => sc
 					.setName(Subcommands.Disable)
 					.setDescription('Disables maintenance mode')
-				)
+				),
+			preconditions: [ownerPrecondition]
 		});
 
 		this.configureSubcommands<Subcommands>({
-			[Subcommands.Enable]: [new OwnerPrecondition()],
-			[Subcommands.Disable]: [new OwnerPrecondition()]
+			[Subcommands.Enable]:  [],
+			[Subcommands.Disable]: []
 		});
 	}
 
