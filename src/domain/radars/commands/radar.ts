@@ -1,7 +1,7 @@
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
-import { generateSnowflake } from '@lib/snowflake';
 import { BaseCommand } from '@infra/commands';
+import { generateSnowflake } from '@lib/snowflake';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
