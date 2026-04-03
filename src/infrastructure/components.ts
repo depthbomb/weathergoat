@@ -1,8 +1,8 @@
 import { logger } from '@lib/logger';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { LogLayer } from 'loglayer';
-import type { Maybe } from '@depthbomb/common/typing';
 import type { MessageComponentInteraction } from 'discord.js';
+import type { Maybe, Arrayable } from '@depthbomb/common/typing';
 
 type ComponentOptions = {
 	/**
@@ -11,7 +11,7 @@ type ComponentOptions = {
 	 * Supports Discord.NET-style wildcards via `*`.
 	 * Example: `button:*`.
 	 */
-	customId: string | string[];
+	customId: Arrayable<string>;
 	/**
 	 * Optional display name for logging.
 	 */

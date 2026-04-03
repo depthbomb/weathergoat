@@ -8,7 +8,6 @@ import 'temporal-polyfill/global';
 import { env } from '@env';
 import { container } from '@container';
 import { WeatherGoat } from '@lib/client';
-import { CliService } from '@services/cli';
 import { Flag } from '@depthbomb/common/state';
 import { logger, reportError } from '@lib/logger';
 
@@ -50,34 +49,29 @@ async function main() {
 
 	container.bind(WeatherGoat);
 
-	if (process.argv.length > 2) {
-		const cli = container.get(CliService);
-		await cli.run(process.argv.slice(2));
-	} else {
-		const wg = container.get(WeatherGoat);
-		await wg.start();
+	const wg = container.get(WeatherGoat);
+	await wg.start();
 
-		if (platform === 'win32' && mode === 'development') {
-			process.stdin.setRawMode(true);
-			process.stdin.resume();
-			process.stdin.setEncoding('utf8');
-			process.stdin.on('data', async data => {
-				if (['q', 'Q', '\u0003', '\u001b'].includes(data.toString())) {
-					await shutdown(wg, 0);
-				}
-			});
-		}
-
-		process.on('SIGINT',   () => shutdown(wg, 0)); // Ctrl+C
-		process.on('SIGTERM',  () => shutdown(wg, 0)); // Linux service stop
-		process.on('SIGBREAK', () => shutdown(wg, 0)); // Windows Ctrl+Break
-
-		process.on('unhandledRejection', (reason) => reportError('Unhandled rejection', reason));
-		process.on('uncaughtException', (err) => {
-			reportError('Uncaught exception', err);
-			shutdown(wg, 1, err);
+	if (platform === 'win32' && mode === 'development') {
+		process.stdin.setRawMode(true);
+		process.stdin.resume();
+		process.stdin.setEncoding('utf8');
+		process.stdin.on('data', async data => {
+			if (['q', 'Q', '\u0003', '\u001b'].includes(data.toString())) {
+				await shutdown(wg, 0);
+			}
 		});
 	}
+
+	process.on('SIGINT',   () => shutdown(wg, 0)); // Ctrl+C
+	process.on('SIGTERM',  () => shutdown(wg, 0)); // Linux service stop
+	process.on('SIGBREAK', () => shutdown(wg, 0)); // Windows Ctrl+Break
+
+	process.on('unhandledRejection', (reason) => reportError('Unhandled rejection', reason));
+	process.on('uncaughtException', (err) => {
+		reportError('Uncaught exception', err);
+		shutdown(wg, 1, err);
+	});
 }
 
 main().catch(err => {

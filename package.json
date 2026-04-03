@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.4.1.1",
+	"calver": "2026.4.3",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
@@ -34,7 +34,6 @@
 		"@sapphire/stopwatch": "^1.5.4",
 		"@sentry/bun": "^10.47.0",
 		"bufferutil": "^4.1.0",
-		"clipanion": "^4.0.0-rc.4",
 		"cockatiel": "^3.2.1",
 		"croner": "^10.0.1",
 		"discord.js": "^14.26.0",

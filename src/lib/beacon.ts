@@ -9,7 +9,7 @@ const WEBHOOK_USERNAME = 'WeatherGoat#Beacon' as const;
 export class Beacon {
 	public install(client: WeatherGoat) {
 		const webhook = new WebhookClient({
-			url: env.get('BEACON_WEBHOOK_URL')
+			url: env.get('BEACON_WEBHOOK_URL')!
 		});
 
 		client.on('guildCreate', async guild => {

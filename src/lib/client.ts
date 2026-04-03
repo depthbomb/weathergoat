@@ -14,6 +14,7 @@ import { Path } from '@depthbomb/node-common/pathlib';
 import { compareComponentMatch } from '@infra/components';
 import { Flag, ResettableValue } from '@depthbomb/common/state';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
+import { BaseLegacyCommand, LegacyCommandRegistry } from '@infra/legacy-commands';
 import {
 	Client,
 	Options,
@@ -25,25 +26,28 @@ import {
 } from 'discord.js';
 import type { BaseJob } from '@infra/jobs';
 import type { BaseEvent } from '@infra/events';
-import type { BaseComponent, ComponentMatch } from '@infra/components';
 import type { ClientEvents } from 'discord.js';
 import type { DomainDefinition } from '@domain';
-import type { BaseCommand, CommandComponentRoute } from '@infra/commands';
 import type { Maybe } from '@depthbomb/common/typing';
+import type { BaseComponent, ComponentMatch } from '@infra/components';
+import type { BaseCommand, CommandComponentRoute } from '@infra/commands';
 
-type BaseModule<T>    = { default: new() => T };
-type JobModule        = BaseModule<BaseJob>;
-type EventModule      = BaseModule<BaseEvent<keyof ClientEvents>>;
-type CommandModule    = BaseModule<BaseCommand>;
-type ComponentModule  = BaseModule<BaseComponent>;
-type DomainModule     = { default: DomainDefinition };
-type RegisteredDomain = { definition: DomainDefinition; rootPath: string; };
+type BaseModule<T>       = { default: new() => T };
+type JobModule           = BaseModule<BaseJob>;
+type EventModule         = BaseModule<BaseEvent<keyof ClientEvents>>;
+type CommandModule       = BaseModule<BaseCommand>;
+type LegacyCommandModule = BaseModule<BaseLegacyCommand>;
+type ComponentModule     = BaseModule<BaseComponent>;
+type DomainModule        = { default: DomainDefinition };
+type RegisteredDomain    = { definition: DomainDefinition; rootPath: string; };
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();
 	public readonly events                = new Collection<string, BaseEvent<keyof ClientEvents>>();
 	public readonly commands              = new Collection<string, BaseCommand>();
 	public readonly components            = new Collection<string, BaseComponent>();
+	public readonly legacyCommands        = new Collection<string, BaseLegacyCommand>();
+	public readonly legacyCommandRegistry = new LegacyCommandRegistry();
 	public readonly maintenanceModeFlag   = new Flag(false);
 	public readonly maintenanceModeReason = new ResettableValue('No reason specified');
 	public readonly commandLinks          = new Collection<string, string>();
@@ -51,9 +55,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private commandLinksLoaded        = false;
 	private commandLinksLoadPromise?: Promise<void>;
 
-	private readonly beacon            = new Beacon();
-	private readonly logger            = logger.child().withPrefix('[Client]');
-	private readonly moduleFilePattern = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
+	private readonly legacyCommandAliases = new Collection<string, BaseLegacyCommand>();
+	private readonly beacon               = new Beacon();
+	private readonly logger               = logger.child().withPrefix('[Client]');
+	private readonly moduleFilePattern    = /^(?!index\.ts$)(?!_)[\w-]+\.ts$/;
 
 	public constructor(
 		private readonly redis    = inject(RedisService),
@@ -70,6 +75,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				GatewayIntentBits.GuildMessages,
 				GatewayIntentBits.GuildWebhooks,
 				GatewayIntentBits.GuildScheduledEvents,
+				GatewayIntentBits.MessageContent,
 			],
 			partials: [Partials.Message, Partials.Channel],
 			makeCache: Options.cacheWithLimits({
@@ -83,13 +89,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();
+		await this.registerLegacyCommands();
 		await this.registerComponents();
 
 		const res = await this.login(env.get('BOT_TOKEN').release());
 
 		await this.application?.fetch();
 
-		this.beacon.install(this);
+		if (env.get('BEACON_WEBHOOK_URL')) {
+			this.beacon.install(this);
+		}
 
 		return res;
 	}
@@ -272,6 +281,48 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 	}
 
+	public async registerLegacyCommands() {
+		this.legacyCommands.clear();
+		this.legacyCommandAliases.clear();
+		this.legacyCommandRegistry.clear();
+
+		const commandSourceByName = new Collection<string, string>();
+
+		for (const domain of await this.getRegisteredDomains()) {
+			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.LegacyCommands)) {
+				const { default: mod }: LegacyCommandModule = await import(file);
+				if (!container.has(mod)) {
+					container.bind(mod);
+				}
+
+				const command        = container.get<BaseLegacyCommand>(mod);
+				const previousSource = commandSourceByName.get(command.name);
+				if (previousSource) {
+					throw new Error([
+						`Duplicate legacy command name "${command.name}" detected during registration.`,
+						`First seen in: ${previousSource}`,
+						`Duplicate found in: ${file}`
+					].join('\n'));
+				}
+
+				this.legacyCommandRegistry.register(command);
+
+				for (const name of command.getAllNames()) {
+					this.legacyCommandAliases.set(name, command);
+				}
+
+				this.legacyCommands.set(command.name, command);
+				commandSourceByName.set(command.name, file);
+
+				this.logger.withMetadata({
+					domain: domain.definition.id,
+					name: command.name,
+					aliases: command.aliases
+				}).info('Registered legacy command');
+			}
+		}
+	}
+
 	public async getCommandLink(commandName: string, ...path: string[]) {
 		const fullPath = this.formatCommandPath(commandName, ...path);
 		const cached = this.commandLinks.get(fullPath);
@@ -373,6 +424,10 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 
 		return best;
+	}
+
+	public getLegacyCommand(name: string) {
+		return this.legacyCommandRegistry.get(name) ?? this.legacyCommandAliases.get(name.toLowerCase());
 	}
 
 	private async getRegisteredDomains() {

@@ -27,8 +27,8 @@ export default class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 				client.getCommandLink('forecasts'),
 				client.getCommandLink('auto-radar'),
 				client.getCommandLink('radar'),
-				client.getCommandLink('announcement', 'subscribe'),
-				client.getCommandLink('feedback', 'submit')
+				client.getCommandLink('announcements', 'subscribe'),
+				client.getCommandLink('feedback')
 			]);
 			const commandsOverview = $msg.common.messages.helpText(alerts, forecasts, autoRadar, radar, announcement);
 

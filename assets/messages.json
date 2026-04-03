@@ -118,31 +118,6 @@
 				"notSubscribed": "This guild is not subscribed to announcements.",
 				"success": "This guild will no longer receive announcements.",
 				"error": "Unable to remove announcement subscription. Please try again later."
-			},
-			"create": {
-				"emptyTitleOrBody": "Title and body cannot be empty.",
-				"success": "Announcement created! Dispatching to guilds should begin shortly.",
-				"error": [
-					"Unable to create announcement.",
-					"```",
-					"{errorName:string}",
-					"{errorStack?:string}",
-					"```"
-				]
-			},
-			"count": {
-				"success": {
-					"_one": "There is currently only 1 announcement subscription.",
-					"_other": "There are currently {count:number} announcement subscriptions.",
-					"_zero": "There are no announcement subscriptions :(."
-				},
-				"error": [
-					"Unable to count announcement subscriptions.",
-					"```",
-					"{errorName:string}",
-					"{errorStack?:string}",
-					"```"
-				]
 			}
 		},
 		"autoRadar": {
@@ -170,11 +145,9 @@
 			"embed": {
 				"title": "Feedback Received"
 			},
-			"submit": {
-				"success": "My creator has successfully received your feedback. Thank you!",
-				"error": "I was unable to pass your feedback along to my creator. Please try again later.",
-				"banned": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
-			}
+			"success": "My creator has successfully received your feedback. Thank you!",
+			"error": "I was unable to pass your feedback along to my creator. Please try again later.",
+			"banned": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
 		},
 		"forecasts": {
 			"errors": {
@@ -189,10 +162,6 @@
 				"You can remove this destination by simply deleting the message."
 			],
 			"listTitle": "Forecast reporting destinations in this server"
-		},
-		"maintenance": {
-			"enabled": "Successfully enabled maintenance mode.",
-			"disabled": "Successfully disabled maintenance mode."
 		},
 		"radar": {
 			"errors": {
@@ -211,6 +180,69 @@
 		"deleteForecastButton": {
 			"noPermission": "You do not have permission to perform this action.",
 			"couldNotFindMessage": "Could not find forecast message."
+		}
+	},
+	"legacyCommands": {
+		"announcements": {
+			"create": {
+				"emptyTitleOrBody": "Title and body cannot be empty.",
+				"success": "Announcement created! Dispatching to guilds should begin shortly.",
+				"error": [
+					"Unable to create announcement.",
+					"```",
+					"{errorName:string}",
+					"{errorStack?:string}",
+					"```"
+				]
+			},
+			"count": {
+				"success": {
+					"_one": "There is currently only 1 announcement subscription.",
+					"_other": "There are currently {count:number} announcement subscriptions.",
+					"_zero": "There are no announcement subscriptions :(."
+				},
+				"error": [
+					"Unable to count announcement subscriptions.",
+					"```",
+					"{errorName:string}",
+					"{errorStack?:string}",
+					"```"
+				]
+			}
+		},
+		"bot": {
+			"leaveGuild": {
+				"success": "Successfully left guild **{guildName:string}**.",
+				"error": "Could not retrieve a guild that I'm in by the provided ID."
+			}
+		},
+		"commands": {
+			"noValidGuildIds": "No valid guild IDs provided.",
+			"finishedGlobalAction": "Finished {action:string} commands globally.",
+			"finishedGuildAction": {
+				"_one": "Finished {action:string} commands in one guild.",
+				"_other": "Finished {action:string} commands in `{count:number}` guilds."
+			}
+		},
+		"feedback": {
+			"ban": {
+				"success": "User successfully banned from submitting feedback.",
+				"error": [
+					"Unable to apply feedback ban to user.",
+					"{errorStack?:string}"
+				]
+			},
+			"unban": {
+				"success": "User successfully unbanned from submitting feedback.",
+				"error": [
+					"Unable to lift feedback ban.",
+					"{errorStack?:string}"
+				]
+			}
+		},
+		"maintenance": {
+			"enabled": "Successfully enabled maintenance mode.",
+			"disabled": "Successfully disabled maintenance mode."
 		}
 	},
 	"jobs": {

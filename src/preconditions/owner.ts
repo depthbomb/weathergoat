@@ -10,12 +10,7 @@ export class OwnerPrecondition extends BasePrecondition {
 
 	public async check(interaction: ChatInputCommandInteraction) {
 		const userId = interaction.user.id;
-
-		if (!interaction.client.application.owner) {
-			await interaction.client.application.fetch();
-		}
-
-		const owner = interaction.client.application.owner!;
+		const owner  = interaction.client.application.owner!;
 		if ('members' in owner) {
 			const isTeamAdmin = owner.members.some(m => m.id === userId && (m.role === TeamMemberRole.Admin || m.role === TeamMemberRole.Developer));
 			if (!isTeamAdmin) {
