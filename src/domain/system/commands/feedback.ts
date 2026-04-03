@@ -44,7 +44,7 @@ export default class FeedbackCommand extends BaseCommand {
 
 		const isBanned = await db.feedbackBan.exists({ userId: interaction.user.id, active: true });
 		if (isBanned) {
-			await interaction.editReply($msg.commands.feedback.submit.banned());
+			await interaction.editReply($msg.commands.feedback.banned());
 			return;
 		}
 
@@ -67,16 +67,16 @@ export default class FeedbackCommand extends BaseCommand {
 		const owner = await interaction.client.users.fetch(env.get('BOT_OWNER_ID'));
 		if (!owner) {
 			this.logger.error('Failed to retrieve owner to submit feedback to.');
-			await interaction.editReply($msg.commands.feedback.submit.error());
+			await interaction.editReply($msg.commands.feedback.error());
 			return;
 		}
 
 		try {
 			await owner.send({ embeds: [embed] });
-			await interaction.editReply($msg.commands.feedback.submit.success());
+			await interaction.editReply($msg.commands.feedback.success());
 		} catch (err) {
 			reportError('Failed to submit feedback.', err);
-			await interaction.editReply($msg.commands.feedback.submit.error());
+			await interaction.editReply($msg.commands.feedback.error());
 		}
 	}
 }
