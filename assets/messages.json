@@ -64,7 +64,8 @@
 				"## Thank you for adding me to your server! Here's a quick rundown to get started:",
 				"{commandsOverview:string}",
 				"",
-				"Lastly, if you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
+				"If you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
+				"Lastly, if you enjoy my service then [upvoting me on Top.gg](https://top.gg/bot/1009028718083199016/vote) would very much be appreciated! None of my functionality is locked behind upvoting so don't feel pressured to!",
 				"",
 				"-# I apologize if this is not an appropriate channel for this introduction."
 			]
