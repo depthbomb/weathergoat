@@ -2,7 +2,6 @@ import { Env } from '@depthbomb/env';
 
 export const env = Env.create({
 	MODE:                                Env.schema.enum(['production', 'development']),
-	BOT_ID:                              Env.schema.string(),
 	BOT_TOKEN:                           Env.schema.secret(),
 	BOT_OWNER_ID:                        Env.schema.string(),
 	OWNER_PREFIX:                        Env.schema.string(),

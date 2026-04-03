@@ -15,7 +15,6 @@ First create a `.env` file in the project root and configure it:
 ```
 MODE=development
 
-BOT_ID=1234
 BOT_TOKEN=abcd
 BOT_OWNER_ID=5678
 
