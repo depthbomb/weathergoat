@@ -69,7 +69,7 @@ export class HTTPClient {
 		this.headers     = new Headers({ 'user-agent': BOT_USER_AGENT });
 		this.retryPolicy = retry(handleResultType(Response, res => RETRYABLE_STATUS_CODES.has(res.status)), {
 			maxAttempts: 10,
-			backoff: new ConstantBackoff(1_000)
+			backoff: new ConstantBackoff(1_500)
 		});
 		this.durationFormatter = new DurationFormatter();
 		this.logger            = logger.child().withPrefix(`[HTTP(${this.name})]`);

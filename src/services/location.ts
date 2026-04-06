@@ -203,7 +203,9 @@ export class LocationService {
 				wasAdjusted: true,
 				info: nearest
 			} as CoordinateLookupResult;
+
 			await this.redis.set(cacheKey, JSON.stringify(result), cacheTTL);
+
 			return result;
 		}
 	}
