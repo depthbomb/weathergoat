@@ -70,8 +70,12 @@ export default class ReportForecastsJob extends BaseJob {
 					continue;
 				}
 
-				const forecast = await this.forecast.getForecastForCoordinates(latitude, longitude);
 				const location = await this.location.getInfoFromCoordinates(latitude, longitude);
+				const forecast = await this.forecast.getForecastForCoordinates(latitude, longitude);
+				if (!forecast) {
+					continue;
+				}
+
 				const embed = new EmbedBuilder()
 					.setTitle('⛅ ' + $msg.jobs.forecasts.embedTitle(forecast.name, location.location))
 					.setColor(Color.Primary)

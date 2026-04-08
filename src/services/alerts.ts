@@ -33,7 +33,7 @@ export class AlertsService {
 		if (!res.ok) {
 			if (res.status === 503) {
 				this.logger.warn('Unable to retrieve all active alerts, upstream API unavailable.');
-				return;
+				return [];
 			}
 
 			throw new HTTPRequestError(res.statusText, { code: res.status, status: res.statusText });
