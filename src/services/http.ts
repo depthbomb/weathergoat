@@ -4,7 +4,7 @@ import { Collection } from 'discord.js';
 import { BOT_USER_AGENT } from '@constants';
 import { injectable } from '@needle-di/core';
 import { URLPath } from '@depthbomb/common/url';
-import { DurationFormatter } from '@sapphire/duration';
+import { formatDuration } from '@depthbomb/common/timing';
 import { retry, ConstantBackoff, handleResultType } from 'cockatiel';
 import type { LogLayer } from 'loglayer';
 import type { RetryPolicy } from 'cockatiel';
@@ -57,7 +57,6 @@ export class HTTPClient {
 	private readonly baseUrl?: string;
 	private readonly headers: Headers;
 	private readonly retryPolicy: RetryPolicy;
-	private readonly durationFormatter: DurationFormatter;
 	private readonly logger: LogLayer;
 
 	private requestNum = 0;
@@ -71,8 +70,7 @@ export class HTTPClient {
 			maxAttempts: 10,
 			backoff: new ConstantBackoff(1_500)
 		});
-		this.durationFormatter = new DurationFormatter();
-		this.logger            = logger.child().withPrefix(`[HTTP(${this.name})]`);
+		this.logger      = logger.child().withPrefix(`[HTTP(${this.name})]`);
 
 		this._mergeHeaders(this.headers, options.headers);
 	}
@@ -124,7 +122,7 @@ export class HTTPClient {
 		this.logger.withMetadata({
 			requestId,
 			status: `${res.status} - ${res.statusText}`,
-			elapsed: this.durationFormatter.format(Number((endTime - startTime) / 1000000n))
+			elapsed: formatDuration(Number((endTime - startTime) / 1000000n))
 		}).debug('Finished HTTP request');
 
 		this.requestNum++;

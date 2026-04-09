@@ -1,7 +1,7 @@
 import { time } from 'discord.js';
 import { $msg } from '@lib/messages';
-import { Duration } from '@sapphire/duration';
 import { RateLimitManager } from '@sapphire/ratelimits';
+import { parseDuration } from '@depthbomb/common/timing';
 import { isGuildBasedChannel } from '@sapphire/discord.js-utilities';
 import { BasePrecondition, PreconditionResult } from '@infra/preconditions';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -29,7 +29,7 @@ export class CooldownPrecondition extends BasePrecondition {
 		super();
 
 		this.global  = global ?? false;
-		this.manager = new RateLimitManager<string>(new Duration(duration).offset, limit);
+		this.manager = new RateLimitManager<string>(parseDuration(duration).milliseconds, limit);
 	}
 
 	public async check(interaction: ChatInputCommandInteraction) {

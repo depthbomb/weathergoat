@@ -1,13 +1,13 @@
 import { db } from '@database';
 import { logger } from '@lib/logger';
 import { WeatherGoat } from '@lib/client';
-import { Duration } from '@sapphire/duration';
 import { isDiscordAPIErrorCode } from '@errors';
 import { RESTJSONErrorCodes } from 'discord.js';
 import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
 import type { Message } from 'discord.js';
+import { parseDuration } from '@depthbomb/common/timing';
 
 @injectable()
 export class SweeperService {
@@ -60,7 +60,7 @@ export class SweeperService {
 			guildId = arg1;
 			channelId = arg2 as string;
 			messageId = arg3!;
-			expiresAt = typeof arg4 === 'string' ? new Duration(arg4).fromNow : arg4!;
+			expiresAt = typeof arg4 === 'string' ? parseDuration(arg4).fromNow() : arg4!;
 		} else {
 			// arg1 = message, arg2 = expires
 			if (!arg1.guildId) {
@@ -70,7 +70,7 @@ export class SweeperService {
 			guildId = arg1.guildId;
 			channelId = arg1.channelId;
 			messageId = arg1.id;
-			expiresAt = typeof arg2 === 'string' ? new Duration(arg2).fromNow : arg2;
+			expiresAt = typeof arg2 === 'string' ? parseDuration(arg2).fromNow() : arg2;
 		}
 
 		await db.volatileMessage.upsert({

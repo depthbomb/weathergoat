@@ -2,13 +2,11 @@ import { $msg } from '@lib/messages';
 import { Color, CALVER } from '@constants';
 import { uptime, hostname } from 'node:os';
 import { BaseCommand } from '@infra/commands';
-import { DurationFormatter } from '@sapphire/duration';
+import { formatDuration } from '@depthbomb/common/timing';
 import { MessageFlags, ContainerBuilder, SlashCommandBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export default class AboutCommand extends BaseCommand {
-	private readonly formatter = new DurationFormatter();
-
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()
@@ -30,8 +28,8 @@ export default class AboutCommand extends BaseCommand {
 			.addTextDisplayComponents(d => d.setContent($msg.commands.about.gutsSection(
 				bunCommitSha.toHyperlink(bunCommitUrl),
 				hostname(),
-				this.formatter.format(uptime() * 1_000),
-				this.formatter.format(interaction.client.uptime ?? 0)
+				formatDuration(uptime() * 1_000),
+				formatDuration(interaction.client.uptime ?? 0)
 			)))
 			.addSeparatorComponents(s => s.setDivider(true).setSpacing(SeparatorSpacingSize.Large))
 			.addTextDisplayComponents(d => d.setContent($msg.commands.about.dataSourceSection()))

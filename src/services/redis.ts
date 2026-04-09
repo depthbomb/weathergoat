@@ -1,7 +1,7 @@
 import { env } from '@env';
 import { RedisClient } from 'bun';
 import { injectable } from '@needle-di/core';
-import { Duration } from '@sapphire/duration';
+import { parseDuration } from '@depthbomb/common/timing';
 
 @injectable()
 export class RedisService {
@@ -21,12 +21,12 @@ export class RedisService {
 
 	public async set(key: string, value: unknown, ttl?: string) {
 		if (ttl) {
-			const duration = new Duration(ttl);
+			const duration = parseDuration(ttl);
 			return this.client.set(
 				this.getPrefixedKey(key),
 				value,
 				'PX',
-				duration.offset
+				duration.milliseconds
 			);
 		}
 

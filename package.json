@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.4.6",
+	"calver": "2026.4.9",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
@@ -27,7 +27,6 @@
 		"@prisma/adapter-libsql": "^7.7.0",
 		"@prisma/client": "^7.7.0",
 		"@sapphire/discord.js-utilities": "^7.3.3",
-		"@sapphire/duration": "^1.2.0",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",

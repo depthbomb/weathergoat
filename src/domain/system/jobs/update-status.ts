@@ -3,13 +3,12 @@ import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
-import { DurationFormatter } from '@sapphire/duration';
+import { formatDuration } from '@depthbomb/common/timing';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 @injectable()
 export default class UpdateStatusJob extends BaseJob {
-	private readonly formatter: DurationFormatter;
 	private readonly emoji = [
 		'🌪️',
 		'☀️',
@@ -38,8 +37,6 @@ export default class UpdateStatusJob extends BaseJob {
 			pattern: '*/15 * * * * *',
 			runImmediately: true
 		});
-
-		this.formatter = new DurationFormatter();
 	}
 
 	public async execute(client: WeatherGoat<true>) {
@@ -47,7 +44,7 @@ export default class UpdateStatusJob extends BaseJob {
 			return;
 		}
 
-		const duration = this.formatter.format(client.uptime, 3);
+		const duration = formatDuration(client.uptime, { precision: 3 });
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
