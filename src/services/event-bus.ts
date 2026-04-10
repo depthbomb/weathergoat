@@ -3,7 +3,7 @@ import { injectable } from '@needle-di/core';
 import type { Awaitable } from '@depthbomb/common/typing';
 
 type Events = {
-	'alert-destinations:updated': [void];
+	'alert-destinations:updated': [];
 };
 
 @injectable()

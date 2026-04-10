@@ -52,15 +52,15 @@ export default class ReportAlertsJob extends BaseJob {
 			const allDestinations = await db.alertDestination.findMany();
 			for (const destination of allDestinations) {
 				if (!this.ugcIndex.has(destination.countyId)) {
-					this.ugcIndex.set(destination.countyId, [])
+					this.ugcIndex.set(destination.countyId, []);
 				}
 
 				if (!this.ugcIndex.has(destination.zoneId)) {
-					this.ugcIndex.set(destination.zoneId, [])
+					this.ugcIndex.set(destination.zoneId, []);
 				}
 
-				this.ugcIndex.get(destination.countyId)!.push(destination)
-				this.ugcIndex.get(destination.zoneId)!.push(destination)
+				this.ugcIndex.get(destination.countyId)!.push(destination);
+				this.ugcIndex.get(destination.zoneId)!.push(destination);
 			}
 
 			this.hasIndexedFlag.setTrue();
@@ -283,9 +283,5 @@ export default class ReportAlertsJob extends BaseJob {
 			case AlertSeverity.Extreme:
 				return IMAGE_ASSETS['alert-banner-extreme'];
 		}
-	}
-
-	private createLinkAnchor(alertId: string) {
-		return `alert_${alertId.split('.').slice(-3).join('_')}`;
 	}
 }

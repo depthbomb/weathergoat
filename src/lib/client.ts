@@ -440,6 +440,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 			}
 
 			seen.add(definition.id);
+
 			domains.push({
 				definition,
 				rootPath
