@@ -120,11 +120,68 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		await super.destroy();
 	}
 
-	/**
-	 * Iterates registered domain job directories and registers recurring background jobs, adding them to the
-	 * container to utilize dependency injection.
-	 */
-	public async registerJobs() {
+	public async getCommandLink(commandName: string, ...path: string[]) {
+		const fullPath = this.formatCommandPath(commandName, ...path);
+		const cached = this.commandLinks.get(fullPath);
+		if (cached) {
+			return cached;
+		}
+
+		if (!this.commandLinksLoaded) {
+			await this.loadCommandLinksOnce();
+			const loaded = this.commandLinks.get(fullPath);
+			if (loaded) {
+				return loaded;
+			}
+		}
+
+		return `/${fullPath}`;
+	}
+
+	public getCommandComponentForCustomId(customId: string) {
+		let best: Maybe<{ command: BaseCommand; route: CommandComponentRoute }>;
+
+		for (const command of this.commands.values()) {
+			const route = command.getComponentRoute(customId);
+			if (!route) {
+				continue;
+			}
+
+			const match = route.match;
+			if (!match) {
+				continue;
+			}
+
+			if (!best || compareComponentMatch(match, best.route.match) > 0) {
+				best = { command, route };
+			}
+		}
+
+		return best;
+	}
+
+	public getComponentForCustomId(customId: string) {
+		let best: Maybe<{ component: BaseComponent; match: ComponentMatch }>;
+
+		for (const component of this.components.values()) {
+			const match = component.getMatch(customId);
+			if (!match) {
+				continue;
+			}
+
+			if (!best || compareComponentMatch(match, best.match!) > 0) {
+				best = { component, match };
+			}
+		}
+
+		return best;
+	}
+
+	public getLegacyCommand(name: string) {
+		return this.legacyCommandRegistry.get(name) ?? this.legacyCommandAliases.get(name.toLowerCase());
+	}
+
+	private async registerJobs() {
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Jobs)) {
 				const { default: mod }: JobModule = await import(file);
@@ -136,19 +193,17 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				const name           = job.name;
 				const pattern        = job.pattern;
 				const runImmediately = job.runImmediately ?? false;
-				const cron = new Cron(pattern, async self => await job.execute(this, self), {
+				const cron = new Cron(pattern, self => job.execute(this, self), {
 					name,
 					paused: true,
 					protect: (job) => this.logger.withMetadata({ name, calledAt: job.currentRun()?.getDate() }).warn('Job overrun'),
 					catch: (err) => reportError('Job error', err, { name })
 				});
 
-				this.jobs.add({ job, cron });
-
 				this.once('clientReady', async () => {
 					try {
 						if (runImmediately) {
-							await job.execute(this, cron);
+							cron.trigger();
 						}
 					} catch (err) {
 						reportError('Error executing `runImmediately` job', err, { name });
@@ -156,6 +211,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 						cron.resume();
 					}
 				});
+
+				this.jobs.add({ job, cron });
 
 				this.logger.withMetadata({
 					domain: domain.definition.id,
@@ -167,10 +224,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 	}
 
-	/**
-	 * Iterates registered domain event directories and registers client events.
-	 */
-	public async registerEvents() {
+	private async registerEvents() {
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Events)) {
 				const { default: mod }: EventModule = await import(file);
@@ -207,11 +261,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 	}
 
-	/**
-	 * Iterates registered domain command directories and registers all commands, adding them to
-	 * the container to utilize dependency injection.
-	 */
-	public async registerCommands() {
+	private async registerCommands() {
 		this.commands.clear();
 		this.commandLinks.clear();
 		this.commandLinksLoaded      = false;
@@ -248,7 +298,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 	}
 
-	public async registerComponents() {
+	private async registerComponents() {
 		this.components.clear();
 
 		const componentSourceByName = new Collection<string, string>();
@@ -281,7 +331,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		}
 	}
 
-	public async registerLegacyCommands() {
+	private async registerLegacyCommands() {
 		this.legacyCommands.clear();
 		this.legacyCommandAliases.clear();
 		this.legacyCommandRegistry.clear();
@@ -321,24 +371,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				}).info('Registered legacy command');
 			}
 		}
-	}
-
-	public async getCommandLink(commandName: string, ...path: string[]) {
-		const fullPath = this.formatCommandPath(commandName, ...path);
-		const cached = this.commandLinks.get(fullPath);
-		if (cached) {
-			return cached;
-		}
-
-		if (!this.commandLinksLoaded) {
-			await this.loadCommandLinksOnce();
-			const loaded = this.commandLinks.get(fullPath);
-			if (loaded) {
-				return loaded;
-			}
-		}
-
-		return `/${fullPath}`;
 	}
 
 	private async loadCommandLinks() {
@@ -385,49 +417,6 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	private formatCommandPath(commandName: string, ...path: string[]) {
 		return [commandName, ...path].join(' ');
-	}
-
-	public getCommandComponentForCustomId(customId: string) {
-		let best: Maybe<{ command: BaseCommand; route: CommandComponentRoute }>;
-
-		for (const command of this.commands.values()) {
-			const route = command.getComponentRoute(customId);
-			if (!route) {
-				continue;
-			}
-
-			const match = route.match;
-			if (!match) {
-				continue;
-			}
-
-			if (!best || compareComponentMatch(match, best.route.match) > 0) {
-				best = { command, route };
-			}
-		}
-
-		return best;
-	}
-
-	public getComponentForCustomId(customId: string) {
-		let best: Maybe<{ component: BaseComponent; match: ComponentMatch }>;
-
-		for (const component of this.components.values()) {
-			const match = component.getMatch(customId);
-			if (!match) {
-				continue;
-			}
-
-			if (!best || compareComponentMatch(match, best.match!) > 0) {
-				best = { component, match };
-			}
-		}
-
-		return best;
-	}
-
-	public getLegacyCommand(name: string) {
-		return this.legacyCommandRegistry.get(name) ?? this.legacyCommandAliases.get(name.toLowerCase());
 	}
 
 	private async getRegisteredDomains() {

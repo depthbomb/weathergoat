@@ -5,7 +5,7 @@
 			"ESNext",
 			"DOM"
 		],
-		"types": ["@abraham/reflection", "./src/@types/index.d.ts"],
+		"types": ["@abraham/reflection", "bun-types", "./src/@types/index.d.ts"],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleDetection": "force",
