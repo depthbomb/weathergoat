@@ -1,13 +1,15 @@
+import { $ } from 'bun';
 import { env } from '@env';
 import { Cron } from 'croner';
 import { join } from 'node:path';
+import { $msg } from './messages';
 import { Beacon } from './beacon';
 import { container } from '@container';
-import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
 import { DomainModuleKind } from '@domain';
 import { readdir } from 'node:fs/promises';
 import { RedisService } from '@services/redis';
+import { CALVER, DOMAINS_DIR } from '@constants';
 import { logger, reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
 import { Path } from '@depthbomb/node-common/pathlib';
@@ -86,6 +88,8 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	public async start() {
+		const sha = await $`git rev-parse --short HEAD`.text();
+
 		await this.registerJobs();
 		await this.registerEvents();
 		await this.registerCommands();
@@ -95,6 +99,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		const res = await this.login(env.get('BOT_TOKEN').release());
 
 		await this.application?.fetch();
+		await this.application!.edit({
+			description: $msg.common.description(CALVER, sha)
+		});
 
 		if (env.get('BEACON_WEBHOOK_URL')) {
 			this.beacon.install(this);

@@ -1,4 +1,3 @@
-import { CALVER } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { FeaturesService } from '@services/features';
@@ -50,7 +49,7 @@ export default class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration, CALVER),
+					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration),
 					type: ActivityType.Custom
 				}
 			]

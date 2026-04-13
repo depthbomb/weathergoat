@@ -1,5 +1,6 @@
 {
 	"common": {
+		"description": "Weather alert and forecast reporting bot by @depthbomb.\n\nVersion {calver:string}.{commitSha:string}",
 		"buttons": {
 			"yes": "Yes",
 			"no": "No",
@@ -282,7 +283,7 @@
 			"nextUpdateTitle": "Next Update"
 		},
 		"status": {
-			"activity": "{emoji:string} Forecasting for {duration:string} (v{calver:string})"
+			"activity": "{emoji:string} Forecasting for {duration:string}"
 		}
 	},
 	"beacon": {
