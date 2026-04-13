@@ -39,6 +39,6 @@ For managing application commands, see owner-only commands below.
 
 # Development
 
-As of version `2026.4.3`, owner-only commands now use the legacy prefixed commands system and the bot requires the `MESSAGE_CONTENT` intent. These commands should be called in a server you share with the bot where _you_ have the `ADMINISTRATOR` permission.
+As of version `2026.4.3`, owner-only commands now use the legacy prefixed commands system and the bot requires the `MESSAGE_CONTENT` intent. These commands should be called in the direct messages channel with the bot. These commands will only work for the owner of the application or an admin or developer if the application is owned by a team.
 
-Use the `commands create-global` command to apply application commands globally or `commands create [guildIds:string...]` to apply commands to specific guilds. Use `delete`/`delete-global` to delete application commands in specific guilds or globally.
+Use the `commands create-global` command to register application commands globally or `commands create [guildIds:string...]` to register commands to specific guilds. Use `delete`/`delete-global` to delete application commands in specific guilds or globally.

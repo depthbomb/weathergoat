@@ -2,9 +2,10 @@ import { env } from '@env';
 import { $msg } from '@lib/messages';
 import { BaseEvent } from '@infra/events';
 import { reportError } from '@lib/logger';
+import { TeamMemberRole } from 'discord.js';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { LegacyCommandError, LegacyCommandArguments } from '@infra/legacy-commands';
-import { TeamMemberRole, type Message } from 'discord.js';
+import type { Message } from 'discord.js';
 
 export default class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 	public constructor() {
@@ -78,7 +79,7 @@ export default class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 		}
 	}
 
-	private async isOwner(message: Message): Promise<boolean> {
+	private async isOwner(message: Message) {
 		const userId = message.author.id;
 		const owner  = message.client.application.owner!;
 		if ('members' in owner) {
