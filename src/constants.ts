@@ -1,7 +1,7 @@
 import { main } from 'bun';
 import { join, dirname } from 'node:path';
 
-export const CALVER = '2026.4.10' as const;
+export const CALVER = '2026.4.12' as const;
 
 export const REPO_OWNER = 'depthbomb' as const;
 export const REPO_NAME  = 'weathergoat' as const;
@@ -15,6 +15,7 @@ export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 export const ROOT_DIR      = dirname(main);
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
 export const DATA_DIR      = join(PROJECT_ROOT, '.data');
+export const STORE_DIR     = join(DATA_DIR, 'store');
 export const LOGS_DIR      = join(DATA_DIR, 'logs');
 export const DOMAINS_DIR   = join(ROOT_DIR, 'domain');
 export const FEATURES_FILE = join(PROJECT_ROOT, 'features.yaml');

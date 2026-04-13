@@ -99,7 +99,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		const res = await this.login(env.get('BOT_TOKEN').release());
 
 		await this.application?.fetch();
-		await this.application!.edit({
+		await this.application?.edit({
 			description: $msg.common.description(CALVER, sha)
 		});
 
