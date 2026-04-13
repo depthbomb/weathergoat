@@ -334,12 +334,13 @@ export class LegacyCommandArguments {
 		}
 
 		this.index++;
+
 		return value;
 	}
 }
 
 export class LegacyCommandParameters {
-	private readonly values = new Map<string, unknown>();
+	public readonly values = new Map<string, unknown>();
 
 	public set(name: string, value: unknown) {
 		this.values.set(name, value);

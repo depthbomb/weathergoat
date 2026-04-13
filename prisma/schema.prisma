@@ -118,3 +118,32 @@ model AnnouncementDelivery {
   @@index([announcementId])
   @@index([subscriptionId])
 }
+
+enum IncidentStatus {
+  ACTIVE
+  RESOLVED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Incident {
+  id            Int              @id @default(autoincrement())
+  snowflake     String           @unique
+  key           String
+  title         String
+  description   String
+  status        IncidentStatus   @default(ACTIVE)
+  severity      IncidentSeverity
+  createdAt     DateTime         @default(now())
+  autoResolveAt DateTime?
+  resolvedAt    DateTime?
+
+  @@unique([key, status], name: "key_status")
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}

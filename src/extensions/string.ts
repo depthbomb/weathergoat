@@ -23,6 +23,7 @@ declare global {
 		toCodeBlock<Language extends string>(language?: Language): string;
 		toSpoiler(): string;
 		bracketWrap(): `[${string}]`;
+		toSlug(): string;
 	}
 }
 
@@ -64,4 +65,15 @@ String.prototype.toSpoiler = function() {
 
 String.prototype.bracketWrap = function() {
 	return `[${this.valueOf()}]` as const;
+};
+
+String.prototype.toSlug = function() {
+	return this.valueOf()
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9\s-]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-');
 };

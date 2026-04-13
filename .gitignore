@@ -1,5 +1,7 @@
 .data/
 
+assets/images/emoji/*.svg
+
 node_modules/
 
 src/database/generated/**/*

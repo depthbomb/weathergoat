@@ -11,7 +11,7 @@ export default class MaintenanceCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			syntax: `maintenance <${Subcommands.Enable} [reason:string...] | ${Subcommands.Disable}>`,
-			description: 'Toggle maintenance mode.',
+			description: 'Maintenance management commands.',
 		});
 	}
 
