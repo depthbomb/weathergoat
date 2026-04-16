@@ -1,5 +1,5 @@
 import { $msg } from '@lib/messages';
-import { BaseLegacyCommand } from '@infra/legacy-commands';
+import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
@@ -10,13 +10,19 @@ const enum Subcommands {
 export default class MaintenanceCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
-			syntax: `maintenance <${Subcommands.Enable} [reason:string...] | ${Subcommands.Disable}>`,
+			name: 'maintenance',
 			description: 'Maintenance management commands.',
+			subcommands: {
+				[Subcommands.Enable]: [
+					LegacyCommandParam.string('reason', { required: false, rest: true }),
+				],
+				[Subcommands.Disable]: {},
+			},
 		});
 	}
 
 	public async [Subcommands.Enable](message: Message) {
-		const reason = this.ctx?.params.getString('reason', false);
+		const reason = this.ctx.params.getString('reason', false);
 
 		message.client.maintenanceModeFlag.setTrue();
 		if (reason) {

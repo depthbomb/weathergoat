@@ -7,7 +7,7 @@ import type { Message, MessagePayload, MessageReplyOptions } from 'discord.js';
 
 type LegacyValueType = 'string' | 'number' | 'int' | 'bool';
 
-type LegacyCommandContext = {
+export type LegacyCommandContext = {
 	message: Message;
 	args: LegacyCommandArguments;
 	prefix: string;
@@ -18,10 +18,18 @@ type LegacyCommandContext = {
 	route: LegacyCommandRoute;
 };
 
+type LegacyCommandRouteOptions = {
+	params?: LegacyCommandParameterDefinition[];
+};
+
+type LegacySubcommandDefinition = LegacyCommandParameterDefinition[] | LegacyCommandRouteOptions;
+
 type LegacyCommandOptions = {
-	syntax: string;
+	name: string;
 	description?: string;
 	aliases?: string[];
+	params?: LegacyCommandParameterDefinition[];
+	subcommands?: Record<string, LegacySubcommandDefinition>;
 };
 
 type ParsedLegacyCommand = {
@@ -34,34 +42,17 @@ type LegacyCommandSummary = {
 	description?: string;
 	syntax: string;
 	usage: string;
+	usageLines: string[];
 	aliases: string[];
 	subcommands: string[];
 	command: BaseLegacyCommand;
 };
 
-type LegacySyntaxNode = LegacyLiteralNode | LegacyParamNode | LegacyChoiceNode | LegacyOptionalNode;
-
-type LegacyLiteralNode = {
-	kind: 'literal';
-	value: string;
-};
-
-type LegacyParamNode = {
-	kind: 'param';
+export type LegacyCommandParameterDefinition = {
 	name: string;
-	valueType: LegacyValueType;
+	type: LegacyValueType;
 	required: boolean;
 	rest: boolean;
-};
-
-type LegacyChoiceNode = {
-	kind: 'choice';
-	alternatives: Array<LegacySyntaxNode[]>;
-};
-
-type LegacyOptionalNode = {
-	kind: 'optional';
-	sequence: LegacySyntaxNode[];
 };
 
 type LegacyRouteToken = {
@@ -78,17 +69,39 @@ type LegacyRouteToken = {
 type LegacyCommandRoute = {
 	tokens: LegacyRouteToken[];
 	handlerName: string;
+	subcommandName?: string;
 };
 
-type CompiledLegacySyntax = {
+type CompiledLegacyDefinition = {
 	name: string;
 	syntax: string;
 	usage: string;
+	usageLines: string[];
 	routes: LegacyCommandRoute[];
 	subcommands: string[];
 };
 
+type LegacyCommandParameterOptions = {
+	required?: boolean;
+	rest?: boolean;
+};
+
 export class LegacyCommandError extends Error {}
+
+export const LegacyCommandParam = {
+	string(name: string, options?: LegacyCommandParameterOptions) {
+		return createLegacyParam(name, 'string', options);
+	},
+	number(name: string, options?: LegacyCommandParameterOptions) {
+		return createLegacyParam(name, 'number', options);
+	},
+	int(name: string, options?: LegacyCommandParameterOptions) {
+		return createLegacyParam(name, 'int', options);
+	},
+	bool(name: string, options?: LegacyCommandParameterOptions) {
+		return createLegacyParam(name, 'bool', options);
+	},
+};
 
 export class LegacyCommandRegistry {
 	private readonly commands = new Collection<string, BaseLegacyCommand>();
@@ -137,6 +150,7 @@ export class LegacyCommandRegistry {
 			description: command.description,
 			syntax: command.syntax,
 			usage: command.usage,
+			usageLines: command.getUsageLines(),
 			aliases: [...command.aliases],
 			subcommands: command.getSubcommands(),
 			command
@@ -435,32 +449,50 @@ export abstract class BaseLegacyCommand {
 	public readonly aliases: string[];
 	public readonly logger: LogLayer;
 
-	private readonly definition: CompiledLegacySyntax;
+	private readonly definition: CompiledLegacyDefinition;
 	private readonly localStorage = new AsyncLocalStorage<LegacyCommandContext>();
 
 	public constructor(options: LegacyCommandOptions) {
-		this.definition  = compileLegacySyntax(options.syntax);
-		this.name        = this.definition.name;
-		this.syntax      = this.definition.syntax;
-		this.usage       = this.definition.usage;
+		const name = options.name.trim().toLowerCase();
+		if (!name.length) {
+			throw new Error('Legacy command name cannot be empty.');
+		}
+
+		this.name        = name;
 		this.description = options.description;
 		this.aliases     = (options.aliases ?? []).map(alias => alias.toLowerCase());
 		this.logger      = logger.child().withPrefix(`[LegacyCommand(${this.name})]`);
+		this.definition  = compileLegacyDefinition({
+			...options,
+			name
+		});
+		this.syntax      = this.definition.syntax;
+		this.usage       = this.definition.usage;
+
+		this.assertHandlerDefinitions();
 	}
 
-	public get ctx() {
-		return this.localStorage.getStore();
+	public get ctx(): LegacyCommandContext {
+		const context = this.localStorage.getStore();
+		if (!context) {
+			throw new Error(`No message context available for legacy command \`${this.name}\`.`);
+		}
+
+		return context;
 	}
 
 	public async callHandler(context: Omit<LegacyCommandContext, 'params' | 'route'>) {
 		const match = this.matchRoute(context.args.toArray());
 		if (!match) {
-			throw new LegacyCommandError(`Invalid usage for \`${this.name}\`. Expected: \`${context.prefix}${this.syntax}\``);
+			const usage = this.getUsageLines()
+				.map(line => `- \`${context.prefix}${line}\``)
+				.join('\n');
+			throw new LegacyCommandError(`Invalid usage for \`${this.name}\`. Expected one of:\n${usage}`);
 		}
 
 		const runContext: LegacyCommandContext = {
 			...context,
-			subcommandName: match.subcommandName,
+			subcommandName: match.route.subcommandName,
 			params: match.params,
 			route: match.route
 		};
@@ -483,17 +515,29 @@ export abstract class BaseLegacyCommand {
 		return [...this.definition.subcommands];
 	}
 
+	public getUsageLines() {
+		return [...this.definition.usageLines];
+	}
+
 	public async reply(options: string | MessagePayload | MessageReplyOptions) {
-		const message = this.ctx?.message;
-		if (!message) {
-			throw new Error(`No message context available for legacy command \`${this.name}\`.`);
-		}
-
 		if (typeof options === 'string') {
-			return message.reply(options);
+			return this.ctx.message.reply(options);
 		}
 
-		return message.reply(options);
+		return this.ctx.message.reply(options);
+	}
+
+	private assertHandlerDefinitions() {
+		const missingHandlerNames = this.definition.routes
+			.map(route => route.handlerName)
+			.filter((name, index, names) => names.indexOf(name) === index)
+			.filter(name => typeof (this as Record<string, unknown>)[name] !== 'function');
+
+		if (missingHandlerNames.length === 0) {
+			return;
+		}
+
+		throw new Error(`Missing legacy command handler(s) for "${this.name}": ${missingHandlerNames.join(', ')}`);
 	}
 
 	private getHandler(handlerName: string) {
@@ -555,282 +599,169 @@ export abstract class BaseLegacyCommand {
 				continue;
 			}
 
-			const firstLiteral = route.tokens.find(token => token.kind === 'literal');
 			return {
 				route,
 				params,
-				subcommandName: firstLiteral?.kind === 'literal' ? firstLiteral.value : undefined
 			};
 		}
 	}
 }
 
-function compileLegacySyntax(syntax: string): CompiledLegacySyntax {
-	const trimmed = syntax.trim();
-	if (!trimmed.length) {
-		throw new Error('Legacy command syntax cannot be empty.');
+function compileLegacyDefinition(options: Pick<LegacyCommandOptions, 'name' | 'params' | 'subcommands'>): CompiledLegacyDefinition {
+	const params = options.params ?? [];
+	const subcommandEntries = Object.entries(options.subcommands ?? {});
+	if (params.length > 0 && subcommandEntries.length > 0) {
+		throw new Error(`Legacy command "${options.name}" cannot declare both root params and subcommands.`);
 	}
 
-	const tokens = tokenizeLegacySyntax(trimmed);
-	const [name, ...rest] = tokens;
-	if (!name || isSyntaxControlToken(name)) {
-		throw new Error(`Invalid legacy command syntax "${syntax}".`);
-	}
+	if (subcommandEntries.length > 0) {
+		const routes = [] as LegacyCommandRoute[];
+		const usageLines = [] as string[];
 
-	const parser = createLegacySyntaxParser(rest);
-	const nodes = parser.parseSequence();
-	parser.expectEnd();
+		for (const [subcommandName, subcommandDefinition] of subcommandEntries) {
+			const normalizedName = normalizeLegacyLiteral(subcommandName, `legacy subcommand for "${options.name}"`);
+			const routeParams = normalizeLegacySubcommandParams(subcommandDefinition);
+			const expanded = expandLegacyParamRoutes(routeParams);
 
-	const routes = expandLegacyNodes(nodes)
-		.map(tokens => ({
-			tokens,
-			handlerName: getLegacyRouteHandlerName(tokens)
-		}))
-		.sort(compareLegacyRoutes);
-
-	const subcommands = [...new Set(
-		routes
-			.map(route => route.tokens.find(token => token.kind === 'literal'))
-			.filter((token): token is Extract<LegacyRouteToken, { kind: 'literal' }> => Boolean(token))
-			.map(token => token.value)
-	)];
-
-	return {
-		name: name.toLowerCase(),
-		syntax: trimmed,
-		usage: trimmed,
-		routes,
-		subcommands
-	};
-}
-
-function tokenizeLegacySyntax(input: string) {
-	const tokens = [] as string[];
-	let current = '';
-
-	for (const char of input) {
-		if (/\s/.test(char)) {
-			if (current.length) {
-				tokens.push(current);
-				current = '';
+			for (const tokens of expanded) {
+				routes.push({
+					tokens: [{ kind: 'literal', value: normalizedName }, ...tokens],
+					handlerName: normalizedName,
+					subcommandName: normalizedName,
+				});
 			}
 
-			continue;
+			usageLines.push(formatLegacyUsageLine(options.name, normalizedName, routeParams));
 		}
 
-		if (['<', '>', '[', ']', '|'].includes(char)) {
-			if (current.length) {
-				tokens.push(current);
-				current = '';
-			}
-
-			tokens.push(char);
-			continue;
-		}
-
-		current += char;
-	}
-
-	if (current.length) {
-		tokens.push(current);
-	}
-
-	return tokens;
-}
-
-function createLegacySyntaxParser(tokens: string[]) {
-	let index = 0;
-
-	function peek() {
-		return tokens[index];
-	}
-
-	function consume(expected?: string) {
-		const token = tokens[index];
-		if (token === undefined) {
-			throw new Error('Unexpected end of legacy command syntax.');
-		}
-
-		if (expected && token !== expected) {
-			throw new Error(`Expected "${expected}" in legacy command syntax, got "${token}".`);
-		}
-
-		index++;
-		return token;
-	}
-
-	function parseSequence(stopTokens = new Set<string>()) {
-		const nodes = [] as LegacySyntaxNode[];
-
-		while (index < tokens.length) {
-			const token = peek();
-			if (!token || stopTokens.has(token)) {
-				break;
-			}
-
-			if (token === '<') {
-				nodes.push(parseRequiredGroup());
-				continue;
-			}
-
-			if (token === '[') {
-				nodes.push(parseOptionalGroup());
-				continue;
-			}
-
-			if (token === '>' || token === ']' || token === '|') {
-				break;
-			}
-
-			nodes.push(parseLiteral(token));
-
-			index++;
-		}
-
-		return nodes;
-	}
-
-	function parseRequiredGroup(): LegacySyntaxNode {
-		consume('<');
-		const alternatives = parseAlternatives('>');
-		consume('>');
-
-		if (alternatives.length === 1 && alternatives[0].length === 1 && alternatives[0][0]?.kind === 'param') {
-			return {
-				...alternatives[0][0],
-				required: true
-			};
-		}
+		const syntax = `${options.name} <subcommand>`;
 
 		return {
-			kind: 'choice',
-			alternatives
+			name: options.name,
+			syntax,
+			usage: usageLines.join('\n'),
+			usageLines,
+			routes: routes.sort(compareLegacyRoutes),
+			subcommands: subcommandEntries.map(([name]) => name.toLowerCase()),
 		};
 	}
 
-	function parseOptionalGroup(): LegacySyntaxNode {
-		consume('[');
-		const alternatives = parseAlternatives(']');
-		consume(']');
+	const routes = expandLegacyParamRoutes(params).map(tokens => ({
+		tokens,
+		handlerName: 'run',
+	}));
 
-		if (alternatives.length === 1 && alternatives[0].length === 1 && alternatives[0][0]?.kind === 'param') {
-			return {
-				...alternatives[0][0],
-				required: false
-			};
-		}
-
-		if (alternatives.length > 1) {
-			throw new Error('Optional legacy syntax groups cannot contain alternatives.');
-		}
-
-		return {
-			kind: 'optional',
-			sequence: alternatives[0] ?? []
-		};
-	}
-
-	function parseAlternatives(endToken: string) {
-		const alternatives = [] as LegacySyntaxNode[][];
-
-		while (index < tokens.length) {
-			alternatives.push(parseSequence(new Set([endToken, '|'])));
-
-			if (peek() !== '|') {
-				break;
-			}
-
-			consume('|');
-		}
-
-		return alternatives;
-	}
-
-	function parseLiteral(token: string): LegacySyntaxNode {
-		const param = parseParamToken(token);
-		if (param) {
-			return {
-				...param,
-				required: true
-			};
-		}
-
-		return {
-			kind: 'literal',
-			value: token.toLowerCase()
-		};
-	}
-
-	function expectEnd() {
-		if (index < tokens.length) {
-			throw new Error(`Unexpected token "${tokens[index]}" in legacy command syntax.`);
-		}
-	}
+	const suffix = formatLegacyParams(params);
+	const syntax = [options.name, suffix].filter(Boolean).join(' ');
 
 	return {
-		parseSequence,
-		expectEnd
+		name: options.name,
+		syntax,
+		usage: syntax,
+		usageLines: [syntax],
+		routes: routes.sort(compareLegacyRoutes),
+		subcommands: [],
 	};
 }
 
-function parseParamToken(token: string): Nullable<Omit<LegacyParamNode, 'required'>> {
-	const match = /^(?<name>[\w-]+):(?<type>string|number|int|bool)(?<rest>\.\.\.)?$/.exec(token);
-	if (!match?.groups) {
-		return null;
+function normalizeLegacySubcommandParams(definition: LegacySubcommandDefinition) {
+	if (Array.isArray(definition)) {
+		return definition;
+	}
+
+	return definition.params ?? [];
+}
+
+function createLegacyParam(name: string, type: LegacyValueType, options?: LegacyCommandParameterOptions): LegacyCommandParameterDefinition {
+	const normalizedName = name.trim();
+	if (!normalizedName.length) {
+		throw new Error(`Legacy command parameter name cannot be empty for type "${type}".`);
 	}
 
 	return {
-		kind: 'param',
-		name: match.groups.name,
-		valueType: match.groups.type as LegacyValueType,
-		rest: Boolean(match.groups.rest)
+		name: normalizedName,
+		type,
+		required: options?.required ?? true,
+		rest: options?.rest ?? false,
 	};
 }
 
-function expandLegacyNodes(nodes: LegacySyntaxNode[]) {
+function expandLegacyParamRoutes(params: LegacyCommandParameterDefinition[]) {
+	assertLegacyParams(params);
+
 	let routes = [[]] as LegacyRouteToken[][];
+	for (const param of params) {
+		const token = {
+			kind: 'param',
+			name: param.name,
+			valueType: param.type,
+			required: param.required,
+			rest: param.rest,
+		} satisfies LegacyRouteToken;
 
-	for (const node of nodes) {
-		if (node.kind === 'literal') {
-			routes = routes.map(route => [...route, { kind: 'literal', value: node.value }]);
+		if (param.required) {
+			routes = routes.map(route => [...route, token]);
 			continue;
 		}
 
-		if (node.kind === 'param') {
-			routes = routes.map(route => [...route, {
-				kind: 'param',
-				name: node.name,
-				valueType: node.valueType,
-				required: node.required,
-				rest: node.rest
-			}]);
-			continue;
-		}
-
-		if (node.kind === 'optional') {
-			const expandedOptional = expandLegacyNodes(node.sequence);
-			routes = [
-				...routes,
-				...routes.flatMap(route => expandedOptional.map(optionalRoute => [...route, ...optionalRoute]))
-			];
-			continue;
-		}
-
-		if (node.kind === 'choice') {
-			const nextRoutes = [] as Array<LegacyRouteToken[]>;
-			for (const route of routes) {
-				for (const alternative of node.alternatives) {
-					for (const expanded of expandLegacyNodes(alternative)) {
-						nextRoutes.push([...route, ...expanded]);
-					}
-				}
-			}
-
-			routes = nextRoutes;
-		}
+		routes = [
+			...routes,
+			...routes.map(route => [...route, token]),
+		];
 	}
 
 	return routes;
+}
+
+function assertLegacyParams(params: LegacyCommandParameterDefinition[]) {
+	let optionalSeen = false;
+
+	for (const [index, param] of params.entries()) {
+		if (!param.name.trim().length) {
+			throw new Error('Legacy command parameter names cannot be empty.');
+		}
+
+		if (param.rest && index !== params.length - 1) {
+			throw new Error(`Legacy command rest parameter "${param.name}" must be the last parameter.`);
+		}
+
+		if (!param.required) {
+			optionalSeen = true;
+			continue;
+		}
+
+		if (optionalSeen) {
+			throw new Error(`Required legacy command parameter "${param.name}" cannot appear after an optional parameter.`);
+		}
+	}
+}
+
+function formatLegacyParams(params: LegacyCommandParameterDefinition[]) {
+	return params
+		.map(param => {
+			const rest = param.rest ? '...' : '';
+			const body = `${param.name}:${param.type}${rest}`;
+			return param.required ? `<${body}>` : `[${body}]`;
+		})
+		.join(' ');
+}
+
+function formatLegacyUsageLine(commandName: string, subcommandName: string, params: LegacyCommandParameterDefinition[]) {
+	const suffix = formatLegacyParams(params);
+	return [commandName, subcommandName, suffix].filter(Boolean).join(' ');
+}
+
+function normalizeLegacyLiteral(value: string, label: string) {
+	const normalized = value.trim().toLowerCase();
+	if (!normalized.length) {
+		throw new Error(`Empty ${label} is not allowed.`);
+	}
+
+	if (/\s/.test(normalized)) {
+		throw new Error(`Whitespace is not allowed in ${label} "${value}".`);
+	}
+
+	return normalized;
 }
 
 function compareLegacyRoutes(a: LegacyCommandRoute, b: LegacyCommandRoute) {
@@ -841,11 +772,6 @@ function compareLegacyRoutes(a: LegacyCommandRoute, b: LegacyCommandRoute) {
 	}
 
 	return b.tokens.length - a.tokens.length;
-}
-
-function getLegacyRouteHandlerName(tokens: LegacyRouteToken[]) {
-	const literals = tokens.filter((token): token is Extract<LegacyRouteToken, { kind: 'literal' }> => token.kind === 'literal');
-	return literals.at(-1)?.value ?? 'run';
 }
 
 function coerceParameter(name: string, raw: string, type: LegacyValueType) {
@@ -895,8 +821,4 @@ function coerceBoolean(name: string, raw: string) {
 		default:
 			throw new LegacyCommandError(`Expected ${name} to be a boolean, got "${raw}".`);
 	}
-}
-
-function isSyntaxControlToken(token: string) {
-	return ['<', '>', '[', ']', '|'].includes(token);
 }

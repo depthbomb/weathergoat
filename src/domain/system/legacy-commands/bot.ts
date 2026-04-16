@@ -1,6 +1,6 @@
 import { $msg } from '@lib/messages';
 import { AttachmentBuilder } from 'discord.js';
-import { BaseLegacyCommand } from '@infra/legacy-commands';
+import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
@@ -11,8 +11,14 @@ const enum Subcommands {
 export default class BotCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
-			syntax: `bot <${Subcommands.ListGuilds} | ${Subcommands.LeaveGuild} <guild-id:string>>`,
-			description: 'Owner bot management commands.'
+			name: 'bot',
+			description: 'Owner bot management commands.',
+			subcommands: {
+				[Subcommands.ListGuilds]: {},
+				[Subcommands.LeaveGuild]: [
+					LegacyCommandParam.string('guild-id'),
+				],
+			},
 		});
 	}
 
@@ -25,7 +31,7 @@ export default class BotCommand extends BaseLegacyCommand {
 	}
 
 	public async [Subcommands.LeaveGuild](message: Message) {
-		const guildId = this.ctx!.params.getString('guild-id', true);
+		const guildId = this.ctx.params.getString('guild-id', true);
 		try {
 			const guild = await message.client.guilds.fetch(guildId);
 			await guild.leave();

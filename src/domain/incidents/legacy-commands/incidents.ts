@@ -1,7 +1,7 @@
 import { inject } from '@needle-di/core';
 import { IncidentsService } from '@services/incidents';
-import { BaseLegacyCommand } from '@infra/legacy-commands';
 import { IncidentSeverity } from '@database/generated/enums';
+import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
@@ -14,16 +14,27 @@ export default class IncidentsCommand extends BaseLegacyCommand {
 		private readonly incidents = inject(IncidentsService)
 	) {
 		super({
-			syntax: `incidents <${Subcommands.Create} <title:string> <severity:string> <description:string> [autoResolveAt:string] | ${Subcommands.Resolve} <title:string>>`,
+			name: 'incidents',
 			description: 'Incidents management commands.',
+			subcommands: {
+				[Subcommands.Create]: [
+					LegacyCommandParam.string('title'),
+					LegacyCommandParam.string('severity'),
+					LegacyCommandParam.string('description'),
+					LegacyCommandParam.string('autoResolveAt', { required: false }),
+				],
+				[Subcommands.Resolve]: [
+					LegacyCommandParam.string('title'),
+				],
+			},
 		});
 	}
 
 	public async [Subcommands.Create](message: Message) {
-		const title         = this.ctx!.params.getString('title', true);
-		const severity      = this.ctx!.params.getString('severity', true);
-		const description   = this.ctx!.params.getString('description', true);
-		const autoResolveAt = this.ctx!.params.getString('autoResolveAt', false);
+		const title         = this.ctx.params.getString('title', true);
+		const severity      = this.ctx.params.getString('severity', true);
+		const description   = this.ctx.params.getString('description', true);
+		const autoResolveAt = this.ctx.params.getString('autoResolveAt', false);
 
 		try {
 			const incident = await this.incidents.ensureActiveIncident(title, description, this.parseSeverity(severity), autoResolveAt);
@@ -35,7 +46,7 @@ export default class IncidentsCommand extends BaseLegacyCommand {
 	}
 
 	public async [Subcommands.Resolve](message: Message) {
-		const title = this.ctx!.params.getString('title', true);
+		const title = this.ctx.params.getString('title', true);
 
 		const key       = title.toSlug();
 		const { count } = await this.incidents.resolve(key);

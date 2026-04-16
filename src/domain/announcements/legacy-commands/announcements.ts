@@ -2,7 +2,7 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
-import { BaseLegacyCommand } from '@infra/legacy-commands';
+import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
@@ -13,8 +13,15 @@ const enum Subcommands {
 export default class AnnouncementsCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
-			syntax: `announcements <${Subcommands.CountSubscriptions} | ${Subcommands.Create} <title:string> <body:string...>>`,
-			description: 'Announcement management commands'
+			name: 'announcements',
+			description: 'Announcement management commands',
+			subcommands: {
+				[Subcommands.CountSubscriptions]: {},
+				[Subcommands.Create]: [
+					LegacyCommandParam.string('title'),
+					LegacyCommandParam.string('body', { rest: true }),
+				],
+			},
 		});
 	}
 
@@ -34,8 +41,8 @@ export default class AnnouncementsCommand extends BaseLegacyCommand {
 	}
 
 	public async [Subcommands.Create](message: Message) {
-		const title = this.ctx!.params.getString('title', true).trim();
-		const body  = this.ctx!.params.getString('body', true).trim();
+		const title = this.ctx.params.getString('title', true).trim();
+		const body  = this.ctx.params.getString('body', true).trim();
 
 		if (!title.length || !body.length) {
 			await message.reply({ content: $msg.legacyCommands.announcements.create.emptyTitleOrBody() });

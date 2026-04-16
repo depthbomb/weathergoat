@@ -84,7 +84,12 @@ export abstract class BaseCommand {
 	 * @remarks Values will be `undefined` if the command was not called with `callHandler`.
 	 */
 	public get ctx() {
-		return this.localStorage.getStore();
+		const context = this.localStorage.getStore();
+		if (!context) {
+			throw new Error(`No interaction context available for command "${this.name}".`);
+		}
+
+		return context;
 	}
 
 	/**
@@ -231,11 +236,11 @@ export abstract class BaseCommand {
 	 * @param options Message string or {@link InteractionReplyOptions|reply options}.
 	 */
 	public async tryToRespond(options: string | InteractionReplyOptions) {
-		return tryToRespond(this.ctx?.interaction!, options);
+		return tryToRespond(this.ctx.interaction, options);
 	}
 
 	public async getCommandLink(commandName: string, ...path: string[]) {
-		const interaction = this.ctx?.interaction;
+		const interaction = this.localStorage.getStore()?.interaction;
 		if (!interaction) {
 			return `/${[commandName, ...path].join(' ')}`;
 		}

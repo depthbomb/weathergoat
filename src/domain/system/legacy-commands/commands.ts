@@ -1,10 +1,10 @@
 import { Routes } from 'discord.js';
+import { $msg } from '@lib/messages';
 import { isValidSnowflake } from '@lib/snowflake';
-import { BaseLegacyCommand } from '@infra/legacy-commands';
+import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 import type { Nullable } from '@depthbomb/common/typing';
-import { $msg } from '@lib/messages';
 
 type Scope  = 'global' | 'guild';
 type Action = 'create' | 'delete';
@@ -19,8 +19,18 @@ const enum Subcommands {
 export default class CommandsCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
-			syntax: `commands <${Subcommands.Create} [guild-ids:string...] | ${Subcommands.CreateGlobal} | ${Subcommands.Delete} [guild-ids:string...] | ${Subcommands.DeleteGlobal}>`,
-			description: 'Command management commands.'
+			name: 'commands',
+			description: 'Command management commands.',
+			subcommands: {
+				[Subcommands.Create]: [
+					LegacyCommandParam.string('guild-ids', { required: false, rest: true }),
+				],
+				[Subcommands.CreateGlobal]: {},
+				[Subcommands.Delete]: [
+					LegacyCommandParam.string('guild-ids', { required: false, rest: true }),
+				],
+				[Subcommands.DeleteGlobal]: {},
+			},
 		});
 	}
 
@@ -69,7 +79,7 @@ export default class CommandsCommand extends BaseLegacyCommand {
 	}
 
 	private async getValidGuildIds(message: Message): Promise<Nullable<string[]>> {
-		const guilds = this.ctx!.params.getString('guild-ids', true);
+		const guilds = this.ctx.params.getString('guild-ids', true);
 		const valid  = guilds.split(' ').filter(isValidSnowflake);
 
 		if (valid.length === 0) {

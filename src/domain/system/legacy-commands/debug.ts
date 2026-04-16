@@ -3,7 +3,7 @@ import { $msg } from '@lib/messages';
 import { inject } from '@needle-di/core';
 import { AttachmentBuilder } from 'discord.js';
 import { FeaturesService } from '@services/features';
-import { BaseLegacyCommand, LegacyCommandError } from '@infra/legacy-commands';
+import { BaseLegacyCommand, LegacyCommandError, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
@@ -16,15 +16,21 @@ export default class DebugCommand extends BaseLegacyCommand {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
-			syntax: `debug <${Subcommands.Print} <domain:string> | ${Subcommands.DumpDb}>`,
-			description: 'Owner debug commands.'
+			name: 'debug',
+			description: 'Owner debug commands.',
+			subcommands: {
+				[Subcommands.Print]: [
+					LegacyCommandParam.string('domain'),
+				],
+				[Subcommands.DumpDb]: {},
+			},
 		});
 	}
 
 	public async [Subcommands.Print](message: Message) {
 		let json = '';
 
-		const domain = this.ctx?.params.getString('domain', true);
+		const domain = this.ctx.params.getString('domain', true);
 		switch (domain) {
 			case 'jobs':
 				const jobs = Array.from(message.client.jobs.values());
