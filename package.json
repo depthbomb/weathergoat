@@ -1,10 +1,12 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.4.15",
+	"calver": "2026.4.16",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
 		"start": "bun src/index.ts",
+		"update": "bash update.sh",
+		"deploy": "bun scripts/deploy.ts",
 		"calver:show": "bun scripts/calver.ts show",
 		"calver:bump": "bun scripts/calver.ts bump",
 		"calver:set": "bun scripts/calver.ts set",
