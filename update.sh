@@ -7,6 +7,13 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
+FORCE=false
+for arg in "$@"; do
+    case $arg in
+        -f|--force) FORCE=true ;;
+    esac
+done
+
 START_TIME=$(date +%s)
 
 step() { echo -e "\n${CYAN}${BOLD}▶  $1${RESET}"; }
@@ -22,8 +29,8 @@ step "Pulling latest changes"
 PULL_OUTPUT=$(git pull --ff-only)
 echo "$PULL_OUTPUT"
 
-if [[ "$PULL_OUTPUT" == "Already up to date." ]]; then
-    echo -e "\n${BOLD}Already up to date - nothing to do.${RESET}\n"
+if [[ "$PULL_OUTPUT" == "Already up to date." ]] && [[ "$FORCE" == false ]]; then
+    echo -e "\n${BOLD}Already up to date — nothing to do. Use -f to force.${RESET}\n"
     exit 0
 fi
 
