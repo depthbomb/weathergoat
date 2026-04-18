@@ -1,6 +1,13 @@
 {
 	"common": {
-		"description": "Weather alert and forecast reporting bot by @depthbomb.\n\nVersion {calver:string}.{commitSha:string}",
+		"description": [
+			"Weather alert and forecast reporting bot by @depthbomb.",
+			"",
+			"Use {help:string} for a list of commands",
+			"Use {incidents:string} for to read about potential issues with my operation",
+			"",
+			"Version {calver:string}.{commitSha:string}"
+		],
 		"buttons": {
 			"yes": "Yes",
 			"no": "No",

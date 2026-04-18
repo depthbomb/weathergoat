@@ -16,10 +16,14 @@ export default class ClientReadyEvent extends BaseEvent<'clientReady'> {
 
 		this.logger.withMetadata({ readyAt }).info('Logged in to Discord');
 
-		const sha = await $`git rev-parse --short HEAD`.text();
+		const [sha, help, incidents] = await Promise.all([
+			$`git rev-parse --short HEAD`.text(),
+			client.getCommandLink('help'),
+			client.getCommandLink('incidents')
+		]);
 
 		await client.application?.fetch();
-		await client.application!.edit({ description: $msg.common.description(CALVER, sha) });
+		await client.application!.edit({ description: $msg.common.description(help, incidents, CALVER, sha) });
 
 		// The bot won't receive the `messageCreate` event for DMs unless it sends a message first
 		// or we manually create a DM with the user, so we automatically create a DM to application
