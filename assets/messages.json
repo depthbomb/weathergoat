@@ -287,8 +287,8 @@
 		},
 		"status": {
 			"activity": {
-				"_one": "1 incident | {emoji:string} Forecasting for {duration:string}",
-				"_other": "{count:number} incidents | {emoji:string} Forecasting for {duration:string}",
+				"_one": "<:incidentMedium:1493085224878346260> 1 incident | {emoji:string} Forecasting for {duration:string}",
+				"_other": "<:incidentMedium:1493085224878346260> {count:number} incidents | {emoji:string} Forecasting for {duration:string}",
 				"_zero": "{emoji:string} Forecasting for {duration:string}"
 			}
 		}
