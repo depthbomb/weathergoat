@@ -1,3 +1,4 @@
+import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { FeaturesService } from '@services/features';
@@ -43,13 +44,14 @@ export default class UpdateStatusJob extends BaseJob {
 			return;
 		}
 
-		const duration = formatDuration(client.uptime, { precision: 3 });
+		const duration       = formatDuration(client.uptime, { precision: 3 });
+		const incidentsCount = await db.incident.count();
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: $msg.jobs.status.activity(this.pickRandomEmoji(), duration),
+					name: $msg.jobs.status.activity(incidentsCount, this.pickRandomEmoji(), duration),
 					type: ActivityType.Custom
 				}
 			]

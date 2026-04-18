@@ -286,7 +286,11 @@
 			"nextUpdateTitle": "Next Update"
 		},
 		"status": {
-			"activity": "{emoji:string} Forecasting for {duration:string}"
+			"activity": {
+				"_one": "1 incident | {emoji:string} Forecasting for {duration:string}",
+				"_other": "{count:number} incidents | {emoji:string} Forecasting for {duration:string}",
+				"_zero": "{emoji:string} Forecasting for {duration:string}"
+			}
 		}
 	},
 	"beacon": {
