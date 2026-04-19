@@ -4,6 +4,7 @@ import { BaseJob } from '@infra/jobs';
 import { FeaturesService } from '@services/features';
 import { inject, injectable } from '@needle-di/core';
 import { formatDuration } from '@depthbomb/common/timing';
+import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
@@ -45,7 +46,9 @@ export default class UpdateStatusJob extends BaseJob {
 		}
 
 		const duration       = formatDuration(client.uptime, { precision: 3 });
-		const incidentsCount = await db.incident.count();
+		const incidentsCount = await db.incident.count({
+			where: { status: IncidentStatus.ACTIVE }
+		});
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
