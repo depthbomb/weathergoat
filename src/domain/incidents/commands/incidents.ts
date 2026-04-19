@@ -1,4 +1,5 @@
 import { db } from '@database';
+import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
 import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { IncidentStatus, IncidentSeverity } from '@database/generated/enums';
@@ -18,25 +19,35 @@ export default class IncidentsCommand extends BaseCommand {
 
 		const activeIncidents = await db.incident.findMany({ where: { status: IncidentStatus.ACTIVE }, take: 10 });
 		if (activeIncidents.length === 0) {
-			await interaction.editReply('There are currently no active incidents.');
-		} else {
-			const embeds = [] as EmbedBuilder[];
-			for (const incident of activeIncidents) {
-				const embed = new EmbedBuilder()
-					.setTitle(`${this.getSeverityEmoji(incident.severity)} ${incident.severity.bracketWrap()} ${incident.title}`)
-					.setDescription(incident.description)
-					.setFields([
-						{
-							name: 'Created',
-							value: time(incident.createdAt, 'R')
-						}
-					]);
+			await interaction.editReply($msg.commands.incidents.noActiveIncidents());
+			return;
+		}
 
-				embeds.push(embed);
+		const embeds = [] as EmbedBuilder[];
+		for (const incident of activeIncidents) {
+			const embed = new EmbedBuilder()
+				.setTitle(`${this.getSeverityEmoji(incident.severity)} ${incident.severity.bracketWrap()} ${incident.title}`)
+				.setDescription(incident.description)
+				.setFields([
+					{
+						name: $msg.commands.incidents.createdFieldTitle(),
+						value: time(incident.createdAt, 'R'),
+						inline: true,
+					}
+				]);
+
+			if (incident.autoResolveAt) {
+				embed.addFields({
+					name: $msg.commands.incidents.autoResolveFieldTitle(),
+					value: time(incident.autoResolveAt, 'R'),
+					inline: true,
+				});
 			}
 
-			await interaction.editReply({ embeds });
+			embeds.push(embed);
 		}
+
+		await interaction.editReply({ embeds });
 	}
 
 	private getSeverityEmoji(severity: IncidentSeverity) {

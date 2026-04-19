@@ -1,14 +1,13 @@
 import { db } from '@database';
 import { Color } from '@constants';
 import { BaseJob } from '@infra/jobs';
+import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-@injectable()
 export default class DispatchAnnouncementsJob extends BaseJob {
 	public constructor(
 		private readonly features = inject(FeaturesService)

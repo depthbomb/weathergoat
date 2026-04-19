@@ -1,6 +1,7 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
+import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
 import { HTTPRequestError } from '@errors';
 import { AlertSeverity } from '@models/Alert';
@@ -10,7 +11,6 @@ import { Color, IMAGE_ASSETS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { EventBusService } from '@services/event-bus';
 import { isUndefined } from '@depthbomb/common/guards';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
@@ -20,7 +20,6 @@ import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 import type { AlertDestination } from '@database/generated/client';
 
-@injectable()
 export default class ReportAlertsJob extends BaseJob {
 	private readonly hasIndexedFlag  = new Flag(false);
 	private readonly ugcIndex        = new Collection<string, AlertDestination[]>();

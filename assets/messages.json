@@ -175,6 +175,11 @@
 			],
 			"listTitle": "Forecast reporting destinations in this server"
 		},
+		"incidents": {
+			"noActiveIncidents": "There are currently no active incidents.",
+			"createdFieldTitle": "Created",
+			"autoResolveFieldTitle": "Target resolution"
+		},
 		"radar": {
 			"errors": {
 				"invalidStation": "Invalid station: `{station:string}`."

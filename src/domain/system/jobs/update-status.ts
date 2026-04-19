@@ -1,14 +1,13 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
+import { inject } from '@needle-di/core';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { formatDuration } from '@depthbomb/common/timing';
 import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-@injectable()
 export default class UpdateStatusJob extends BaseJob {
 	private readonly emoji = [
 		'🌪️',

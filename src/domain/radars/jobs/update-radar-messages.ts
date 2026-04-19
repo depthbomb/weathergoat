@@ -2,15 +2,14 @@ import { db } from '@database';
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
+import { inject } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
-import { inject, injectable } from '@needle-di/core';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { time, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-@injectable()
 export default class UpdateRadarMessagesJob extends BaseJob {
 	private readonly errorCodes = [
 		RESTJSONErrorCodes.UnknownChannel,
