@@ -5,7 +5,7 @@
 		.subtitle { font-family: 'Mozilla Text', sans-serif; }
     </style>
 	<defs>
-		<linearGradient id="banner-gradient-danger" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ffb900"/><stop offset="100%" stop-color="#e17100"/></linearGradient>
+		<linearGradient id="banner-gradient-danger" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="%COLOR1%"/><stop offset="100%" stop-color="%COLOR2%"/></linearGradient>
 		<pattern id="diagonal-stripes" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="white" stroke-width="1" stroke-opacity="0.1"/></pattern>
 		<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
 			<feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
@@ -24,7 +24,6 @@
 	<rect width="800" height="120" fill="url(#diagonal-stripes)"/>
 	<circle cx="0" cy="120" r="150" fill="white" fill-opacity="0.05"/>
 	<circle cx="800" cy="0" r="100" fill="white" fill-opacity="0.03"/>
-	<rect y="116" width="800" height="4" fill="white" fill-opacity="0.2"/>
 	
 	<g transform="translate(50, 60)">
 		<rect x="-25" y="-25" width="50" height="50" rx="12" fill="white" fill-opacity="0.15" stroke="white" stroke-opacity="0.25" stroke-width="1"/>

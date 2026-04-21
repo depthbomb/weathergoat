@@ -84,7 +84,7 @@ export class Alert {
 	public expires!: Date;
 
 	@JSONProperty({ type: Date })
-	public ends!: Date;
+	public ends?: Date;
 
 	@JSONProperty({ type: () => AlertStatus })
 	public status!: AlertStatus;

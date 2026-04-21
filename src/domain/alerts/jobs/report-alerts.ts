@@ -8,14 +8,14 @@ import { AlertSeverity } from '@models/Alert';
 import { Flag } from '@depthbomb/common/state';
 import { AlertsService } from '@services/alerts';
 import { BannerService } from '@services/banner';
-import { Color, IMAGE_ASSETS } from '@constants';
+import { ALERT_SEVERITY_COLORS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { FeaturesService } from '@services/features';
 import { EventBusService } from '@services/event-bus';
 import { isUndefined } from '@depthbomb/common/guards';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, Collection, MessageFlags, ContainerBuilder, SeparatorSpacingSize, AttachmentBuilder } from 'discord.js';
+import { time, Collection, MessageFlags, ContainerBuilder, AttachmentBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -170,7 +170,7 @@ export default class ReportAlertsJob extends BaseJob {
 						);
 					}
 
-					const banner      = this.banner.generateBanner(alert.event, alert.severity);
+					const banner      = await this.banner.generateBanner(alert);
 					const attachment  = new AttachmentBuilder(banner, { name: 'banner.png' });
 					const sentMessage = await webhook.send({
 						username: this.webhookUsername,
@@ -258,31 +258,15 @@ export default class ReportAlertsJob extends BaseJob {
 		switch (alert.severity) {
 			default:
 			case AlertSeverity.Unknown:
-				return Color.SeverityUnknown;
+				return ALERT_SEVERITY_COLORS.Unknown[0];
 			case AlertSeverity.Minor:
-				return Color.SeverityMinor;
+				return ALERT_SEVERITY_COLORS.Minor[0];
 			case AlertSeverity.Moderate:
-				return Color.SeverityModerate;
+				return ALERT_SEVERITY_COLORS.Moderate[0];
 			case AlertSeverity.Severe:
-				return Color.SeveritySevere;
+				return ALERT_SEVERITY_COLORS.Severe[0];
 			case AlertSeverity.Extreme:
-				return Color.SeverityExtreme;
-		}
-	}
-
-	private getAlertSeverityBanner(alert: Alert) {
-		switch (alert.severity) {
-			default:
-			case AlertSeverity.Unknown:
-				return IMAGE_ASSETS['alert-banner-unknown'];
-			case AlertSeverity.Minor:
-				return IMAGE_ASSETS['alert-banner-minor'];
-			case AlertSeverity.Moderate:
-				return IMAGE_ASSETS['alert-banner-minor'];
-			case AlertSeverity.Severe:
-				return IMAGE_ASSETS['alert-banner-severe'];
-			case AlertSeverity.Extreme:
-				return IMAGE_ASSETS['alert-banner-extreme'];
+				return ALERT_SEVERITY_COLORS.Extreme[0];
 		}
 	}
 }
