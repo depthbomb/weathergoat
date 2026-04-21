@@ -1,7 +1,7 @@
 import { main } from 'bun';
 import { join, dirname } from 'node:path';
 
-export const CALVER = '2026.4.18.2' as const;
+export const CALVER = '2026.4.21' as const;
 
 export const REPO_OWNER = 'depthbomb' as const;
 export const REPO_NAME  = 'weathergoat' as const;
@@ -14,6 +14,7 @@ export const BOT_USER_AGENT = `WeatherGoat (github: ${REPO})` as const;
 
 export const ROOT_DIR      = dirname(main);
 export const PROJECT_ROOT  = join(ROOT_DIR, '..');
+export const ASSETS_DIR    = join(PROJECT_ROOT, 'assets');
 export const DATA_DIR      = join(PROJECT_ROOT, '.data');
 export const STORE_DIR     = join(DATA_DIR, 'store');
 export const LOGS_DIR      = join(DATA_DIR, 'logs');
@@ -51,9 +52,9 @@ export const enum Color {
 	Warning          = 0xeab308,
 	Danger           = 0xdc2626,
 	//
-	SeverityUnknown  = 0x9ca3af,
-	SeverityMinor    = 0xfbbf24,
-	SeverityModerate = 0xf97316,
-	SeveritySevere   = 0xdc2626,
-	SeverityExtreme  = 0x7f1d1d
+	SeverityUnknown  = 0xad46ff,
+	SeverityMinor    = 0xffb900,
+	SeverityModerate = 0xff8904,
+	SeveritySevere   = 0xfb2c36,
+	SeverityExtreme  = 0x82181a
 }

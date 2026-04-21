@@ -7,6 +7,7 @@ import { HTTPRequestError } from '@errors';
 import { AlertSeverity } from '@models/Alert';
 import { Flag } from '@depthbomb/common/state';
 import { AlertsService } from '@services/alerts';
+import { BannerService } from '@services/banner';
 import { Color, IMAGE_ASSETS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
@@ -14,7 +15,7 @@ import { FeaturesService } from '@services/features';
 import { EventBusService } from '@services/event-bus';
 import { isUndefined } from '@depthbomb/common/guards';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
-import { time, Collection, MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
+import { time, Collection, MessageFlags, ContainerBuilder, SeparatorSpacingSize, AttachmentBuilder } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
@@ -29,6 +30,7 @@ export default class ReportAlertsJob extends BaseJob {
 		private readonly eventBus = inject(EventBusService),
 		private readonly alerts   = inject(AlertsService),
 		private readonly sweeper  = inject(SweeperService),
+		private readonly banner   = inject(BannerService),
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
@@ -127,14 +129,11 @@ export default class ReportAlertsJob extends BaseJob {
 						.setAccentColor(this.getAlertSeverityColor(alert))
 						.addMediaGalleryComponents(g => g
 							.addItems(i => i
-								.setURL(this.getAlertSeverityBanner(alert))
+								.setURL('attachment://banner.png')
 							)
 						)
 						.addTextDisplayComponents(t => t
-							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : '🚨'} ${alert.headline} (${alert.certainty})`)
-						)
-						.addSeparatorComponents(s => s
-							.setSpacing(SeparatorSpacingSize.Large)
+							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : ''} ${alert.certainty} ${alert.headline}`)
 						);
 
 					if (description.length > 2_000) {
@@ -171,9 +170,12 @@ export default class ReportAlertsJob extends BaseJob {
 						);
 					}
 
+					const banner      = this.banner.generateBanner(alert.event, alert.severity);
+					const attachment  = new AttachmentBuilder(banner, { name: 'banner.png' });
 					const sentMessage = await webhook.send({
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL()!,
+						files: [attachment],
 						components: [container],
 						flags: MessageFlags.IsComponentsV2
 					});

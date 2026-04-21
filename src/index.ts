@@ -14,7 +14,9 @@ import { logger, reportError } from '@lib/logger';
 const shuttingDownFlag = new Flag(false);
 
 async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
-	if (shuttingDownFlag.isTrue) return;
+	if (shuttingDownFlag.isTrue) {
+		return;
+	}
 
 	shuttingDownFlag.setTrue();
 

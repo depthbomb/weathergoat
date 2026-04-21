@@ -2,18 +2,21 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { inject } from '@needle-di/core';
 import { AttachmentBuilder } from 'discord.js';
+import { BannerService } from '@services/banner';
 import { FeaturesService } from '@services/features';
 import { BaseLegacyCommand, LegacyCommandError, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
-	Print  = 'print',
-	DumpDb = 'dump-db',
+	Print          = 'print',
+	DumpDb         = 'dump-db',
+	GenerateBanner = 'generate-banner',
 }
 
 export default class DebugCommand extends BaseLegacyCommand {
 	public constructor(
-		private readonly features = inject(FeaturesService)
+		private readonly features = inject(FeaturesService),
+		private readonly banner   = inject(BannerService),
 	) {
 		super({
 			name: 'debug',
@@ -22,7 +25,11 @@ export default class DebugCommand extends BaseLegacyCommand {
 				[Subcommands.Print]: [
 					LegacyCommandParam.string('domain'),
 				],
-				[Subcommands.DumpDb]: {},
+				[Subcommands.DumpDb]: [],
+				[Subcommands.GenerateBanner]: [
+					LegacyCommandParam.string('headline'),
+					LegacyCommandParam.string('subtitle'),
+				],
 			},
 		});
 	}
@@ -81,6 +88,16 @@ export default class DebugCommand extends BaseLegacyCommand {
 			name: 'dump.json',
 			description: $msg.commands.debug.dumpDescription(date)
 		});
+
+		await message.reply({ files: [attachment] });
+	}
+
+	public async [Subcommands.GenerateBanner](message: Message) {
+		const headline = this.ctx.params.getString('headline', true);
+		const subtitle = this.ctx.params.getString('subtitle', true);
+
+		const banner     = this.banner.generateBanner(headline, subtitle);
+		const attachment = new AttachmentBuilder(banner, { name: 'banner.png' });
 
 		await message.reply({ files: [attachment] });
 	}
