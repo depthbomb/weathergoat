@@ -1,6 +1,6 @@
 import { BaseEvent } from '@infra/events';
 
-export default class WarnEvent extends BaseEvent<'warn'> {
+export class WarnEvent extends BaseEvent<'warn'> {
 	public constructor() {
 		super({ name: 'warn' });
 	}

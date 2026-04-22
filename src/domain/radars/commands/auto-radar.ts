@@ -26,7 +26,7 @@ import {
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class AutoRadarCommand extends BaseCommand {
+export class AutoRadarCommand extends BaseCommand {
 	public constructor(
 		private readonly location = inject(LocationService)
 	) {

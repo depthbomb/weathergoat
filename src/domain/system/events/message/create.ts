@@ -7,7 +7,7 @@ import { Stopwatch } from '@sapphire/stopwatch';
 import { LegacyCommandError, LegacyCommandArguments } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
-export default class MessageCreateEvent extends BaseEvent<'messageCreate'> {
+export class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 	public constructor() {
 		super({ name: 'messageCreate' });
 	}

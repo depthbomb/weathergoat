@@ -7,6 +7,7 @@ import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
+import { ReportForecastsJob } from '@domain/forecast/jobs/report-forecast';
 import {
 	HTTPRequestError,
 	isDiscordJSError,
@@ -27,7 +28,7 @@ import {
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class ForecastCommand extends BaseCommand {
+export class ForecastCommand extends BaseCommand {
 	public constructor(
 		private readonly location = inject(LocationService)
 	) {
@@ -95,7 +96,7 @@ export default class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
-				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === 'report_forecasts')!;
+				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === ReportForecastsJob.name)!;
 				const initialMessage = await channel.send({
 					content: $msg.commands.forecasts.placeholderMessage(info.location, time(forecastJob.cron.nextRun()!, 'R')),
 					flags: MessageFlags.SuppressNotifications

@@ -35,7 +35,7 @@ const enum Subcommands {
 	List   = 'list',
 }
 
-export default class AlertsCommand extends BaseCommand {
+export class AlertsCommand extends BaseCommand {
 	public constructor(
 		private readonly eventBus = inject(EventBusService),
 		private readonly location = inject(LocationService)

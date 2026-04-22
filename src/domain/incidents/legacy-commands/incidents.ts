@@ -9,7 +9,7 @@ const enum Subcommands {
 	Resolve = 'resolve',
 }
 
-export default class IncidentsCommand extends BaseLegacyCommand {
+export class IncidentsCommand extends BaseLegacyCommand {
 	public constructor(
 		private readonly incidents = inject(IncidentsService)
 	) {

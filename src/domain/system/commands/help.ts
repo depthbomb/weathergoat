@@ -3,7 +3,7 @@ import { BaseCommand } from '@infra/commands';
 import { SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class HelpCommand extends BaseCommand {
+export class HelpCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

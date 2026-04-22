@@ -11,7 +11,7 @@ const enum Subcommands {
 	Unsubscribe = 'unsubscribe',
 }
 
-export default class AnnouncementCommand extends BaseCommand {
+export class AnnouncementCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

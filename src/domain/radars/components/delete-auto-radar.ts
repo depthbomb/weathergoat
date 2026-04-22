@@ -7,7 +7,7 @@ import { MessageFlags, PermissionFlagsBits } from 'discord.js';
 import type { ComponentMatch } from '@infra/components';
 import type { MessageComponentInteraction } from 'discord.js';
 
-export default class DeleteAutoRadarButton extends BaseComponent {
+export class DeleteAutoRadarButton extends BaseComponent {
 	public constructor() {
 		super({ customId: 'delete-auto-radar:*' });
 	}

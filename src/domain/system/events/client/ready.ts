@@ -6,7 +6,7 @@ import { isTeamOwner } from '@utils/guards';
 import { isNull } from '@depthbomb/common/guards';
 import type { WeatherGoat } from '@lib/client';
 
-export default class ClientReadyEvent extends BaseEvent<'clientReady'> {
+export class ClientReadyEvent extends BaseEvent<'clientReady'> {
 	public constructor() {
 		super({ name: 'clientReady' });
 	}

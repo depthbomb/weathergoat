@@ -8,7 +8,7 @@ import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-export default class DispatchAnnouncementsJob extends BaseJob {
+export class DispatchAnnouncementsJob extends BaseJob {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {

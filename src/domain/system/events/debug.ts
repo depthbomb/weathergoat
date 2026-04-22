@@ -1,7 +1,7 @@
 import { env } from '@env';
 import { BaseEvent } from '@infra/events';
 
-export default class DebugEvent extends BaseEvent<'debug'> {
+export class DebugEvent extends BaseEvent<'debug'> {
 	public constructor() {
 		super({
 			name: 'debug',

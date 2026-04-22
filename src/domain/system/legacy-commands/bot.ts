@@ -8,13 +8,13 @@ const enum Subcommands {
 	LeaveGuild = 'leave-guild',
 }
 
-export default class BotCommand extends BaseLegacyCommand {
+export class BotCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'bot',
 			description: 'Owner bot management commands.',
 			subcommands: {
-				[Subcommands.ListGuilds]: {},
+				[Subcommands.ListGuilds]: [],
 				[Subcommands.LeaveGuild]: [
 					LegacyCommandParam.string('guild-id'),
 				],

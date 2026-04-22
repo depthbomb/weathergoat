@@ -1,7 +1,7 @@
 import { BaseLegacyCommand } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
-export default class HelpCommand extends BaseLegacyCommand {
+export class HelpCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'help',

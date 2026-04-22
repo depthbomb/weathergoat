@@ -5,7 +5,7 @@ import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { IncidentStatus, IncidentSeverity } from '@database/generated/enums';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class IncidentsCommand extends BaseCommand {
+export class IncidentsCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

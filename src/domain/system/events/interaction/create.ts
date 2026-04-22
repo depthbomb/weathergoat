@@ -11,7 +11,7 @@ import { PreconditionError, isPreconditionError } from '@infra/preconditions';
 import type { WeatherGoatError } from '@errors';
 import type { Interaction, MessageComponentInteraction } from 'discord.js';
 
-export default class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
+export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 	public constructor() {
 		super({ name: 'interactionCreate' });
 	}

@@ -10,7 +10,7 @@ import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { time, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-export default class UpdateRadarMessagesJob extends BaseJob {
+export class UpdateRadarMessagesJob extends BaseJob {
 	private readonly errorCodes = [
 		RESTJSONErrorCodes.UnknownChannel,
 		RESTJSONErrorCodes.UnknownGuild,

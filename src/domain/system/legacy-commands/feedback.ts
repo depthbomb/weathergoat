@@ -8,7 +8,7 @@ const enum Subcommands {
 	Unban = 'unban',
 }
 
-export default class FeedbackCommand extends BaseLegacyCommand {
+export class FeedbackCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'feedback',

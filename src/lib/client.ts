@@ -2,18 +2,21 @@ import { env } from '@env';
 import { Cron } from 'croner';
 import { join } from 'node:path';
 import { Beacon } from './beacon';
+import { BaseJob } from '@infra/jobs';
 import { container } from '@container';
 import { DOMAINS_DIR } from '@constants';
 import { inject } from '@needle-di/core';
+import { BaseEvent } from '@infra/events';
 import { DomainModuleKind } from '@domain';
 import { readdir } from 'node:fs/promises';
+import { BaseCommand } from '@infra/commands';
 import { RedisService } from '@services/redis';
 import { logger, reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
 import { Path } from '@depthbomb/node-common/pathlib';
-import { compareComponentMatch } from '@infra/components';
 import { Flag, ResettableValue } from '@depthbomb/common/state';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
+import { BaseComponent, compareComponentMatch } from '@infra/components';
 import { BaseLegacyCommand, LegacyCommandRegistry } from '@infra/legacy-commands';
 import {
 	Client,
@@ -23,15 +26,13 @@ import {
 	ApplicationCommandOptionType,
 	chatInputApplicationCommandMention
 } from 'discord.js';
-import type { BaseJob } from '@infra/jobs';
-import type { BaseEvent } from '@infra/events';
 import type { ClientEvents } from 'discord.js';
 import type { DomainDefinition } from '@domain';
 import type { Maybe } from '@depthbomb/common/typing';
-import type { BaseComponent, ComponentMatch } from '@infra/components';
-import type { BaseCommand, CommandComponentRoute } from '@infra/commands';
+import type { ComponentMatch } from '@infra/components';
+import type { CommandComponentRoute } from '@infra/commands';
 
-type BaseModule<T>       = { default: new() => T };
+type BaseModule<T>       = Record<string, new () => T>;
 type JobModule           = BaseModule<BaseJob>;
 type EventModule         = BaseModule<BaseEvent<keyof ClientEvents>>;
 type CommandModule       = BaseModule<BaseCommand>;
@@ -178,7 +179,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private async registerJobs() {
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Jobs)) {
-				const { default: mod }: JobModule = await import(file);
+				const modImport: JobModule = await import(file);
+				const mod = Object.values(modImport).find(
+					(exp): exp is new () => BaseJob =>
+						typeof exp === 'function' && exp.prototype instanceof BaseJob
+				);
+
+				if (!mod) {
+					throw new Error(`No valid job export found in ${file}`);
+				}
+
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}
@@ -221,7 +231,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	private async registerEvents() {
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Events)) {
-				const { default: mod }: EventModule = await import(file);
+				const modImport: EventModule = await import(file);
+				const mod = Object.values(modImport).find(
+					(exp): exp is new () => BaseEvent<keyof ClientEvents> =>
+						typeof exp === 'function' && exp.prototype instanceof BaseEvent
+				);
+
+				if (!mod) {
+					throw new Error(`No valid event export found in ${file}`);
+				}
+
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}
@@ -265,7 +284,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Commands)) {
-				const { default: mod }: CommandModule = await import(file);
+				const modImport: CommandModule = await import(file);
+				const mod = Object.values(modImport).find(
+					(exp): exp is new () => BaseCommand =>
+						typeof exp === 'function' && exp.prototype instanceof BaseCommand
+				);
+
+				if (!mod) {
+					throw new Error(`No valid command export found in ${file}`);
+				}
+
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}
@@ -299,7 +327,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.Components)) {
-				const { default: mod }: ComponentModule = await import(file);
+				const modImport: ComponentModule = await import(file);
+				const mod = Object.values(modImport).find(
+					(exp): exp is new () => BaseComponent =>
+						typeof exp === 'function' && exp.prototype instanceof BaseComponent
+				);
+
+				if (!mod) {
+					throw new Error(`No valid component export found in ${file}`);
+				}
+
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}
@@ -334,7 +371,16 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 		for (const domain of await this.getRegisteredDomains()) {
 			for await (const file of this.getDomainModuleFiles(domain, DomainModuleKind.LegacyCommands)) {
-				const { default: mod }: LegacyCommandModule = await import(file);
+				const modImport: LegacyCommandModule = await import(file);
+				const mod = Object.values(modImport).find(
+					(exp): exp is new () => BaseLegacyCommand =>
+						typeof exp === 'function' && exp.prototype instanceof BaseLegacyCommand
+				);
+
+				if (!mod) {
+					throw new Error(`No valid legacy command export found in ${file}`);
+				}
+
 				if (!container.has(mod)) {
 					container.bind(mod);
 				}

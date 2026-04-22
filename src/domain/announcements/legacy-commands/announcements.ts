@@ -10,13 +10,13 @@ const enum Subcommands {
 	Create             = 'create',
 }
 
-export default class AnnouncementsCommand extends BaseLegacyCommand {
+export class AnnouncementsCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'announcements',
 			description: 'Announcement management commands',
 			subcommands: {
-				[Subcommands.CountSubscriptions]: {},
+				[Subcommands.CountSubscriptions]: [],
 				[Subcommands.Create]: [
 					LegacyCommandParam.string('title'),
 					LegacyCommandParam.string('body', { rest: true }),

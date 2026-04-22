@@ -7,7 +7,7 @@ import { MessageFlags, PermissionFlagsBits } from 'discord.js';
 import type { ComponentMatch } from '@infra/components';
 import type { MessageComponentInteraction } from 'discord.js';
 
-export default class DeleteForecastButton extends BaseComponent {
+export class DeleteForecastButton extends BaseComponent {
 	public constructor() {
 		super({ customId: 'delete-forecast:*' });
 	}

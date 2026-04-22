@@ -11,7 +11,7 @@ import { CooldownPrecondition } from '@preconditions/cooldown';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class FeedbackCommand extends BaseCommand {
+export class FeedbackCommand extends BaseCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService)
 	) {

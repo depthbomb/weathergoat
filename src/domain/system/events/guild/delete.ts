@@ -4,7 +4,7 @@ import { BaseEvent } from '@infra/events';
 import { EventBusService } from '@services/event-bus';
 import type { Guild } from 'discord.js';
 
-export default class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
+export class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 	public constructor(
 		private readonly eventBus = inject(EventBusService),
 	) {

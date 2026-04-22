@@ -21,7 +21,7 @@ import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 import type { AlertDestination } from '@database/generated/client';
 
-export default class ReportAlertsJob extends BaseJob {
+export class ReportAlertsJob extends BaseJob {
 	private readonly hasIndexedFlag  = new Flag(false);
 	private readonly ugcIndex        = new Collection<string, AlertDestination[]>();
 	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;

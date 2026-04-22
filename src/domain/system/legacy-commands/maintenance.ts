@@ -7,7 +7,7 @@ const enum Subcommands {
 	Disable = 'disable',
 }
 
-export default class MaintenanceCommand extends BaseLegacyCommand {
+export class MaintenanceCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'maintenance',
@@ -16,7 +16,7 @@ export default class MaintenanceCommand extends BaseLegacyCommand {
 				[Subcommands.Enable]: [
 					LegacyCommandParam.string('reason', { required: false, rest: true }),
 				],
-				[Subcommands.Disable]: {},
+				[Subcommands.Disable]: [],
 			},
 		});
 	}

@@ -5,7 +5,7 @@ import { generateSnowflake } from '@lib/snowflake';
 import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
-export default class RadarCommand extends BaseCommand {
+export class RadarCommand extends BaseCommand {
 	private readonly radars: Collection<string, string>;
 
 	public constructor() {

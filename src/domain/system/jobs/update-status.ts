@@ -8,7 +8,7 @@ import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
-export default class UpdateStatusJob extends BaseJob {
+export class UpdateStatusJob extends BaseJob {
 	private readonly emoji = [
 		'🌪️',
 		'☀️',

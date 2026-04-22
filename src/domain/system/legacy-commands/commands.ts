@@ -16,7 +16,7 @@ const enum Subcommands {
 	DeleteGlobal = 'delete-global',
 }
 
-export default class CommandsCommand extends BaseLegacyCommand {
+export class CommandsCommand extends BaseLegacyCommand {
 	public constructor() {
 		super({
 			name: 'commands',
@@ -25,11 +25,11 @@ export default class CommandsCommand extends BaseLegacyCommand {
 				[Subcommands.Create]: [
 					LegacyCommandParam.string('guild-ids', { required: false, rest: true }),
 				],
-				[Subcommands.CreateGlobal]: {},
+				[Subcommands.CreateGlobal]: [],
 				[Subcommands.Delete]: [
 					LegacyCommandParam.string('guild-ids', { required: false, rest: true }),
 				],
-				[Subcommands.DeleteGlobal]: {},
+				[Subcommands.DeleteGlobal]: [],
 			},
 		});
 	}

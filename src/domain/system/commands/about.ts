@@ -6,7 +6,7 @@ import { formatDuration } from '@depthbomb/common/timing';
 import { MessageFlags, ContainerBuilder, SlashCommandBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-export default class AboutCommand extends BaseCommand {
+export class AboutCommand extends BaseCommand {
 	public constructor() {
 		super({
 			data: new SlashCommandBuilder()

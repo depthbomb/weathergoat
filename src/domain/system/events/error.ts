@@ -1,6 +1,6 @@
 import { BaseEvent } from '@infra/events';
 
-export default class ErrorEvent extends BaseEvent<'error'> {
+export class ErrorEvent extends BaseEvent<'error'> {
 	public constructor() {
 		super({ name: 'error' });
 	}

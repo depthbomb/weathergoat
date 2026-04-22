@@ -11,7 +11,7 @@ const enum Subcommands {
 	DumpDb = 'dump-db'
 }
 
-export default class DebugCommand extends BaseLegacyCommand {
+export class DebugCommand extends BaseLegacyCommand {
 	public constructor(
 		private readonly features = inject(FeaturesService),
 	) {

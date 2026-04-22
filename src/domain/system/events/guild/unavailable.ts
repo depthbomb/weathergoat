@@ -1,7 +1,7 @@
 import { BaseEvent } from '@infra/events';
 import type { Guild } from 'discord.js';
 
-export default class GuildUnavailableEvent extends BaseEvent<'guildUnavailable'> {
+export class GuildUnavailableEvent extends BaseEvent<'guildUnavailable'> {
 	public constructor() {
 		super({ name: 'guildUnavailable' });
 	}
