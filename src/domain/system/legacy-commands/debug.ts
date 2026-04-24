@@ -17,7 +17,7 @@ export class DebugCommand extends BaseLegacyCommand {
 	) {
 		super({
 			name: 'debug',
-			description: 'Owner debug commands.',
+			description: 'Debug commands.',
 			subcommands: {
 				[Subcommands.Print]: [
 					LegacyCommandParam.string('domain'),

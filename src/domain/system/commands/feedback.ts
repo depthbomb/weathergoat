@@ -25,6 +25,11 @@ export class FeedbackCommand extends BaseCommand {
 					.setMinLength(20)
 					.setMaxLength(1000)
 					.setRequired(true)
+				)
+				.addBooleanOption(o => o
+					.setName('allow-followup')
+					.setDescription('Allow my creator to reply to your feedback? Only one reply will be sent.')
+					.setRequired(true)
 				),
 			preconditions: [
 				new CooldownPrecondition({ duration: '1h' })
@@ -48,7 +53,9 @@ export class FeedbackCommand extends BaseCommand {
 			return;
 		}
 
-		const content = interaction.options.getString('content', true).trim();
+		const content       = interaction.options.getString('content', true).trim();
+		const allowFeedback = interaction.options.getBoolean('allow-followup', true);
+
 		const embed = new EmbedBuilder()
 			.setTitle($msg.commands.feedback.embed.title())
 			.setColor(Color.Success)
@@ -61,6 +68,10 @@ export class FeedbackCommand extends BaseCommand {
 				{
 					name: 'Guild',
 					value: `${interaction.guild?.name} (${interaction.guild?.id})`
+				},
+				{
+					name: 'Open to feedback?',
+					value: allowFeedback ? '✔' : '❌'
 				},
 			]);
 
