@@ -1,6 +1,6 @@
 {
 	"name": "weathergoat",
-	"calver": "2026.4.22",
+	"calver": "2026.4.24",
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
@@ -34,7 +34,7 @@
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
-		"@sentry/bun": "^10.49.0",
+		"@sentry/bun": "^10.50.0",
 		"bufferutil": "^4.1.0",
 		"cockatiel": "^3.2.1",
 		"croner": "^10.0.1",
