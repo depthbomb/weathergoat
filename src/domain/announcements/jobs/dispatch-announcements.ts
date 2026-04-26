@@ -4,7 +4,6 @@ import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
 import { FeaturesService } from '@services/features';
-import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
@@ -42,12 +41,10 @@ export class DispatchAnnouncementsJob extends BaseJob {
 				.addTextDisplayComponents(d => d.setContent('-# This server is receiving this because it opted into announcements.'));
 
 			try {
-				const channel = await client.channels.fetch(delivery.subscription.channelId);
-				if (!channel || !isTextChannel(channel)) {
-					continue;
-				}
+				const user = await client.users.fetch(delivery.subscription.userId);
+				const dm   = await user.createDM(true);
 
-				await channel.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
+				await dm.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
 				await db.announcementDelivery.update({
 					where: { id: delivery.id },
 					data: { sentAt: new Date() }

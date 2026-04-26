@@ -46,7 +46,7 @@
 				"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
 				"- Use the {radar:string} command to get the current doppler radar animation for a location",
 				"",
-				"Admins in this server can use the {announcementSubscribe:string} command to set a channel to receive announcements related to my operation. Announcements are opt-in as to reduce noise."
+				"Users can subscribe to receiving announcements with the {announcementSubscribe:string} command."
 			]
 		}
 	},
@@ -123,13 +123,13 @@
 		},
 		"announcements": {
 			"subscribe": {
-				"alreadySubscribed": "This guild is already subscribed to announcements. Unsubscribe from announcements first before setting a new channel to receive announcements.",
-				"success": "This guild has been subscribed to announcements which will be posted to {channelLink:string}.",
+				"alreadySubscribed": "You are already subscribed to announcements.",
+				"success": "You have been subscribed to announcements.",
 				"error": "Unable to create announcement subscription. Please try again later."
 			},
 			"unsubscribe": {
-				"notSubscribed": "This guild is not subscribed to announcements.",
-				"success": "This guild will no longer receive announcements.",
+				"notSubscribed": "You are not subscribed to announcements.",
+				"success": "You will no longer receive announcements.",
 				"error": "Unable to remove announcement subscription. Please try again later."
 			}
 		},
@@ -205,7 +205,7 @@
 		"announcements": {
 			"create": {
 				"emptyTitleOrBody": "Title and body cannot be empty.",
-				"success": "Announcement created! Dispatching to guilds should begin shortly.",
+				"success": "Announcement created! Dispatching to users should begin shortly.",
 				"error": [
 					"Unable to create announcement.",
 					"```",

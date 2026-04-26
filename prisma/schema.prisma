@@ -99,8 +99,7 @@ model Announcement {
 
 model AnnouncementSubscription {
   id         Int                    @id @default(autoincrement())
-  guildId    String                 @unique
-  channelId  String
+  userId     String                 @unique
   createdAt  DateTime               @default(now())
   updatedAt  DateTime               @updatedAt
   deliveries AnnouncementDelivery[]
