@@ -101,11 +101,10 @@ export class AlertsCommand extends BaseCommand {
 		await interaction.deferReply();
 
 		try {
-			const lookup = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
-			const info   = lookup.info;
+			const location = await this.location.resolveCoordinates(latitude, longitude);
 			const exists = await db.alertDestination.exists({
-				latitude: info.latitude,
-				longitude: info.longitude,
+				latitude: location.latitude,
+				longitude: location.longitude,
 				channelId: channel.id
 			});
 			if (exists) {
@@ -113,15 +112,15 @@ export class AlertsCommand extends BaseCommand {
 				return;
 			}
 
-			const locationPrompt = lookup.wasAdjusted
+			const locationPrompt = location.wasAdjusted
 				? $msg.common.prompts.locationConfirmAdjusted(
-					lookup.requestedLatitude,
-					lookup.requestedLongitude,
-					info.latitude,
-					info.longitude,
-					info.location
+					location.requested.latitude,
+					location.requested.longitude,
+					location.latitude,
+					location.longitude,
+					location.name
 				)
-				: $msg.common.prompts.locationConfirm(info.latitude, info.longitude, info.location);
+				: $msg.common.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 			const removeLink = await this.getCommandLink('alerts', 'remove');
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
@@ -146,15 +145,15 @@ export class AlertsCommand extends BaseCommand {
 				const destination = await db.alertDestination.create({
 					data: {
 						snowflake,
-						latitude: info.latitude,
-						longitude: info.longitude,
-						zoneId: info.zoneId,
+						latitude: location.latitude,
+						longitude: location.longitude,
+						zoneId: location.zoneId,
 						guildId,
-						countyId: info.countyId,
+						countyId: location.countyId,
 						channelId: channel.id,
 						autoCleanup,
 						pingOnSevere,
-						radarImageUrl: info.radarImageUrl
+						radarImageUrl: location.radar.reflectivityImageUrl
 					},
 					select: { snowflake: true }
 				});
@@ -239,10 +238,10 @@ export class AlertsCommand extends BaseCommand {
 			.setTitle($msg.commands.alerts.listTitle());
 
 		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
-			const info    = await this.location.getInfoFromCoordinates(latitude, longitude);
+			const location = await this.location.getLocation(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
-				name: `${info.location} (${latitude}, ${longitude})`,
+				name: `${location.name} (${latitude}, ${longitude})`,
 				value: [
 					$msg.common.status.reportingTo(channel!.toString()),
 					JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4).toCodeBlock('json')

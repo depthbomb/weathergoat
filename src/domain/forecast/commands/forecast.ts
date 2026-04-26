@@ -66,17 +66,16 @@ export class ForecastCommand extends BaseCommand {
 		await interaction.deferReply();
 
 		try {
-			const lookup = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
-			const info   = lookup.info;
-			const locationPrompt = lookup.wasAdjusted
+			const location = await this.location.resolveCoordinates(latitude, longitude);
+			const locationPrompt = location.wasAdjusted
 				? $msg.common.prompts.locationConfirmAdjusted(
-					lookup.requestedLatitude,
-					lookup.requestedLongitude,
-					info.latitude,
-					info.longitude,
-					info.location
+					location.requested.latitude,
+					location.requested.longitude,
+					location.latitude,
+					location.longitude,
+					location.name
 				)
-				: $msg.common.prompts.locationConfirm(info.latitude, info.longitude, info.location);
+				: $msg.common.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -98,7 +97,7 @@ export class ForecastCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === ReportForecastsJob.name)!;
 				const initialMessage = await channel.send({
-					content: $msg.commands.forecasts.placeholderMessage(info.location, time(forecastJob.cron.nextRun()!, 'R')),
+					content: $msg.commands.forecasts.placeholderMessage(location.name, time(forecastJob.cron.nextRun()!, 'R')),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();
@@ -106,12 +105,12 @@ export class ForecastCommand extends BaseCommand {
 				await db.forecastDestination.create({
 					data: {
 						snowflake,
-						latitude: info.latitude,
-						longitude: info.longitude,
+						latitude: location.latitude,
+						longitude: location.longitude,
 						guildId,
 						channelId: channel.id,
 						messageId: initialMessage.id,
-						radarImageUrl: info.radarImageUrl
+						radarImageUrl: location.radar.reflectivityImageUrl
 					}
 				});
 

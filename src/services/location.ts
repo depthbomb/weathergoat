@@ -6,7 +6,6 @@ import { deserialize } from '@depthbomb/serde';
 import { inject, injectable } from '@needle-di/core';
 import { HTTPRequestError, isWeatherGoatError } from '@errors';
 import type { HTTPClient } from './http';
-import type { Nullable } from '@depthbomb/common/typing';
 
 type CoverageSeed = {
 	latitude: number;
@@ -21,23 +20,28 @@ type CoverageRegion = {
 	seed: CoverageSeed;
 };
 
-export type CoordinateInfo = {
+export type Coordinates = {
 	latitude: string;
 	longitude: string;
-	location: string;
+};
+
+export type RadarInfo = {
+	station: string;
+	reflectivityImageUrl: string;
+	velocityImageUrl: string;
+};
+
+export type LocationInfo = Coordinates & {
+	name: string;
 	zoneId: string;
 	countyId: string;
 	forecastUrl: string;
-	radarStation: string;
-	radarImageUrl: string;
-	velocityRadarImageUrl: string;
+	radar: RadarInfo;
 };
 
-export type CoordinateLookupResult = {
-	requestedLatitude: string;
-	requestedLongitude: string;
+export type ResolvedLocation = LocationInfo & {
+	requested: Coordinates;
 	wasAdjusted: boolean;
-	info: CoordinateInfo;
 };
 
 @injectable()
@@ -169,23 +173,18 @@ export class LocationService {
 	 * Retrieves info for the provided coordinates, or the nearest valid NWS location if the
 	 * requested location is outside NWS coverage.
 	 */
-	public async getInfoFromCoordinatesOrNearest(latitude: string, longitude: string, cacheTTL = '1w'): Promise<CoordinateLookupResult> {
+	public async resolveCoordinates(latitude: string, longitude: string, cacheTTL = '1w'): Promise<ResolvedLocation> {
 		const requestedLatitude  = latitude.trim();
 		const requestedLongitude = longitude.trim();
-		const cacheKey           = `coordinate-lookup:${requestedLatitude},${requestedLongitude}`;
+		const cacheKey           = `coordinate-lookup:v2:${requestedLatitude},${requestedLongitude}`;
 		const cached             = await this.redis.get(cacheKey);
 		if (cached) {
-			return JSON.parse(cached) as CoordinateLookupResult;
+			return JSON.parse(cached) as ResolvedLocation;
 		}
 
 		try {
-			const info   = await this.getInfoFromCoordinates(requestedLatitude, requestedLongitude, cacheTTL);
-			const result = {
-				requestedLatitude,
-				requestedLongitude,
-				wasAdjusted: false,
-				info
-			} as CoordinateLookupResult;
+			const location = await this.getLocation(requestedLatitude, requestedLongitude, cacheTTL);
+			const result   = this.createResolvedLocation(location, requestedLatitude, requestedLongitude, false);
 			await this.redis.set(cacheKey, JSON.stringify(result), cacheTTL);
 			return result;
 		} catch (err: unknown) {
@@ -198,12 +197,7 @@ export class LocationService {
 				throw err;
 			}
 
-			const result = {
-				requestedLatitude,
-				requestedLongitude,
-				wasAdjusted: true,
-				info: nearest
-			} as CoordinateLookupResult;
+			const result = this.createResolvedLocation(nearest, requestedLatitude, requestedLongitude, true);
 
 			await this.redis.set(cacheKey, JSON.stringify(result), cacheTTL);
 
@@ -217,13 +211,13 @@ export class LocationService {
 	 * @param longitude The longitude of the location to retrieve.
 	 * @param cacheTTL How long the coordinate info should be cached.
 	 */
-	public async getInfoFromCoordinates(latitude: string, longitude: string, cacheTTL = '1w'): Promise<CoordinateInfo> {
+	public async getLocation(latitude: string, longitude: string, cacheTTL = '1w'): Promise<LocationInfo> {
 		const normalizedLatitude  = latitude.trim();
 		const normalizedLongitude = longitude.trim();
-		const cacheKey            = `coordinates:${normalizedLatitude},${normalizedLongitude}`;
+		const cacheKey            = `coordinates:v2:${normalizedLatitude},${normalizedLongitude}`;
 		const cached              = await this.redis.get(cacheKey);
 		if (cached) {
-			return JSON.parse(cached) as CoordinateInfo;
+			return JSON.parse(cached) as LocationInfo;
 		}
 
 		const res = await this.client.get(`/points/${normalizedLatitude},${normalizedLongitude}`);
@@ -234,26 +228,15 @@ export class LocationService {
 		});
 
 		const json = await res.json();
-		const data = deserialize(Point, json);
-
-		const info = {
-			latitude: normalizedLatitude,
-			longitude: normalizedLongitude,
-			location: data.relativeLocation.cityState,
-			zoneId: data.zoneId,
-			countyId: data.countyId,
-			forecastUrl: data.forecast,
-			radarStation: data.radarStation,
-			radarImageUrl: data.radarImageUrl,
-			velocityRadarImageUrl: data.velocityRadarImageUrl
-		} as CoordinateInfo;
+		const point = deserialize(Point, json);
+		const info  = this.createLocationInfo(point, normalizedLatitude, normalizedLongitude);
 
 		await this.redis.set(cacheKey, JSON.stringify(info), cacheTTL);
 
 		return info;
 	}
 
-	private async findNearestValidCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<Nullable<CoordinateInfo>> {
+	private async findNearestValidCoordinates(latitude: string, longitude: string, cacheTTL: string) {
 		const originLatitude  = Number.parseFloat(latitude);
 		const originLongitude = Number.parseFloat(longitude);
 
@@ -274,7 +257,7 @@ export class LocationService {
 		const seed = this.findNearestCoverageSeed(originLatitude, originLongitude);
 		const seedLatitude  = this.normalizeCoordinate(seed.latitude);
 		const seedLongitude = this.normalizeCoordinate(seed.longitude);
-		const directSeed    = await this.tryGetInfoFromCoordinates(seedLatitude, seedLongitude, cacheTTL);
+		const directSeed    = await this.tryGetLocation(seedLatitude, seedLongitude, cacheTTL);
 		if (directSeed) {
 			return directSeed;
 		}
@@ -289,33 +272,26 @@ export class LocationService {
 		);
 	}
 
-	private async findNearestFromRings(
-		originLatitude: number,
-		originLongitude: number,
-		searchCenterLatitude: number,
-		searchCenterLongitude: number,
-		radii: readonly number[],
-		cacheTTL: string
-	): Promise<CoordinateInfo | null> {
+	private async findNearestFromRings( originLatitude: number, originLongitude: number, searchCenterLatitude: number, searchCenterLongitude: number, radii: readonly number[], cacheTTL: string) {
 		for (const radius of radii) {
-			const candidates = this.generateNearbyCandidates(searchCenterLatitude, searchCenterLongitude, radius);
-			const evaluations = await Promise.all(candidates.map(async candidate => {
-				const info = await this.tryGetInfoFromCoordinates(candidate.latitude, candidate.longitude, cacheTTL);
-				if (!info) {
+			const candidates   = this.generateNearbyCandidates(searchCenterLatitude, searchCenterLongitude, radius);
+			const evaluations  = await Promise.all(candidates.map(async candidate => {
+				const location = await this.tryGetLocation(candidate.latitude, candidate.longitude, cacheTTL);
+				if (!location) {
 					return null;
 				}
 
 				const distanceKm = this.calculateDistanceKm(
 					originLatitude,
 					originLongitude,
-					Number.parseFloat(info.latitude),
-					Number.parseFloat(info.longitude)
+					Number.parseFloat(location.latitude),
+					Number.parseFloat(location.longitude)
 				);
 
-				return { info, distanceKm };
+				return { location, distanceKm };
 			}));
 
-			let best: { info: CoordinateInfo; distanceKm: number; } | null = null;
+			let best: { location: LocationInfo; distanceKm: number; } | null = null;
 			for (const evaluation of evaluations) {
 				if (!evaluation) {
 					continue;
@@ -327,16 +303,16 @@ export class LocationService {
 			}
 
 			if (best) {
-				return best.info;
+				return best.location;
 			}
 		}
 
 		return null;
 	}
 
-	private async tryGetInfoFromCoordinates(latitude: string, longitude: string, cacheTTL: string): Promise<Nullable<CoordinateInfo>> {
+	private async tryGetLocation(latitude: string, longitude: string, cacheTTL: string) {
 		try {
-			return await this.getInfoFromCoordinates(latitude, longitude, cacheTTL);
+			return await this.getLocation(latitude, longitude, cacheTTL);
 		} catch (err: unknown) {
 			if (isWeatherGoatError(err, HTTPRequestError) && err.code === 404) {
 				return null;
@@ -346,7 +322,7 @@ export class LocationService {
 		}
 	}
 
-	private isLikelyNearCoverageRegion(latitude: number, longitude: number): boolean {
+	private isLikelyNearCoverageRegion(latitude: number, longitude: number) {
 		const margin = 6;
 		for (const region of this.coverageRegions) {
 			if (
@@ -362,8 +338,8 @@ export class LocationService {
 		return false;
 	}
 
-	private findNearestCoverageSeed(latitude: number, longitude: number): CoverageSeed {
-		let bestSeed = this.coverageRegions[0]!.seed;
+	private findNearestCoverageSeed(latitude: number, longitude: number) {
+		let bestSeed     = this.coverageRegions[0]!.seed;
 		let bestDistance = Number.POSITIVE_INFINITY;
 
 		for (const region of this.coverageRegions) {
@@ -374,7 +350,7 @@ export class LocationService {
 			}
 		}
 
-		return bestSeed;
+		return bestSeed as CoverageSeed;
 	}
 
 	private generateNearbyCandidates(latitude: number, longitude: number, radius: number) {
@@ -413,9 +389,36 @@ export class LocationService {
 		return candidates;
 	}
 
-	private normalizeCoordinate(value: number): string {
+	private normalizeCoordinate(value: number) {
 		const normalized = Number.parseFloat(value.toFixed(4));
 		return normalized.toString();
+	}
+
+	private createLocationInfo(point: Point, latitude: string, longitude: string) {
+		return {
+			latitude,
+			longitude,
+			name: point.relativeLocation.cityState,
+			zoneId: point.zoneId,
+			countyId: point.countyId,
+			forecastUrl: point.forecast,
+			radar: {
+				station: point.radarStation,
+				reflectivityImageUrl: point.radarImageUrl,
+				velocityImageUrl: point.velocityRadarImageUrl
+			}
+		} as LocationInfo;
+	}
+
+	private createResolvedLocation(location: LocationInfo, requestedLatitude: string, requestedLongitude: string, wasAdjusted: boolean) {
+		return {
+			...location,
+			requested: {
+				latitude: requestedLatitude,
+				longitude: requestedLongitude
+			},
+			wasAdjusted
+		} as ResolvedLocation;
 	}
 
 	private wrapLongitude(longitude: number): number {
@@ -430,7 +433,7 @@ export class LocationService {
 		return longitude;
 	}
 
-	private calculateDistanceKm(fromLatitude: number, fromLongitude: number, toLatitude: number, toLongitude: number): number {
+	private calculateDistanceKm(fromLatitude: number, fromLongitude: number, toLatitude: number, toLongitude: number) {
 		const lat1 = (fromLatitude * Math.PI) / 180;
 		const lon1 = (fromLongitude * Math.PI) / 180;
 		const lat2 = (toLatitude * Math.PI) / 180;
@@ -444,12 +447,13 @@ export class LocationService {
 		return 6_371 * c;
 	}
 
-	private isCoordinateInRange(input: string, min: number, max: number): boolean {
+	private isCoordinateInRange(input: string, min: number, max: number) {
 		if (!this.coordinatePattern.test(input)) {
 			return false;
 		}
 
 		const value = Number.parseFloat(input);
+
 		return Number.isFinite(value) && value >= min && value <= max;
 	}
 }

@@ -78,24 +78,23 @@ export class AutoRadarCommand extends BaseCommand {
 		await interaction.deferReply();
 
 		try {
-			const lookup   = await this.location.getInfoFromCoordinatesOrNearest(latitude, longitude);
-			const location = lookup.info;
-			const locationPrompt = lookup.wasAdjusted
+			const location = await this.location.resolveCoordinates(latitude, longitude);
+			const locationPrompt = location.wasAdjusted
 				? $msg.common.prompts.locationConfirmAdjustedWithImage(
-					lookup.requestedLatitude,
-					lookup.requestedLongitude,
+					location.requested.latitude,
+					location.requested.longitude,
 					location.latitude,
 					location.longitude,
-					location.location,
-					location.radarImageUrl,
-					location.velocityRadarImageUrl
+					location.name,
+					location.radar.reflectivityImageUrl,
+					location.radar.velocityImageUrl
 				)
 				: $msg.commands.autoRadar.locationConfirmWithImage(
 					location.latitude,
 					location.longitude,
-					location.location,
-					location.radarImageUrl,
-					location.velocityRadarImageUrl
+					location.name,
+					location.radar.reflectivityImageUrl,
+					location.radar.velocityImageUrl
 				);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
@@ -119,7 +118,7 @@ export class AutoRadarCommand extends BaseCommand {
 				const guildId            = interaction.guildId!;
 				const channelId          = channel.id;
 				const snowflake          = generateSnowflake();
-				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.commands.autoRadar.placeholderMessage(location.location)))
+				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.commands.autoRadar.placeholderMessage(location.name)))
 				const placeholderMessage = await channel.send({
 					components: [placeholder],
 					flags: [
@@ -134,10 +133,10 @@ export class AutoRadarCommand extends BaseCommand {
 						guildId,
 						channelId,
 						messageId: placeholderMessage.id,
-						location: location.location,
-						radarStation: location.radarStation,
-						radarImageUrl: location.radarImageUrl,
-						velocityRadarImageUrl: location.velocityRadarImageUrl,
+						location: location.name,
+						radarStation: location.radar.station,
+						radarImageUrl: location.radar.reflectivityImageUrl,
+						velocityRadarImageUrl: location.radar.velocityImageUrl,
 						showReflectivity: radarType === 'both' || radarType === 'reflectivity',
 						showVelocity: radarType === 'both' || radarType === 'base-velocity',
 					}

@@ -69,14 +69,14 @@ export class ReportForecastsJob extends BaseJob {
 					continue;
 				}
 
-				const location = await this.location.getInfoFromCoordinates(latitude, longitude);
+				const location = await this.location.getLocation(latitude, longitude);
 				const forecast = await this.forecast.getForecastForCoordinates(latitude, longitude);
 				if (!forecast) {
 					continue;
 				}
 
 				const embed = new EmbedBuilder()
-					.setTitle('⛅ ' + $msg.jobs.forecasts.embedTitle(forecast.name, location.location))
+					.setTitle('⛅ ' + $msg.jobs.forecasts.embedTitle(forecast.name, location.name))
 					.setColor(Color.Primary)
 					.setThumbnail(forecast.getIcon('large'))
 					.setDescription(forecast.detailedForecast)

@@ -32,8 +32,8 @@ export class ForecastService {
 	 * @param longitude The longitude of the location.
 	 */
 	public async getForecastForCoordinates(latitude: string, longitude: string) {
-		const info = await this.location.getInfoFromCoordinates(latitude, longitude);
-		const res  = await this.client.get(info.forecastUrl);
+		const location = await this.location.getLocation(latitude, longitude);
+		const res      = await this.client.get(location.forecastUrl);
 		if (!res.ok) {
 			if (res.status === 503) {
 				this.logger

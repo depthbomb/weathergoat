@@ -34,7 +34,7 @@ model AutoRadarMessage {
   location              String
   radarStation          String
   radarImageUrl         String
-  velocityRadarImageUrl String?
+  velocityRadarImageUrl String
   showReflectivity      Boolean  @default(true)
   showVelocity          Boolean  @default(false)
   nextUpdate            DateTime @default(now())
