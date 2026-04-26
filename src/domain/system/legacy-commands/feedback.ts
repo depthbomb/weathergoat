@@ -31,9 +31,9 @@ export class FeedbackCommand extends BaseLegacyCommand {
 
 		try {
 			await db.feedbackBan.create({ data: { userId, reason } });
-			await message.reply($msg.legacyCommands.feedback.ban.success());
+			await message.reply($msg.feedback.legacy.ban.success());
 		} catch (err) {
-			await message.reply($msg.legacyCommands.feedback.ban.error((err as Error).stack?.toCodeBlock()));
+			await message.reply($msg.feedback.legacy.ban.error((err as Error).stack?.toCodeBlock()));
 		}
 	}
 
@@ -42,9 +42,9 @@ export class FeedbackCommand extends BaseLegacyCommand {
 
 		try {
 			await db.feedbackBan.delete({ where: { userId } });
-			await message.reply($msg.legacyCommands.feedback.unban.success());
+			await message.reply($msg.feedback.legacy.unban.success());
 		} catch (err) {
-			await message.reply($msg.legacyCommands.feedback.unban.error((err as Error).stack?.toCodeBlock()));
+			await message.reply($msg.feedback.legacy.unban.error((err as Error).stack?.toCodeBlock()));
 		}
 	}
 }

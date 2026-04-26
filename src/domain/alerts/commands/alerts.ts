@@ -91,10 +91,10 @@ export class AlertsCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.alertDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.alerts.errors.maxDestinationsReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.alerts.command.errors.maxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			await interaction.reply($msg.errors.invalidCoordinates());
+			await interaction.reply($msg.shared.errors.invalidCoordinates());
 			return;
 		}
 
@@ -108,29 +108,29 @@ export class AlertsCommand extends BaseCommand {
 				channelId: channel.id
 			});
 			if (exists) {
-				await interaction.editReply($msg.commands.alerts.errors.destinationExists());
+				await interaction.editReply($msg.alerts.command.errors.destinationExists());
 				return;
 			}
 
 			const locationPrompt = location.wasAdjusted
-				? $msg.common.prompts.locationConfirmAdjusted(
+				? $msg.shared.prompts.locationConfirmAdjusted(
 					location.requested.latitude,
 					location.requested.longitude,
 					location.latitude,
 					location.longitude,
 					location.name
 				)
-				: $msg.common.prompts.locationConfirm(location.latitude, location.longitude, location.name);
+				: $msg.shared.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 			const removeLink = await this.getCommandLink('alerts', 'remove');
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel($msg.common.buttons.yes())
+						.setLabel($msg.shared.buttons.yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel($msg.common.buttons.no())
+						.setLabel($msg.shared.buttons.no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
@@ -161,7 +161,7 @@ export class AlertsCommand extends BaseCommand {
 				this.eventBus.emit('alert-destinations:updated');
 
 				await interaction.editReply({
-					content: $msg.commands.alerts.created(channel.toString(), removeLink, destination.snowflake),
+					content: $msg.alerts.command.created(channel.toString(), removeLink, destination.snowflake),
 					components: []
 				});
 			} else {
@@ -171,20 +171,20 @@ export class AlertsCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.errors.locationNotFound(),
+						content: $msg.shared.errors.locationNotFound(),
 						components: []
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.errors.locationLookupHttpError(err.code, err.status),
+						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
 						components: []
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
 			} else {
 				reportError('Error creating alert destination', err);
-				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
+				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
 			}
 		}
 	}
@@ -200,12 +200,12 @@ export class AlertsCommand extends BaseCommand {
 
 		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
-			await interaction.editReply($msg.commands.alerts.errors.destinationNotFound(snowflake));
+			await interaction.editReply($msg.alerts.command.errors.destinationNotFound(snowflake));
 			return;
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
-		await interaction.editReply($msg.commands.alerts.removed());
+		await interaction.editReply($msg.alerts.command.removed());
 
 		this.eventBus.emit('alert-destinations:updated');
 	}
@@ -229,13 +229,13 @@ export class AlertsCommand extends BaseCommand {
 			}
 		});
 		if (!destinations.length) {
-			await interaction.editReply($msg.errors.noDestinationsForType('alert'));
+			await interaction.editReply($msg.shared.errors.noDestinationsForType('alert'));
 			return;
 		}
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
-			.setTitle($msg.commands.alerts.listTitle());
+			.setTitle($msg.alerts.command.listTitle());
 
 		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
 			const location = await this.location.getLocation(latitude, longitude);
@@ -243,7 +243,7 @@ export class AlertsCommand extends BaseCommand {
 			embed.addFields({
 				name: `${location.name} (${latitude}, ${longitude})`,
 				value: [
-					$msg.common.status.reportingTo(channel!.toString()),
+					$msg.shared.status.reportingTo(channel!.toString()),
 					JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4).toCodeBlock('json')
 				].join('\n')
 			});

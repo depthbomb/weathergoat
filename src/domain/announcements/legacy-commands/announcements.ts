@@ -28,11 +28,11 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 	public async [Subcommands.CountSubscriptions](message: Message) {
 		try {
 			const count = await db.announcementSubscription.count();
-			await message.reply($msg.legacyCommands.announcements.count.success(count));
+			await message.reply($msg.announcements.legacy.count.success(count));
 		} catch (err) {
 			reportError('Unable to count announcement records', err);
 			await message.reply(
-				$msg.legacyCommands.announcements.count.error(
+				$msg.announcements.legacy.count.error(
 					(err as Error).name,
 					(err as Error).stack,
 				)
@@ -45,7 +45,7 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 		const body  = this.ctx.params.getString('body', true).trim();
 
 		if (!title.length || !body.length) {
-			await message.reply({ content: $msg.legacyCommands.announcements.create.emptyTitleOrBody() });
+			await message.reply({ content: $msg.announcements.legacy.create.emptyTitleOrBody() });
 			return;
 		}
 
@@ -64,11 +64,11 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 			const deliveries    = subscriptions.map(s => ({ announcementId: announcement.id, subscriptionId: s.id }));
 
 			await db.announcementDelivery.createMany({ data: deliveries });
-			await message.reply($msg.legacyCommands.announcements.create.success());
+			await message.reply($msg.announcements.legacy.create.success());
 		} catch (err) {
 			reportError('Unable to create announcement record', err, { snowflake });
 			await message.reply(
-				$msg.legacyCommands.announcements.create.error(
+				$msg.announcements.legacy.create.error(
 					(err as Error).name,
 					(err as Error).stack,
 				)

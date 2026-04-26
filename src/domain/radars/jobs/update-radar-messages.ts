@@ -73,7 +73,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 				const container = new ContainerBuilder()
 					.setAccentColor(Color.Primary)
 					.addTextDisplayComponents(t => t
-						.setContent($msg.jobs.radar.embedTitle(location))
+						.setContent($msg.radar.job.embedTitle(location))
 					)
 					.addMediaGalleryComponents(g => {
 						if (showReflectivity) {
@@ -87,16 +87,16 @@ export class UpdateRadarMessagesJob extends BaseJob {
 						return g;
 					})
 					.addTextDisplayComponents(t => t
-						.setContent(`These radar images were last updated ${time(new Date(), 'R')} and will be updated ${time(nextUpdate, 'R')}.`)
+						.setContent($msg.radar.job.updateWindow(time(new Date(), 'R'), time(nextUpdate, 'R')))
 					)
 					.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Small))
 					.addTextDisplayComponents(t => t
-						.setContent($msg.jobs.radar.embedFooter(radarStation))
+						.setContent($msg.radar.job.embedFooter(radarStation))
 					);
 
 				const deleteButton = new ButtonBuilder()
 					.setCustomId(`delete-auto-radar:${messageId}`)
-					.setLabel($msg.common.buttons.delete())
+					.setLabel($msg.shared.buttons.delete())
 					.setStyle(ButtonStyle.Danger);
 				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
 

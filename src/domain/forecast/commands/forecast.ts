@@ -56,10 +56,10 @@ export class ForecastCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.forecasts.errors.maxDestinationsReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.forecasts.command.errors.maxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			await interaction.reply($msg.errors.invalidCoordinates());
+			await interaction.reply($msg.shared.errors.invalidCoordinates());
 			return;
 		}
 
@@ -68,23 +68,23 @@ export class ForecastCommand extends BaseCommand {
 		try {
 			const location = await this.location.resolveCoordinates(latitude, longitude);
 			const locationPrompt = location.wasAdjusted
-				? $msg.common.prompts.locationConfirmAdjusted(
+				? $msg.shared.prompts.locationConfirmAdjusted(
 					location.requested.latitude,
 					location.requested.longitude,
 					location.latitude,
 					location.longitude,
 					location.name
 				)
-				: $msg.common.prompts.locationConfirm(location.latitude, location.longitude, location.name);
+				: $msg.shared.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel($msg.common.buttons.yes())
+						.setLabel($msg.shared.buttons.yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel($msg.common.buttons.no())
+						.setLabel($msg.shared.buttons.no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
@@ -97,7 +97,7 @@ export class ForecastCommand extends BaseCommand {
 			if (customId === 'confirm') {
 				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === ReportForecastsJob.name)!;
 				const initialMessage = await channel.send({
-					content: $msg.commands.forecasts.placeholderMessage(location.name, time(forecastJob.cron.nextRun()!, 'R')),
+					content: $msg.forecasts.command.placeholderMessage(location.name, time(forecastJob.cron.nextRun()!, 'R')),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();
@@ -114,7 +114,7 @@ export class ForecastCommand extends BaseCommand {
 					}
 				});
 
-				await interaction.editReply({ content: $msg.commands.forecasts.created(channel.toString()), components: [] });
+				await interaction.editReply({ content: $msg.forecasts.command.created(channel.toString()), components: [] });
 			} else {
 				await initialReply.delete();
 			}
@@ -122,20 +122,20 @@ export class ForecastCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.errors.locationNotFound(),
+						content: $msg.shared.errors.locationNotFound(),
 						components: []
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.errors.locationLookupHttpError(err.code, err.status),
+						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
 						components: []
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
 			} else {
 				reportError('Error creating forecast destination', err);
-				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
+				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
 			}
 		}
 	}

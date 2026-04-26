@@ -1,13 +1,5 @@
 {
-	"common": {
-		"description": [
-			"Weather alert and forecast reporting bot by @depthbomb.",
-			"",
-			"Use {help:string} for a list of commands",
-			"Use {incidents:string} to read about potential issues affecting my operation",
-			"",
-			"Version {calver:string}.{commitSha:string}"
-		],
+	"shared": {
 		"buttons": {
 			"yes": "Yes",
 			"no": "No",
@@ -33,63 +25,55 @@
 			]
 		},
 		"notices": {
-			"confirmationCancelled": "Confirmation cancelled",
 			"promptTimedOut": "You did not respond to the prompt in time."
 		},
 		"status": {
 			"reportingTo": "Reporting to {channel:string}"
 		},
-		"messages": {
-			"helpText": [
-				"- Use the {alertsAdd:string} command to add a weather alert reporting destination",
-				"- Use the {forecasts:string} command to designate a channel for reporting hourly forecasts to",
-				"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
-				"- Use the {radar:string} command to get the current doppler radar animation for a location",
-				"",
-				"Users can subscribe to receiving announcements with the {announcementSubscribe:string} command."
-			]
-		}
-	},
-	"errors": {
-		"invalidCoordinates": "The provided latitude or longitude is not valid.",
-		"noDestinationsForType": "There are no {type:string} destinations in this server.",
-		"tooManyDestinationsForType": "You have exceeded the max limit of {type:string} destinations (`{max:number}`).",
-		"locationNotFound": [
-			"The location you specified could not be found by the National Weather Service.",
-			"__Make sure the coordinates you provide are those of locations in the United States of America,__ for example latitude `21.3062945` and longitude `-157.8555066` for a location in Hawaii."
-		],
-		"locationLookupHttpError": [
-			"There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
-			"Only locations within the United States of America are valid."
-		],
-		"unknown": "An unknown error has occurred"
-	},
-	"features": {
-		"disabled": "This feature is currently disabled."
-	},
-	"events": {
-		"guildCreate": {
-			"introMessage": [
-				"## Thank you for adding me to your server! Here's a quick rundown to get started:",
-				"{commandsOverview:string}",
-				"",
-				"You can view incidents related to my operations with the {incidents:string} command.",
-				"",
-				"If you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
-				"",
-				"Lastly, if you enjoy my service then [upvoting me on Top.gg](https://top.gg/bot/1009028718083199016/vote) would very much be appreciated! None of my functionality is locked behind upvoting so don't feel pressured to!",
-				"",
-				"-# I apologize if this is not an appropriate channel for this introduction."
-			]
+		"errors": {
+			"invalidCoordinates": "The provided latitude or longitude is not valid.",
+			"noDestinationsForType": "There are no {type:string} destinations in this server.",
+			"locationNotFound": [
+				"The location you specified could not be found by the National Weather Service.",
+				"__Make sure the coordinates you provide are those of locations in the United States of America,__ for example latitude `21.3062945` and longitude `-157.8555066` for a location in Hawaii."
+			],
+			"locationLookupHttpError": [
+				"There was a problem retrieving the location you provided.```{errorCode:number}: {errorStatus:string}```",
+				"Only locations within the United States of America are valid."
+			],
+			"unknown": "An unknown error has occurred"
 		},
-		"interaction": {
-			"create": {
-				"maintenanceEnabled": "Maintenance in progress: {reason:string}",
-				"commandFailed": "I've encountered a problem executing that command. Please try again later."
+		"featureDisabled": "This feature is currently disabled.",
+		"preconditions": {
+			"cooldown": {
+				"activeCooldown": "You are under an active cooldown that expires {timestamp:string}."
+			},
+			"owner": {
+				"userMustBeTeamMember": "You must be an admin or developer of team **{team:string}** to call this command.",
+				"userMustBeOwner": "This command may only be called by {owner:string}."
+			},
+			"permissions": {
+				"noPermission": "You do not have permission to call this command."
 			}
 		}
 	},
-	"commands": {
+	"system": {
+		"description": [
+			"Weather alert and forecast reporting bot by @depthbomb.",
+			"",
+			"Use {help:string} for a list of commands",
+			"Use {incidents:string} to read about potential issues affecting my operation",
+			"",
+			"Version {calver:string}.{commitSha:string}"
+		],
+		"helpText": [
+			"- Use the {alertsAdd:string} command to add a weather alert reporting destination",
+			"- Use the {forecasts:string} command to designate a channel for reporting hourly forecasts to",
+			"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
+			"- Use the {radar:string} command to get the current doppler radar animation for a location",
+			"",
+			"Users can subscribe to receiving announcements with the {announcementSubscribe:string} command."
+		],
 		"about": {
 			"title": "# About Me (v{version:string})",
 			"gutsSection": [
@@ -106,12 +90,73 @@
 				"**Nope**! I neither use AI to parse or transform data nor is any of my code written with AI. All of my code is written by a human, mistakes and all!"
 			]
 		},
-		"alerts": {
+		"events": {
+			"guildCreate": {
+				"introMessage": [
+					"## Thank you for adding me to your server! Here's a quick rundown to get started:",
+					"{commandsOverview:string}",
+					"",
+					"You can view incidents related to my operations with the {incidents:string} command.",
+					"",
+					"If you encounter any bugs, oddities, or have any suggestions then use the {feedbackSubmit:string} command to submit feedback!",
+					"",
+					"Lastly, if you enjoy my service then [upvoting me on Top.gg](https://top.gg/bot/1009028718083199016/vote) would very much be appreciated! None of my functionality is locked behind upvoting so don't feel pressured to!",
+					"",
+					"-# I apologize if this is not an appropriate channel for this introduction."
+				]
+			},
+			"interaction": {
+				"maintenanceEnabled": "Maintenance in progress: {reason:string}",
+				"commandFailed": "I've encountered a problem executing that command. Please try again later."
+			}
+		},
+		"status": {
+			"activity": {
+				"_one": "1 incident | {emoji:string} Forecasting for {duration:string}",
+				"_other": "{count:number} incidents | {emoji:string} Forecasting for {duration:string}",
+				"_zero": "{emoji:string} Forecasting for {duration:string}"
+			}
+		},
+		"debug": {
+			"dumpDescription": "A dump of my database taken at {date:Date}."
+		},
+		"beacon": {
+			"titles": {
+				"guildAdded": "Added to guild",
+				"guildRemoved": "Removed from guild"
+			},
+			"fields": {
+				"name": "Name",
+				"members": "Members",
+				"channels": "Channels"
+			}
+		},
+		"legacy": {
+			"bot": {
+				"leaveGuild": {
+					"success": "Successfully left guild **{guildName:string}**.",
+					"error": "Could not retrieve a guild that I'm in by the provided ID."
+				}
+			},
+			"commands": {
+				"noValidGuildIds": "No valid guild IDs provided.",
+				"finishedGlobalAction": "Finished {action:string} commands globally.",
+				"finishedGuildAction": {
+					"_one": "Finished {action:string} commands in one guild.",
+					"_other": "Finished {action:string} commands in `{count:number}` guilds."
+				}
+			},
+			"maintenance": {
+				"enabled": "Successfully enabled maintenance mode.",
+				"disabled": "Successfully disabled maintenance mode."
+			}
+		}
+	},
+	"alerts": {
+		"command": {
 			"errors": {
 				"destinationExists": "This channel is already designated as an alert destination.",
 				"destinationNotFound": "No alert destination exists with the snowflake `{snowflake:string}`.",
-				"removeFailed": "The alert destination could not be removed. Please try again later.",
-				"noDestinationInChannel": "{channel:string} does not have any alert reporting assigned to it.",
 				"maxDestinationsReached": "You have reached the maximum amount of alert destinations in this server."
 			},
 			"created": [
@@ -121,7 +166,26 @@
 			"removed": "Alert reporting destination has been successfully removed.",
 			"listTitle": "Alert reporting destinations in this server"
 		},
-		"announcements": {
+		"job": {
+			"updateTag": "[UPDATE]",
+			"headline": "## {updateTag:string}{certainty:string} {headline:string}",
+			"term": [
+				"### Validity Period",
+				"This alert is effective as of {effective:string} and expires {expires:string}."
+			],
+			"affectedAreas": [
+				"### Affected Areas",
+				"{areaDesc:string}"
+			],
+			"instructions": [
+				"### Instructions",
+				"{instructions:string}"
+			],
+			"payloadTooLargePlaceholder": "## This alert is too large to display everything. View the full alert [here.](https://beta.weather.gov/point/{lat:string}/{lon:string}/{anchor:string})"
+		}
+	},
+	"announcements": {
+		"command": {
 			"subscribe": {
 				"alreadySubscribed": "You are already subscribed to announcements.",
 				"success": "You have been subscribed to announcements.",
@@ -133,76 +197,10 @@
 				"error": "Unable to remove announcement subscription. Please try again later."
 			}
 		},
-		"autoRadar": {
-			"errors": {
-				"messageNotFound": "No radar message exists by the snowflake `{snowflake:string}`.",
-				"noMessages": "This server does not appear to have any radar messages",
-				"maxMessagesReached": "You have reached the maximum amount of radar messages in this server."
-			},
-			"locationConfirmWithImage": [
-				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.",
-				"Is this correct?",
-				"{radarImageUrl:string}",
-				"{velocityRadarImageUrl:string}"
-			],
-			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
-			"created": [
-				"{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.",
-				"To remove this designation, simply delete the message at any time."
-			],
-			"listTitle": "Radar messages in this server"
+		"dispatch": {
+			"dmReason": "-# This server is receiving this because it opted into announcements."
 		},
-		"debug": {
-			"dumpDescription": "A dump of my database taken at {date:Date}."
-		},
-		"feedback": {
-			"embed": {
-				"title": "Feedback Received"
-			},
-			"success": "My creator has successfully received your feedback. Thank you!",
-			"error": "I was unable to pass your feedback along to my creator. Please try again later.",
-			"banned": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
-		},
-		"forecasts": {
-			"errors": {
-				"destinationNotFound": "No forecast destination exists with the snowflake `{snowflake:string}`.",
-				"removeFailed": "The forecast destination could not be removed. Please try again later.",
-				"noDestinationInChannel": "{channel:string} does not have any forecast reporting assigned to it.",
-				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
-			},
-			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
-			"created": [
-				"Hourly forecast reporting created in {channel:string}!",
-				"You can remove this destination by simply deleting the message."
-			],
-			"listTitle": "Forecast reporting destinations in this server"
-		},
-		"incidents": {
-			"noActiveIncidents": "There are currently no active incidents.",
-			"createdFieldTitle": "Created",
-			"autoResolveFieldTitle": "Target resolution"
-		},
-		"radar": {
-			"errors": {
-				"invalidStation": "Invalid station: `{station:string}`."
-			},
-			"embed": {
-				"title": "Radar Loop for {station:string}"
-			}
-		}
-	},
-	"components": {
-		"deleteAutoRadarButton": {
-			"noPermission": "You do not have permission to perform this action.",
-			"couldNotFindMessage": "Could not find auto-radar message."
-		},
-		"deleteForecastButton": {
-			"noPermission": "You do not have permission to perform this action.",
-			"couldNotFindMessage": "Could not find forecast message."
-		}
-	},
-	"legacyCommands": {
-		"announcements": {
+		"legacy": {
 			"create": {
 				"emptyTitleOrBody": "Title and body cannot be empty.",
 				"success": "Announcement created! Dispatching to users should begin shortly.",
@@ -228,22 +226,23 @@
 					"```"
 				]
 			}
+		}
+	},
+	"feedback": {
+		"command": {
+			"embed": {
+				"title": "Feedback Received",
+				"fields": {
+					"user": "User",
+					"guild": "Guild",
+					"openToFeedback": "Open to feedback?"
+				}
+			},
+			"success": "My creator has successfully received your feedback. Thank you!",
+			"error": "I was unable to pass your feedback along to my creator. Please try again later.",
+			"banned": "I was unable to pass your feedback along to my creator because you have been blacklisted, likely for abuse of the system."
 		},
-		"bot": {
-			"leaveGuild": {
-				"success": "Successfully left guild **{guildName:string}**.",
-				"error": "Could not retrieve a guild that I'm in by the provided ID."
-			}
-		},
-		"commands": {
-			"noValidGuildIds": "No valid guild IDs provided.",
-			"finishedGlobalAction": "Finished {action:string} commands globally.",
-			"finishedGuildAction": {
-				"_one": "Finished {action:string} commands in one guild.",
-				"_other": "Finished {action:string} commands in `{count:number}` guilds."
-			}
-		},
-		"feedback": {
+		"legacy": {
 			"ban": {
 				"success": "User successfully banned from submitting feedback.",
 				"error": [
@@ -258,76 +257,72 @@
 					"{errorStack?:string}"
 				]
 			}
-		},
-		"maintenance": {
-			"enabled": "Successfully enabled maintenance mode.",
-			"disabled": "Successfully disabled maintenance mode."
 		}
 	},
-	"jobs": {
-		"alerts": {
-			"updateTag": "[UPDATE]",
-			"fieldTitles": {
-				"certainty": "Certainty",
-				"effective": "Effective",
-				"expires": "Expires",
-				"affectedAreas": "Affected Areas",
-				"instructions": "Instructions",
-				"references": "References"
+	"forecasts": {
+		"command": {
+			"errors": {
+				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
 			},
-			"term": [
-				"### Validity Period",
-				"This alert is effective as of {effective:string} and expires {expires:string}."
-			],
-			"affectedAreas": [
-				"### Affected Areas",
-				"{areaDesc:string}"
-			],
-			"instructions": [
-				"### Instructions",
-				"{instructions:string}"
-			],
-			"payloadTooLargePlaceholder": "## This alert is too large to display everything. View the full alert [here.](https://beta.weather.gov/point/{lat:string}/{lon:string}/{anchor:string})"
+			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
+			"created": [
+				"Hourly forecast reporting created in {channel:string}!",
+				"You can remove this destination by simply deleting the message."
+			]
 		},
-		"forecasts": {
+		"job": {
 			"embedTitle": "{forecastName:string}'s Forecast for {location:string}",
 			"atAGlanceTitle": "At a glance"
 		},
-		"radar": {
-			"embedTitle": "# Radar for {location:string}",
-			"embedFooter": "-# The closest station that covers this area is {radarStation:string}.",
-			"lastUpdatedTitle": "Last Updated",
-			"nextUpdateTitle": "Next Update"
-		},
-		"status": {
-			"activity": {
-				"_one": "1 incident | {emoji:string} Forecasting for {duration:string}",
-				"_other": "{count:number} incidents | {emoji:string} Forecasting for {duration:string}",
-				"_zero": "{emoji:string} Forecasting for {duration:string}"
+		"components": {
+			"deleteButton": {
+				"noPermission": "You do not have permission to perform this action.",
+				"couldNotFindMessage": "Could not find forecast message."
 			}
 		}
 	},
-	"beacon": {
-		"titles": {
-			"guildAdded": "Added to guild",
-			"guildRemoved": "Removed from guild"
-		},
-		"fields": {
-			"name": "Name",
-			"members": "Members",
-			"channels": "Channels"
+	"incidents": {
+		"command": {
+			"noActiveIncidents": "There are currently no active incidents.",
+			"createdFieldTitle": "Created",
+			"autoResolveFieldTitle": "Target resolution"
 		}
 	},
-	"preconditions": {
-		"cooldown": {
-			"activeCooldown": "You are under an active cooldown that expires {timestamp:string}."
+	"radar": {
+		"view": {
+			"errors": {
+				"invalidStation": "Invalid station: `{station:string}`."
+			},
+			"embed": {
+				"title": "Radar Loop for {station:string}"
+			}
 		},
-		"owner": {
-			"userMustBeTeamMember": "You must be an admin or developer of team **{team:string}** to call this command.",
-			"userMustBeOwner": "This command may only be called by {owner:string}."
+		"auto": {
+			"errors": {
+				"maxMessagesReached": "You have reached the maximum amount of radar messages in this server."
+			},
+			"locationConfirmWithImage": [
+				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.",
+				"Is this correct?",
+				"{radarImageUrl:string}",
+				"{velocityRadarImageUrl:string}"
+			],
+			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
+			"created": [
+				"{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.",
+				"To remove this designation, simply delete the message at any time."
+			]
 		},
-		"permissions": {
-			"noPermission": "You do not have permission to call this command."
+		"job": {
+			"embedTitle": "# Radar for {location:string}",
+			"embedFooter": "-# The closest station that covers this area is {radarStation:string}.",
+			"updateWindow": "These radar images were last updated {lastUpdated:string} and will be updated {nextUpdate:string}."
+		},
+		"components": {
+			"deleteAutoRadarButton": {
+				"noPermission": "You do not have permission to perform this action.",
+				"couldNotFindMessage": "Could not find auto-radar message."
+			}
 		}
 	}
 }

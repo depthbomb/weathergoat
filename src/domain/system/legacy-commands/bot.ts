@@ -35,9 +35,9 @@ export class BotCommand extends BaseLegacyCommand {
 		try {
 			const guild = await message.client.guilds.fetch(guildId);
 			await guild.leave();
-			await message.reply($msg.legacyCommands.bot.leaveGuild.success(guild.name));
+			await message.reply($msg.system.legacy.bot.leaveGuild.success(guild.name));
 		} catch {
-			await message.reply($msg.legacyCommands.bot.leaveGuild.error());
+			await message.reply($msg.system.legacy.bot.leaveGuild.error());
 		}
 	}
 }

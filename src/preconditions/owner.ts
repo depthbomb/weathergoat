@@ -14,11 +14,11 @@ export class OwnerPrecondition extends BasePrecondition {
 		if ('members' in owner) {
 			const isTeamAdmin = owner.members.some(m => m.id === userId && (m.role === TeamMemberRole.Admin || m.role === TeamMemberRole.Developer));
 			if (!isTeamAdmin) {
-				return PreconditionResult.fromFailure($msg.preconditions.owner.userMustBeTeamMember(owner.name));
+				return PreconditionResult.fromFailure($msg.shared.preconditions.owner.userMustBeTeamMember(owner.name));
 			}
 		} else {
 			if (owner.id !== userId) {
-				return PreconditionResult.fromFailure($msg.preconditions.owner.userMustBeOwner(owner.toString()));
+				return PreconditionResult.fromFailure($msg.shared.preconditions.owner.userMustBeOwner(owner.toString()));
 			}
 		}
 

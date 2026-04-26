@@ -23,7 +23,7 @@ export class ClientReadyEvent extends BaseEvent<'clientReady'> {
 		]);
 
 		await client.application?.fetch();
-		await client.application!.edit({ description: $msg.common.description(help, incidents, CALVER, sha) });
+		await client.application!.edit({ description: $msg.system.description(help, incidents, CALVER, sha) });
 
 		// The bot won't receive the `messageCreate` event for DMs unless it sends a message first
 		// or we manually create a DM with the user, so we automatically create a DM to application

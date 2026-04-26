@@ -76,11 +76,11 @@ export class ReportForecastsJob extends BaseJob {
 				}
 
 				const embed = new EmbedBuilder()
-					.setTitle('⛅ ' + $msg.jobs.forecasts.embedTitle(forecast.name, location.name))
+					.setTitle('⛅ ' + $msg.forecasts.job.embedTitle(forecast.name, location.name))
 					.setColor(Color.Primary)
 					.setThumbnail(forecast.getIcon('large'))
 					.setDescription(forecast.detailedForecast)
-					.addFields({ name: $msg.jobs.forecasts.atAGlanceTitle(), value: forecast.shortForecast })
+					.addFields({ name: $msg.forecasts.job.atAGlanceTitle(), value: forecast.shortForecast })
 					.setTimestamp();
 
 				if (radarImageUrl) {
@@ -89,7 +89,7 @@ export class ReportForecastsJob extends BaseJob {
 
 				const deleteButton = new ButtonBuilder()
 					.setCustomId(`delete-forecast:${messageId}`)
-					.setLabel($msg.common.buttons.delete())
+					.setLabel($msg.shared.buttons.delete())
 					.setStyle(ButtonStyle.Danger);
 				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
 

@@ -79,7 +79,7 @@ export class DebugCommand extends BaseLegacyCommand {
 		}, null, 4);
 		const attachment = new AttachmentBuilder(Buffer.from(json, 'utf8'), {
 			name: 'dump.json',
-			description: $msg.commands.debug.dumpDescription(date)
+			description: $msg.system.debug.dumpDescription(date)
 		});
 
 		await message.reply({ files: [attachment] });

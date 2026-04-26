@@ -13,7 +13,7 @@ export class PermissionsPrecondition extends BasePrecondition {
 	public async check(interaction: ChatInputCommandInteraction) {
 		const member = interaction.member;
 		if (!isGuildMember(member) || !member.permissions.has(this.permissions)) {
-			return PreconditionResult.fromFailure($msg.preconditions.permissions.noPermission());
+			return PreconditionResult.fromFailure($msg.shared.preconditions.permissions.noPermission());
 		}
 
 		return PreconditionResult.fromSuccess();

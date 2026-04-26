@@ -44,16 +44,16 @@ export class AnnouncementCommand extends BaseCommand {
 
 		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
 		if (existingSubscription) {
-			await interaction.editReply($msg.commands.announcements.subscribe.alreadySubscribed());
+			await interaction.editReply($msg.announcements.command.subscribe.alreadySubscribed());
 			return;
 		}
 
 		try {
 			await db.announcementSubscription.create({ data: { userId } });
-			await interaction.editReply($msg.commands.announcements.subscribe.success());
+			await interaction.editReply($msg.announcements.command.subscribe.success());
 		} catch (err) {
 			reportError('Unable to create announcement subscription record', err, { userId });
-			await interaction.editReply($msg.commands.announcements.subscribe.error());
+			await interaction.editReply($msg.announcements.command.subscribe.error());
 		}
 	}
 
@@ -64,16 +64,16 @@ export class AnnouncementCommand extends BaseCommand {
 
 		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
 		if (!existingSubscription) {
-			await interaction.editReply($msg.commands.announcements.unsubscribe.notSubscribed());
+			await interaction.editReply($msg.announcements.command.unsubscribe.notSubscribed());
 			return;
 		}
 
 		try {
 			await db.announcementSubscription.delete({ where: { userId } });
-			await interaction.editReply($msg.commands.announcements.unsubscribe.success());
+			await interaction.editReply($msg.announcements.command.unsubscribe.success());
 		} catch (err) {
 			reportError('Unable to remove announcement subscription record', err, { userId });
-			await interaction.editReply($msg.commands.announcements.unsubscribe.error());
+			await interaction.editReply($msg.announcements.command.unsubscribe.error());
 		}
 	}
 }

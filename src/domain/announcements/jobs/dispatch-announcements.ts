@@ -1,5 +1,6 @@
 import { db } from '@database';
 import { Color } from '@constants';
+import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
@@ -38,7 +39,7 @@ export class DispatchAnnouncementsJob extends BaseJob {
 				.addSeparatorComponents(s => s.setDivider(true).setSpacing(SeparatorSpacingSize.Large))
 				.addTextDisplayComponents(d => d.setContent(announcement.body))
 				.addSeparatorComponents(s => s.setDivider(true).setSpacing(SeparatorSpacingSize.Large))
-				.addTextDisplayComponents(d => d.setContent('-# This server is receiving this because it opted into announcements.'));
+				.addTextDisplayComponents(d => d.setContent($msg.announcements.dispatch.dmReason()));
 
 			try {
 				const user = await client.users.fetch(delivery.subscription.userId);

@@ -21,7 +21,7 @@ export class HelpCommand extends BaseCommand {
 			client.getCommandLink('radar'),
 			client.getCommandLink('announcement', 'subscribe'),
 		]);
-		const commandsOverview = $msg.common.messages.helpText(alerts, forecasts, autoRadar, radar, announcement);
+		const commandsOverview = $msg.system.helpText(alerts, forecasts, autoRadar, radar, announcement);
 
 		await interaction.reply(commandsOverview);
 	}

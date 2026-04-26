@@ -72,7 +72,7 @@ export class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 				await message.reply(err.message);
 			} else {
 				reportError('Error in legacy command handler', err, { command: parsed.commandName });
-				await message.reply($msg.events.interaction.create.commandFailed());
+				await message.reply($msg.system.events.interaction.commandFailed());
 			}
 		} finally {
 			this.logger.debug(`Legacy command completed in ${sw.toString()}`);

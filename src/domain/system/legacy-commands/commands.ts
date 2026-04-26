@@ -60,7 +60,7 @@ export class CommandsCommand extends BaseLegacyCommand {
 
 		if (scope === 'global') {
 			await message.client.rest.put(Routes.applicationCommands(botId), { body });
-			await message.reply($msg.legacyCommands.commands.finishedGlobalAction(action === 'create' ? 'registering' : 'deleting'));
+			await message.reply($msg.system.legacy.commands.finishedGlobalAction(action === 'create' ? 'registering' : 'deleting'));
 			return;
 		}
 
@@ -75,7 +75,7 @@ export class CommandsCommand extends BaseLegacyCommand {
 			this.logger.withMetadata({ guildId }).info(`${action === 'create' ? 'Registered' : 'Deleted'} commands in guild`);
 		}
 
-		await message.reply($msg.legacyCommands.commands.finishedGuildAction(guildIds.length, action === 'create' ? 'registering' : 'deleting'));
+		await message.reply($msg.system.legacy.commands.finishedGuildAction(guildIds.length, action === 'create' ? 'registering' : 'deleting'));
 	}
 
 	private async getValidGuildIds(message: Message): Promise<Nullable<string[]>> {
@@ -83,7 +83,7 @@ export class CommandsCommand extends BaseLegacyCommand {
 		const valid  = guilds.split(' ').filter(isValidSnowflake);
 
 		if (valid.length === 0) {
-			await message.reply('No valid guild IDs provided.');
+			await message.reply($msg.system.legacy.commands.noValidGuildIds());
 			return null;
 		}
 

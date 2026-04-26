@@ -68,10 +68,10 @@ export class AutoRadarCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
-		MaxDestinationError.assert(existingCount < maxCount, $msg.commands.autoRadar.errors.maxMessagesReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.radar.auto.errors.maxMessagesReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			await interaction.reply($msg.errors.invalidCoordinates());
+			await interaction.reply($msg.shared.errors.invalidCoordinates());
 			return;
 		}
 
@@ -80,7 +80,7 @@ export class AutoRadarCommand extends BaseCommand {
 		try {
 			const location = await this.location.resolveCoordinates(latitude, longitude);
 			const locationPrompt = location.wasAdjusted
-				? $msg.common.prompts.locationConfirmAdjustedWithImage(
+				? $msg.shared.prompts.locationConfirmAdjustedWithImage(
 					location.requested.latitude,
 					location.requested.longitude,
 					location.latitude,
@@ -89,7 +89,7 @@ export class AutoRadarCommand extends BaseCommand {
 					location.radar.reflectivityImageUrl,
 					location.radar.velocityImageUrl
 				)
-				: $msg.commands.autoRadar.locationConfirmWithImage(
+				: $msg.radar.auto.locationConfirmWithImage(
 					location.latitude,
 					location.longitude,
 					location.name,
@@ -100,11 +100,11 @@ export class AutoRadarCommand extends BaseCommand {
 				.addComponents(
 					new ButtonBuilder()
 						.setCustomId('confirm')
-						.setLabel($msg.common.buttons.yes())
+						.setLabel($msg.shared.buttons.yes())
 						.setStyle(ButtonStyle.Success),
 					new ButtonBuilder()
 						.setCustomId('deny')
-						.setLabel($msg.common.buttons.no())
+						.setLabel($msg.shared.buttons.no())
 						.setStyle(ButtonStyle.Danger)
 				);
 
@@ -118,7 +118,7 @@ export class AutoRadarCommand extends BaseCommand {
 				const guildId            = interaction.guildId!;
 				const channelId          = channel.id;
 				const snowflake          = generateSnowflake();
-				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.commands.autoRadar.placeholderMessage(location.name)))
+				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.radar.auto.placeholderMessage(location.name)))
 				const placeholderMessage = await channel.send({
 					components: [placeholder],
 					flags: [
@@ -143,7 +143,7 @@ export class AutoRadarCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: $msg.commands.autoRadar.created(channel.toString()),
+					content: $msg.radar.auto.created(channel.toString()),
 					components: []
 				});
 			} else {
@@ -153,20 +153,20 @@ export class AutoRadarCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.errors.locationNotFound(),
+						content: $msg.shared.errors.locationNotFound(),
 						components: []
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.errors.locationLookupHttpError(err.code, err.status),
+						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
 						components: []
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.common.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
 			} else {
 				reportError('Error creating auto-radar destination', err);
-				await interaction.editReply({ content: $msg.errors.unknown(), components: [] });
+				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
 			}
 		}
 	}

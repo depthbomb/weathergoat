@@ -14,21 +14,21 @@ export class Beacon {
 
 		client.on('guildCreate', async guild => {
 			const embed = new EmbedBuilder()
-				.setTitle($msg.beacon.titles.guildAdded())
+				.setTitle($msg.system.beacon.titles.guildAdded())
 				.setColor(Color.Success)
 				.setThumbnail(guild.iconURL())
 				.addFields([
 					{
-						name: $msg.beacon.fields.name(),
+						name: $msg.system.beacon.fields.name(),
 						value: `${guild.name} (${guild.id})`
 					},
 					{
-						name: $msg.beacon.fields.members(),
+						name: $msg.system.beacon.fields.members(),
 						value: guild.memberCount.toLocaleString(),
 						inline: true
 					},
 					{
-						name: $msg.beacon.fields.channels(),
+						name: $msg.system.beacon.fields.channels(),
 						value: guild.channels.cache.size.toLocaleString(),
 						inline: true
 					},
@@ -47,10 +47,10 @@ export class Beacon {
 
 		client.on('guildDelete', async guild => {
 			const embed = new EmbedBuilder()
-				.setTitle($msg.beacon.titles.guildRemoved())
+				.setTitle($msg.system.beacon.titles.guildRemoved())
 				.setColor(Color.Danger)
 				.addFields([{
-					name: $msg.beacon.fields.name(),
+					name: $msg.system.beacon.fields.name(),
 					value: `${guild.name} (${guild.id})`
 				}]);
 

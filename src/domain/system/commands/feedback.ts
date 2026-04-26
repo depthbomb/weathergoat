@@ -39,7 +39,7 @@ export class FeedbackCommand extends BaseCommand {
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		if (this.features.isFeatureEnabled('disableFeedbackSubmissions')) {
-			await interaction.reply($msg.features.disabled());
+			await interaction.reply($msg.shared.featureDisabled());
 			return;
 		}
 
@@ -49,7 +49,7 @@ export class FeedbackCommand extends BaseCommand {
 
 		const isBanned = await db.feedbackBan.exists({ userId: interaction.user.id, active: true });
 		if (isBanned) {
-			await interaction.editReply($msg.commands.feedback.banned());
+			await interaction.editReply($msg.feedback.command.banned());
 			return;
 		}
 
@@ -57,20 +57,20 @@ export class FeedbackCommand extends BaseCommand {
 		const allowFeedback = interaction.options.getBoolean('allow-followup', true);
 
 		const embed = new EmbedBuilder()
-			.setTitle($msg.commands.feedback.embed.title())
+			.setTitle($msg.feedback.command.embed.title())
 			.setColor(Color.Success)
 			.setDescription(`>>> ${content}`)
 			.addFields([
 				{
-					name: 'User',
+					name: $msg.feedback.command.embed.fields.user(),
 					value: `${interaction.user.username} (${interaction.user.id})`
 				},
 				{
-					name: 'Guild',
+					name: $msg.feedback.command.embed.fields.guild(),
 					value: `${interaction.guild?.name} (${interaction.guild?.id})`
 				},
 				{
-					name: 'Open to feedback?',
+					name: $msg.feedback.command.embed.fields.openToFeedback(),
 					value: allowFeedback ? '✔' : '❌'
 				},
 			]);
@@ -78,16 +78,16 @@ export class FeedbackCommand extends BaseCommand {
 		const owner = await interaction.client.users.fetch(env.get('BOT_OWNER_ID'));
 		if (!owner) {
 			this.logger.error('Failed to retrieve owner to submit feedback to.');
-			await interaction.editReply($msg.commands.feedback.error());
+			await interaction.editReply($msg.feedback.command.error());
 			return;
 		}
 
 		try {
 			await owner.send({ embeds: [embed] });
-			await interaction.editReply($msg.commands.feedback.success());
+			await interaction.editReply($msg.feedback.command.success());
 		} catch (err) {
 			reportError('Failed to submit feedback.', err);
-			await interaction.editReply($msg.commands.feedback.error());
+			await interaction.editReply($msg.feedback.command.error());
 		}
 	}
 }

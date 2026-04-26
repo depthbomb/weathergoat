@@ -135,12 +135,16 @@ export class ReportAlertsJob extends BaseJob {
 							)
 						)
 						.addTextDisplayComponents(t => t
-							.setContent(`## ${alert.isUpdate ? $msg.jobs.alerts.updateTag() : ''} ${alert.certainty} ${alert.headline}`)
+							.setContent($msg.alerts.job.headline(
+								alert.isUpdate ? `${$msg.alerts.job.updateTag()} ` : '',
+								alert.certainty,
+								alert.headline
+							))
 						);
 
 					if (description.length > 2_000) {
 						container.addTextDisplayComponents(t => t
-							.setContent($msg.jobs.alerts.payloadTooLargePlaceholder(
+							.setContent($msg.alerts.job.payloadTooLargePlaceholder(
 								latitude,
 								longitude,
 								`#alert_${alert.id.split('.').slice(-3).join('_')}`
@@ -153,15 +157,15 @@ export class ReportAlertsJob extends BaseJob {
 					container
 						.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Large))
 						.addTextDisplayComponents(t => t
-							.setContent($msg.jobs.alerts.term(time(alert.effective, 'R'), time(alert.expires, 'R')))
+							.setContent($msg.alerts.job.term(time(alert.effective, 'R'), time(alert.expires, 'R')))
 						)
 						.addTextDisplayComponents(t => t
-							.setContent($msg.jobs.alerts.affectedAreas(alert.areaDesc))
+							.setContent($msg.alerts.job.affectedAreas(alert.areaDesc))
 						);
 
 					const instructions = alert.instruction;
 					if (!isUndefined(instructions)) {
-						container.addTextDisplayComponents(t => t.setContent($msg.jobs.alerts.instructions(instructions.toCodeBlock('md'))));
+						container.addTextDisplayComponents(t => t.setContent($msg.alerts.job.instructions(instructions.toCodeBlock('md'))));
 					}
 
 					if (radarImageUrl) {

@@ -46,7 +46,7 @@ export class CooldownPrecondition extends BasePrecondition {
 		if (ratelimit.limited) {
 			const expiresAt = new Date(ratelimit.expires);
 
-			return PreconditionResult.fromFailure($msg.preconditions.cooldown.activeCooldown(time(expiresAt, 'R')));
+			return PreconditionResult.fromFailure($msg.shared.preconditions.cooldown.activeCooldown(time(expiresAt, 'R')));
 		}
 
 		ratelimit.consume();

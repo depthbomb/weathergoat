@@ -26,7 +26,7 @@ export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 			if (interaction.client.maintenanceModeFlag.isTrue && command.name !== 'maintenance') {
 				const reason = interaction.client.maintenanceModeReason.value;
 				await interaction.reply({
-					content: $msg.events.interaction.create.maintenanceEnabled(reason.toInlineCode()),
+					content: $msg.system.events.interaction.maintenanceEnabled(reason.toInlineCode()),
 					flags: MessageFlags.Ephemeral
 				});
 				return;
@@ -129,7 +129,7 @@ export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 
 	private createInteractionFailedErrorMessage() {
 		return new MessageBuilder().setEmbeds([
-			this.createErrorEmbed($msg.events.interaction.create.commandFailed())
+			this.createErrorEmbed($msg.system.events.interaction.commandFailed())
 		]);
 	}
 

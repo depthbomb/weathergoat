@@ -22,19 +22,19 @@ export class AboutCommand extends BaseCommand {
 		const container = new ContainerBuilder()
 			.setAccentColor(Color.Primary)
 			.addSectionComponents(s => s
-				.addTextDisplayComponents(d => d.setContent($msg.commands.about.title(CALVER)))
+				.addTextDisplayComponents(d => d.setContent($msg.system.about.title(CALVER)))
 				.setThumbnailAccessory(tn => tn.setURL(interaction.client.user.avatarURL()!))
 			)
-			.addTextDisplayComponents(d => d.setContent($msg.commands.about.gutsSection(
+			.addTextDisplayComponents(d => d.setContent($msg.system.about.gutsSection(
 				bunCommitSha.toHyperlink(bunCommitUrl),
 				hostname(),
 				formatDuration(uptime() * 1_000),
 				formatDuration(interaction.client.uptime ?? 0)
 			)))
 			.addSeparatorComponents(s => s.setDivider(true).setSpacing(SeparatorSpacingSize.Large))
-			.addTextDisplayComponents(d => d.setContent($msg.commands.about.dataSourceSection()))
+			.addTextDisplayComponents(d => d.setContent($msg.system.about.dataSourceSection()))
 			.addSeparatorComponents(s => s.setDivider(true).setSpacing(SeparatorSpacingSize.Large))
-			.addTextDisplayComponents(d => d.setContent($msg.commands.about.aiUsageSection()));
+			.addTextDisplayComponents(d => d.setContent($msg.system.about.aiUsageSection()));
 
 		await interaction.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
 	}

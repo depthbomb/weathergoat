@@ -1,5 +1,5 @@
 import { db } from '@database';
-import { $msg } from '@lib/messages.generated';
+import { $msg } from '@lib/messages';
 import { assume } from '@depthbomb/common/typing';
 import { BaseComponent } from '@infra/components';
 import { isGuildMember } from '@sapphire/discord.js-utilities';
@@ -19,7 +19,7 @@ export class DeleteForecastButton extends BaseComponent {
 
 		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
 			await interaction.reply({
-				content: $msg.components.deleteForecastButton.noPermission(),
+				content: $msg.forecasts.components.deleteButton.noPermission(),
 				flags: MessageFlags.Ephemeral
 			});
 			return;
@@ -38,7 +38,7 @@ export class DeleteForecastButton extends BaseComponent {
 		const forecastMessage = await db.forecastDestination.findFirst({ where });
 		if (!forecastMessage) {
 			await interaction.reply({
-				content: $msg.components.deleteForecastButton.couldNotFindMessage(),
+				content: $msg.forecasts.components.deleteButton.couldNotFindMessage(),
 				flags: MessageFlags.Ephemeral
 			});
 			return;

@@ -19,7 +19,7 @@ export class IncidentsCommand extends BaseCommand {
 
 		const activeIncidents = await db.incident.findMany({ where: { status: IncidentStatus.ACTIVE }, take: 10 });
 		if (activeIncidents.length === 0) {
-			await interaction.editReply($msg.commands.incidents.noActiveIncidents());
+			await interaction.editReply($msg.incidents.command.noActiveIncidents());
 			return;
 		}
 
@@ -30,7 +30,7 @@ export class IncidentsCommand extends BaseCommand {
 				.setDescription(incident.description)
 				.setFields([
 					{
-						name: $msg.commands.incidents.createdFieldTitle(),
+						name: $msg.incidents.command.createdFieldTitle(),
 						value: time(incident.createdAt, 'R'),
 						inline: true,
 					}
@@ -38,7 +38,7 @@ export class IncidentsCommand extends BaseCommand {
 
 			if (incident.autoResolveAt) {
 				embed.addFields({
-					name: $msg.commands.incidents.autoResolveFieldTitle(),
+					name: $msg.incidents.command.autoResolveFieldTitle(),
 					value: time(incident.autoResolveAt, 'R'),
 					inline: true,
 				});

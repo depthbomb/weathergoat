@@ -53,7 +53,7 @@ export class UpdateStatusJob extends BaseJob {
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
-					name: $msg.jobs.status.activity(incidentsCount, this.pickRandomEmoji(), duration),
+					name: $msg.system.status.activity(incidentsCount, this.pickRandomEmoji(), duration),
 					type: ActivityType.Custom
 				}
 			]

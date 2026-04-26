@@ -201,13 +201,13 @@ export class RadarCommand extends BaseCommand {
 	public async handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
 		if (!this.radars.find(v => v === station)) {
-			return interaction.reply($msg.commands.radar.errors.invalidStation(station));
+			return interaction.reply($msg.radar.view.errors.invalidStation(station));
 		}
 
 		const embed = new EmbedBuilder()
 			.setColor(Color.Primary)
 			.setImage(`https://radar.weather.gov/ridge/standard/${station}_loop.gif?${generateSnowflake()}`)
-			.setTitle($msg.commands.radar.embed.title(station))
+			.setTitle($msg.radar.view.embed.title(station))
 			.setURL(`https://radar.weather.gov/station/${station.toLowerCase()}/standard`);
 
 		return interaction.reply({ embeds: [embed] });

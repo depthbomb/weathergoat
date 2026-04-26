@@ -29,13 +29,13 @@ export class MaintenanceCommand extends BaseLegacyCommand {
 			message.client.maintenanceModeReason.set(reason);
 		}
 
-		await message.reply($msg.legacyCommands.maintenance.enabled());
+		await message.reply($msg.system.legacy.maintenance.enabled());
 	}
 
 	public async [Subcommands.Disable](message: Message) {
 		message.client.maintenanceModeFlag.setFalse();
 		message.client.maintenanceModeReason.reset();
 
-		await message.reply($msg.legacyCommands.maintenance.disabled());
+		await message.reply($msg.system.legacy.maintenance.disabled());
 	}
 }
