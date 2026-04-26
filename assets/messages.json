@@ -28,7 +28,8 @@
 				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
 				"Coordinates have been resolved to `{latitude:string},{longitude:string}` for **{location:string}** with the radar image below.",
 				"Would you like to use this location?",
-				"{radarImageUrl:string}"
+				"{radarImageUrl:string}",
+				"{velocityRadarImageUrl:string}"
 			]
 		},
 		"notices": {
@@ -141,7 +142,8 @@
 			"locationConfirmWithImage": [
 				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.",
 				"Is this correct?",
-				"{radarImageUrl:string}"
+				"{radarImageUrl:string}",
+				"{velocityRadarImageUrl:string}"
 			],
 			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
 			"created": [
@@ -292,8 +294,8 @@
 			"atAGlanceTitle": "At a glance"
 		},
 		"radar": {
-			"embedTitle": "Radar for {location:string}",
-			"embedFooter": "The closest station that covers this area is {radarStation:string}.",
+			"embedTitle": "# Radar for {location:string}",
+			"embedFooter": "-# The closest station that covers this area is {radarStation:string}.",
 			"lastUpdatedTitle": "Last Updated",
 			"nextUpdateTitle": "Next Update"
 		},

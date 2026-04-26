@@ -22,9 +22,12 @@ import {
 	ActionRowBuilder,
 	DiscordjsErrorCodes,
 	PermissionFlagsBits,
-	SlashCommandBuilder
+	SlashCommandBuilder,
+	ContainerBuilder
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
+
+type RadarType = 'reflectivity' | 'base-velocity' | 'both';
 
 export class AutoRadarCommand extends BaseCommand {
 	public constructor(
@@ -35,6 +38,16 @@ export class AutoRadarCommand extends BaseCommand {
 				.setName('auto-radar')
 				.setDescription('Designates a channel to post an auto-updating radar image for a region')
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+				.addStringOption(o => o
+					.setName('radar-type')
+					.addChoices([
+						{ name: 'Reflectivity (recommended)', value: 'reflectivity' },
+						{ name: 'Base Velocity', value: 'base-velocity' },
+						{ name: 'Both', value: 'both' },
+					])
+					.setDescription('The type of radar image')
+					.setRequired(true)
+				)
 				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area').setRequired(true))
 				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area').setRequired(true))
 				.addChannelOption(o => o.setName('channel').setDescription('The channel to host the auto-updating radar image').setRequired(true)),
@@ -47,6 +60,7 @@ export class AutoRadarCommand extends BaseCommand {
 	public async handle(interaction: ChatInputCommandInteraction) {
 		const maxCount  = env.get('MAX_RADAR_MESSAGES_PER_GUILD');
 		const guildId   = interaction.guildId;
+		const radarType = interaction.options.getString('radar-type', true).trim() as RadarType;
 		const latitude  = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
@@ -73,9 +87,16 @@ export class AutoRadarCommand extends BaseCommand {
 					location.latitude,
 					location.longitude,
 					location.location,
-					location.radarImageUrl
+					location.radarImageUrl,
+					location.velocityRadarImageUrl
 				)
-				: $msg.commands.autoRadar.locationConfirmWithImage(location.latitude, location.longitude, location.location, location.radarImageUrl);
+				: $msg.commands.autoRadar.locationConfirmWithImage(
+					location.latitude,
+					location.longitude,
+					location.location,
+					location.radarImageUrl,
+					location.velocityRadarImageUrl
+				);
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(
 					new ButtonBuilder()
@@ -98,9 +119,13 @@ export class AutoRadarCommand extends BaseCommand {
 				const guildId            = interaction.guildId!;
 				const channelId          = channel.id;
 				const snowflake          = generateSnowflake();
+				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.commands.autoRadar.placeholderMessage(location.location)))
 				const placeholderMessage = await channel.send({
-					content: $msg.commands.autoRadar.placeholderMessage(location.location),
-					flags: [MessageFlags.SuppressNotifications]
+					components: [placeholder],
+					flags: [
+						MessageFlags.SuppressNotifications,
+						MessageFlags.IsComponentsV2
+					]
 				});
 
 				await db.autoRadarMessage.create({
@@ -111,7 +136,10 @@ export class AutoRadarCommand extends BaseCommand {
 						messageId: placeholderMessage.id,
 						location: location.location,
 						radarStation: location.radarStation,
-						radarImageUrl: location.radarImageUrl
+						radarImageUrl: location.radarImageUrl,
+						velocityRadarImageUrl: location.velocityRadarImageUrl,
+						showReflectivity: radarType === 'both' || radarType === 'reflectivity',
+						showVelocity: radarType === 'both' || radarType === 'base-velocity',
 					}
 				});
 

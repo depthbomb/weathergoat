@@ -30,6 +30,7 @@ export type CoordinateInfo = {
 	forecastUrl: string;
 	radarStation: string;
 	radarImageUrl: string;
+	velocityRadarImageUrl: string;
 };
 
 export type CoordinateLookupResult = {
@@ -243,7 +244,8 @@ export class LocationService {
 			countyId: data.countyId,
 			forecastUrl: data.forecast,
 			radarStation: data.radarStation,
-			radarImageUrl: data.radarImageUrl
+			radarImageUrl: data.radarImageUrl,
+			velocityRadarImageUrl: data.velocityRadarImageUrl
 		} as CoordinateInfo;
 
 		await this.redis.set(cacheKey, JSON.stringify(info), cacheTTL);

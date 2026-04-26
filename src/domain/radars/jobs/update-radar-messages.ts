@@ -7,7 +7,15 @@ import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
-import { time, ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
+import {
+	time,
+	ButtonStyle,
+	ButtonBuilder,
+	ActionRowBuilder,
+	ContainerBuilder,
+	RESTJSONErrorCodes,
+	SeparatorSpacingSize
+} from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 export class UpdateRadarMessagesJob extends BaseJob {
@@ -38,7 +46,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 			},
 			take: 500
 		});
-		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl } of dueMessages) {
+		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, velocityRadarImageUrl, showReflectivity, showVelocity } of dueMessages) {
 			try {
 				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
@@ -62,14 +70,28 @@ export class UpdateRadarMessagesJob extends BaseJob {
 
 				const nextUpdate = new Date(Temporal.Now.instant().add({ minutes: 5 }).epochMilliseconds);
 
-				const embed = new EmbedBuilder()
-					.setColor(Color.Primary)
-					.setTitle($msg.jobs.radar.embedTitle(location))
-					.setFooter({ text: $msg.jobs.radar.embedFooter(radarStation) })
-					.setImage(`${radarImageUrl}?${generateSnowflake()}`)
-					.addFields(
-						{ name: $msg.jobs.radar.lastUpdatedTitle(), value: time(new Date(), 'R'), inline: true },
-						{ name: $msg.jobs.radar.nextUpdateTitle(), value: time(nextUpdate, 'R'), inline: true },
+				const container = new ContainerBuilder()
+					.setAccentColor(Color.Primary)
+					.addTextDisplayComponents(t => t
+						.setContent($msg.jobs.radar.embedTitle(location))
+					)
+					.addMediaGalleryComponents(g => {
+						if (showReflectivity) {
+							g.addItems(i => i.setURL(`${radarImageUrl}?s=${generateSnowflake()}`));
+						}
+
+						if (showVelocity) {
+							g.addItems(i => i.setURL(`${velocityRadarImageUrl}?s=${generateSnowflake()}`));
+						}
+
+						return g;
+					})
+					.addTextDisplayComponents(t => t
+						.setContent(`These radar images were last updated ${time(new Date(), 'R')} and will be updated ${time(nextUpdate, 'R')}.`)
+					)
+					.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Small))
+					.addTextDisplayComponents(t => t
+						.setContent($msg.jobs.radar.embedFooter(radarStation))
 					);
 
 				const deleteButton = new ButtonBuilder()
@@ -78,15 +100,8 @@ export class UpdateRadarMessagesJob extends BaseJob {
 					.setStyle(ButtonStyle.Danger);
 				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
 
-				await message.edit({ content: '', embeds: [embed], components: [row] });
-				await db.autoRadarMessage.update({
-					data: {
-						nextUpdate
-					},
-					where: {
-						id
-					}
-				});
+				await message.edit({ content: '', components: [container, row] });
+				await db.autoRadarMessage.update({ data: { nextUpdate }, where: { id } });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;

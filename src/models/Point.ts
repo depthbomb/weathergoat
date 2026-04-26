@@ -51,6 +51,10 @@ export class Point {
 		return `https://radar.weather.gov/ridge/standard/${this.radarStation}_loop.gif`;
 	}
 
+	public get velocityRadarImageUrl() {
+		return `https://radar.weather.gov/ridge/standard/base_velocity/${this.radarStation}_loop.gif`;
+	}
+
 	private extractLastUrlSegment(url: string) {
 		const segments = url.split('/');
 		return segments[segments.length - 1]!;
