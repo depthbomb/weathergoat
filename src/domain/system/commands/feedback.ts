@@ -9,6 +9,11 @@ import { FeaturesService } from '@services/features';
 import { GuildOnlyInvocationInNonGuildError } from '@errors';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import {
+	createErrorMessageComponent,
+	createSuccessMessageComponent,
+	createWarningMessageComponent
+} from '@utils/components';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export class FeedbackCommand extends BaseCommand {
@@ -39,7 +44,10 @@ export class FeedbackCommand extends BaseCommand {
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		if (this.features.isFeatureEnabled('disableFeedbackSubmissions')) {
-			await interaction.reply($msg.shared.featureDisabled());
+			await interaction.reply({
+				components: [createWarningMessageComponent($msg.shared.featureDisabled())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
@@ -49,7 +57,10 @@ export class FeedbackCommand extends BaseCommand {
 
 		const isBanned = await db.feedbackBan.exists({ userId: interaction.user.id, active: true });
 		if (isBanned) {
-			await interaction.editReply($msg.feedback.command.banned());
+			await interaction.editReply({
+				components: [createErrorMessageComponent($msg.feedback.command.banned())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
@@ -78,16 +89,25 @@ export class FeedbackCommand extends BaseCommand {
 		const owner = await interaction.client.users.fetch(env.get('BOT_OWNER_ID'));
 		if (!owner) {
 			this.logger.error('Failed to retrieve owner to submit feedback to.');
-			await interaction.editReply($msg.feedback.command.error());
+			await interaction.editReply({
+				components: [createErrorMessageComponent($msg.feedback.command.error())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
 		try {
 			await owner.send({ embeds: [embed] });
-			await interaction.editReply($msg.feedback.command.success());
+			await interaction.editReply({
+				components: [createSuccessMessageComponent($msg.feedback.command.success())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		} catch (err) {
 			reportError('Failed to submit feedback.', err);
-			await interaction.editReply($msg.feedback.command.error());
+			await interaction.editReply({
+				components: [createErrorMessageComponent($msg.feedback.command.error())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		}
 	}
 }

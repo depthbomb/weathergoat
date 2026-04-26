@@ -1,8 +1,10 @@
 import { db } from '@database';
+import { EMOJI } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
-import { time, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { createWarningMessageComponent } from '@utils/components';
 import { IncidentStatus, IncidentSeverity } from '@database/generated/enums';
+import { time, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export class IncidentsCommand extends BaseCommand {
@@ -19,7 +21,10 @@ export class IncidentsCommand extends BaseCommand {
 
 		const activeIncidents = await db.incident.findMany({ where: { status: IncidentStatus.ACTIVE }, take: 10 });
 		if (activeIncidents.length === 0) {
-			await interaction.editReply($msg.incidents.command.noActiveIncidents());
+			await interaction.editReply({
+				components: [createWarningMessageComponent($msg.incidents.command.noActiveIncidents())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
@@ -53,11 +58,11 @@ export class IncidentsCommand extends BaseCommand {
 	private getSeverityEmoji(severity: IncidentSeverity) {
 		switch (severity) {
 			case IncidentSeverity.LOW:
-				return '<:incidentLow:1493085222554697738>';
+				return EMOJI.incidentLow;
 			case IncidentSeverity.MEDIUM:
-				return '<:incidentMedium:1493085224878346260>';
+				return EMOJI.incidentMedium;
 			case IncidentSeverity.HIGH:
-				return '<:incidentHigh:1493085220419928155>';
+				return EMOJI.incidentHigh;
 		}
 	}
 }

@@ -10,6 +10,11 @@ import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
 import {
+	createErrorMessageComponent,
+	createSuccessMessageComponent,
+	createWarningMessageComponent
+} from '@utils/components';
+import {
 	HTTPRequestError,
 	isDiscordJSError,
 	isWeatherGoatError,
@@ -21,8 +26,9 @@ import {
 	ButtonStyle,
 	ChannelType,
 	EmbedBuilder,
+	MessageFlags,
 	ButtonBuilder,
-	ActionRowBuilder,
+	ContainerBuilder,
 	DiscordjsErrorCodes,
 	PermissionFlagsBits,
 	SlashCommandBuilder
@@ -108,7 +114,10 @@ export class AlertsCommand extends BaseCommand {
 				channelId: channel.id
 			});
 			if (exists) {
-				await interaction.editReply($msg.alerts.command.errors.destinationExists());
+				await interaction.editReply({
+					components: [createWarningMessageComponent($msg.alerts.command.errors.destinationExists())],
+					withComponents: true
+				});
 				return;
 			}
 
@@ -122,21 +131,26 @@ export class AlertsCommand extends BaseCommand {
 				)
 				: $msg.shared.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 			const removeLink = await this.getCommandLink('alerts', 'remove');
-			const row = new ActionRowBuilder<ButtonBuilder>()
-				.addComponents(
-					new ButtonBuilder()
-						.setCustomId('confirm')
-						.setLabel($msg.shared.buttons.yes())
-						.setStyle(ButtonStyle.Success),
-					new ButtonBuilder()
-						.setCustomId('deny')
-						.setLabel($msg.shared.buttons.no())
-						.setStyle(ButtonStyle.Danger)
+			const container = new ContainerBuilder()
+				.addTextDisplayComponents(t => t.setContent(locationPrompt))
+				.addActionRowComponents(a => a
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('confirm')
+							.setLabel($msg.shared.buttons.yes())
+							.setStyle(ButtonStyle.Success)
+					)
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('deny')
+							.setLabel($msg.shared.buttons.no())
+							.setStyle(ButtonStyle.Danger)
+					)
 				);
 
 			const initialReply = await interaction.editReply({
-				content: locationPrompt,
-				components: [row]
+				components: [container],
+				flags: [MessageFlags.IsComponentsV2]
 			});
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
@@ -161,8 +175,7 @@ export class AlertsCommand extends BaseCommand {
 				this.eventBus.emit('alert-destinations:updated');
 
 				await interaction.editReply({
-					content: $msg.alerts.command.created(channel.toString(), removeLink, destination.snowflake),
-					components: []
+					components: [createSuccessMessageComponent($msg.alerts.command.created(channel.toString(), removeLink, destination.snowflake))]
 				});
 			} else {
 				await initialReply.delete();
@@ -171,20 +184,22 @@ export class AlertsCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationNotFound(),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())]
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))]
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({
+					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())]
+				});
 			} else {
 				reportError('Error creating alert destination', err);
-				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
+				await interaction.editReply({
+					components: [createErrorMessageComponent($msg.shared.errors.unknown())]
+				});
 			}
 		}
 	}
@@ -200,12 +215,18 @@ export class AlertsCommand extends BaseCommand {
 
 		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
-			await interaction.editReply($msg.alerts.command.errors.destinationNotFound(snowflake));
+			await interaction.editReply({
+				components: [createWarningMessageComponent($msg.alerts.command.errors.destinationNotFound(snowflake))],
+				withComponents: true
+			});
 			return;
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
-		await interaction.editReply($msg.alerts.command.removed());
+		await interaction.editReply({
+			components: [createSuccessMessageComponent($msg.alerts.command.removed())],
+			withComponents: true
+		});
 
 		this.eventBus.emit('alert-destinations:updated');
 	}

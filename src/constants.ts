@@ -1,6 +1,14 @@
 import { main } from 'bun';
 import { join, dirname } from 'node:path';
 
+export const enum Color {
+	Primary = 0x5876aa,
+	Info    = 0x0ea5e9,
+	Success = 0x84cc16,
+	Warning = 0xeab308,
+	Danger  = 0xdc2626,
+}
+
 export const CALVER = '2026.4.26' as const;
 
 export const REPO_OWNER = 'depthbomb' as const;
@@ -37,14 +45,6 @@ export const FEATURE_FLAGS = [
 	'disableAnnouncementDispatching'
 ] as const;
 
-export const IMAGE_ASSETS = {
-	'alert-banner-extreme':  'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484203003965.png?size=1024',
-	'alert-banner-minor':    'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424486711197697.png?size=1024',
-	'alert-banner-moderate': 'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484551135314.png?size=1024',
-	'alert-banner-severe':   'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484307734620.png?size=1024',
-	'alert-banner-unknown':  'https://cdn.discordapp.com/app-assets/1009028718083199016/1364424484748267622.png?size=1024',
-} as const;
-
 export const ALERT_SEVERITY_COLORS = {
 	Unknown:  [0xad46ff, '#ad46ff', '#8200db'],
 	Minor:    [0xffb900, '#ffb900', '#e17100'],
@@ -53,13 +53,14 @@ export const ALERT_SEVERITY_COLORS = {
 	Extreme:  [0x82181a, '#82181a', '#460809'],
 } as const;
 
-export const enum Color {
-	Primary = 0x5876aa,
-	Info    = 0x0ea5e9,
-	Success = 0x84cc16,
-	Warning = 0xeab308,
-	Danger  = 0xdc2626,
-}
+export const EMOJI = {
+	warning:        '<:warning:1498036763610845205>',
+	success:        '<:success:1498036762272993330>',
+	error:          '<:error:1498036761287458960>',
+	incidentMedium: '<:incidentMedium:1493085224878346260>',
+	incidentLow:    '<:incidentLow:1493085222554697738>',
+	incidentHigh:   '<:incidentHigh:1493085220419928155>'
+} as const;
 
 export const ICONS = {
 	Alert: '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 640 640" x="-18" y="-18"><path fill="#fff" d="M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z"/></svg>',

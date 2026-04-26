@@ -2,7 +2,12 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { BaseCommand } from '@infra/commands';
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+	createErrorMessageComponent,
+	createSuccessMessageComponent,
+	createWarningMessageComponent
+} from '@utils/components';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 const enum Subcommands {
@@ -44,16 +49,25 @@ export class AnnouncementCommand extends BaseCommand {
 
 		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
 		if (existingSubscription) {
-			await interaction.editReply($msg.announcements.command.subscribe.alreadySubscribed());
+			await interaction.editReply({
+				components: [createWarningMessageComponent($msg.announcements.command.subscribe.alreadySubscribed())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
 		try {
 			await db.announcementSubscription.create({ data: { userId } });
-			await interaction.editReply($msg.announcements.command.subscribe.success());
+			await interaction.editReply({
+				components: [createSuccessMessageComponent($msg.announcements.command.subscribe.success())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		} catch (err) {
 			reportError('Unable to create announcement subscription record', err, { userId });
-			await interaction.editReply($msg.announcements.command.subscribe.error());
+			await interaction.editReply({
+				components: [createErrorMessageComponent($msg.announcements.command.subscribe.error())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		}
 	}
 
@@ -64,16 +78,25 @@ export class AnnouncementCommand extends BaseCommand {
 
 		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
 		if (!existingSubscription) {
-			await interaction.editReply($msg.announcements.command.unsubscribe.notSubscribed());
+			await interaction.editReply({
+				components: [createWarningMessageComponent($msg.announcements.command.unsubscribe.notSubscribed())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
 		try {
 			await db.announcementSubscription.delete({ where: { userId } });
-			await interaction.editReply($msg.announcements.command.unsubscribe.success());
+			await interaction.editReply({
+				components: [createSuccessMessageComponent($msg.announcements.command.unsubscribe.success())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		} catch (err) {
 			reportError('Unable to remove announcement subscription record', err, { userId });
-			await interaction.editReply($msg.announcements.command.unsubscribe.error());
+			await interaction.editReply({
+				components: [createErrorMessageComponent($msg.announcements.command.unsubscribe.error())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 		}
 	}
 }

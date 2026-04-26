@@ -19,9 +19,7 @@
 			"locationConfirmAdjustedWithImage": [
 				"The coordinates `{requestedLatitude:string},{requestedLongitude:string}` are not directly supported by the [National Weather Service](https://weather.gov).",
 				"Coordinates have been resolved to `{latitude:string},{longitude:string}` for **{location:string}** with the radar image below.",
-				"Would you like to use this location?",
-				"{radarImageUrl:string}",
-				"{velocityRadarImageUrl:string}"
+				"Would you like to use this location?"
 			]
 		},
 		"notices": {
@@ -161,7 +159,7 @@
 			},
 			"created": [
 				"Alert reporting created in {channel:string}!",
-				"You can remove this reporting destination by using the {alertsRemove:string} command with the Snowflake `{snowflake:string}`."
+				"You can remove this reporting destination by using the {alertsRemove:string} command with the ID `{snowflake:string}`."
 			],
 			"removed": "Alert reporting destination has been successfully removed.",
 			"listTitle": "Alert reporting destinations in this server"
@@ -303,14 +301,13 @@
 			},
 			"locationConfirmWithImage": [
 				"The location found for coordinates `{latitude:string},{longitude:string}` is **{location:string}** with the radar image below.",
-				"Is this correct?",
-				"{radarImageUrl:string}",
-				"{velocityRadarImageUrl:string}"
+				"Is this correct?"
 			],
 			"placeholderMessage": "-# This message is a placeholder and will be used to display and update the radar image for **{location:string}**. Delete this message at any time to stop.",
 			"created": [
 				"{channel:string} should now have a placeholder message sent to it that will be periodically updated with the desired radar image loop.",
-				"To remove this designation, simply delete the message at any time."
+				"To remove this designation, click the **Delete** button or delete the message manually.",
+				"-# You are free to delete this message, too."
 			]
 		},
 		"job": {

@@ -9,6 +9,11 @@ import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { ReportForecastsJob } from '@domain/forecast/jobs/report-forecast';
 import {
+	createErrorMessageComponent,
+	createSuccessMessageComponent,
+	createWarningMessageComponent
+} from '@utils/components';
+import {
 	HTTPRequestError,
 	isDiscordJSError,
 	isWeatherGoatError,
@@ -21,7 +26,7 @@ import {
 	ChannelType,
 	MessageFlags,
 	ButtonBuilder,
-	ActionRowBuilder,
+	ContainerBuilder,
 	DiscordjsErrorCodes,
 	PermissionFlagsBits,
 	SlashCommandBuilder
@@ -56,10 +61,14 @@ export class ForecastCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.forecastDestination.countByGuild(guildId);
+
 		MaxDestinationError.assert(existingCount < maxCount, $msg.forecasts.command.errors.maxDestinationsReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
-			await interaction.reply($msg.shared.errors.invalidCoordinates());
+			await interaction.reply({
+				components: [createErrorMessageComponent($msg.shared.errors.invalidCoordinates())],
+				flags: [MessageFlags.IsComponentsV2]
+			});
 			return;
 		}
 
@@ -76,21 +85,27 @@ export class ForecastCommand extends BaseCommand {
 					location.name
 				)
 				: $msg.shared.prompts.locationConfirm(location.latitude, location.longitude, location.name);
-			const row = new ActionRowBuilder<ButtonBuilder>()
-				.addComponents(
-					new ButtonBuilder()
-						.setCustomId('confirm')
-						.setLabel($msg.shared.buttons.yes())
-						.setStyle(ButtonStyle.Success),
-					new ButtonBuilder()
-						.setCustomId('deny')
-						.setLabel($msg.shared.buttons.no())
-						.setStyle(ButtonStyle.Danger)
+
+			const container = new ContainerBuilder()
+				.addTextDisplayComponents(t => t.setContent(locationPrompt))
+				.addActionRowComponents(a => a
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('confirm')
+							.setLabel($msg.shared.buttons.yes())
+							.setStyle(ButtonStyle.Success)
+					)
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('deny')
+							.setLabel($msg.shared.buttons.no())
+							.setStyle(ButtonStyle.Danger)
+					)
 				);
 
 			const initialReply = await interaction.editReply({
-				content: locationPrompt,
-				components: [row]
+				components: [container],
+				flags: [MessageFlags.IsComponentsV2]
 			});
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
@@ -114,7 +129,9 @@ export class ForecastCommand extends BaseCommand {
 					}
 				});
 
-				await interaction.editReply({ content: $msg.forecasts.command.created(channel.toString()), components: [] });
+				await interaction.editReply({
+					components: [createSuccessMessageComponent($msg.forecasts.command.created(channel.toString()))]
+				});
 			} else {
 				await initialReply.delete();
 			}
@@ -122,20 +139,22 @@ export class ForecastCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationNotFound(),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())]
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))]
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({
+					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())]
+				});
 			} else {
 				reportError('Error creating forecast destination', err);
-				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
+				await interaction.editReply({
+					components: [createErrorMessageComponent($msg.shared.errors.unknown())]
+				});
 			}
 		}
 	}

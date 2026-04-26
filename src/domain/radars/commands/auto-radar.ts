@@ -15,15 +15,21 @@ import {
 	GuildOnlyInvocationInNonGuildError
 } from '@errors';
 import {
+	createMessageComponent,
+	createErrorMessageComponent,
+	createSuccessMessageComponent,
+	createWarningMessageComponent
+} from '@utils/components';
+import {
 	ButtonStyle,
 	ChannelType,
 	MessageFlags,
 	ButtonBuilder,
-	ActionRowBuilder,
+	ContainerBuilder,
 	DiscordjsErrorCodes,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
-	ContainerBuilder
+	SeparatorSpacingSize
 } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -68,6 +74,7 @@ export class AutoRadarCommand extends BaseCommand {
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
 		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
+
 		MaxDestinationError.assert(existingCount < maxCount, $msg.radar.auto.errors.maxMessagesReached(), { max: maxCount });
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
@@ -85,32 +92,37 @@ export class AutoRadarCommand extends BaseCommand {
 					location.requested.longitude,
 					location.latitude,
 					location.longitude,
-					location.name,
-					location.radar.reflectivityImageUrl,
-					location.radar.velocityImageUrl
-				)
-				: $msg.radar.auto.locationConfirmWithImage(
+					location.name
+				) : $msg.radar.auto.locationConfirmWithImage(
 					location.latitude,
 					location.longitude,
-					location.name,
-					location.radar.reflectivityImageUrl,
-					location.radar.velocityImageUrl
-				);
-			const row = new ActionRowBuilder<ButtonBuilder>()
-				.addComponents(
-					new ButtonBuilder()
-						.setCustomId('confirm')
-						.setLabel($msg.shared.buttons.yes())
-						.setStyle(ButtonStyle.Success),
-					new ButtonBuilder()
-						.setCustomId('deny')
-						.setLabel($msg.shared.buttons.no())
-						.setStyle(ButtonStyle.Danger)
+					location.name
 				);
 
+			const container = new ContainerBuilder()
+				.addTextDisplayComponents(t => t.setContent(locationPrompt))
+				.addMediaGalleryComponents(g => g
+					.addItems(i => i.setURL(location.radar.reflectivityImageUrl))
+					.addItems(i => i.setURL(location.radar.velocityImageUrl))
+				)
+				.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Large))
+				.addActionRowComponents(a => a
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('confirm')
+							.setLabel($msg.shared.buttons.yes())
+							.setStyle(ButtonStyle.Success)
+					)
+					.addComponents(
+						new ButtonBuilder()
+							.setCustomId('deny')
+							.setLabel($msg.shared.buttons.no())
+							.setStyle(ButtonStyle.Danger)
+					)
+				);
 			const initialReply = await interaction.editReply({
-				content: locationPrompt,
-				components: [row]
+				components: [container],
+				flags: [MessageFlags.IsComponentsV2]
 			});
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
@@ -118,9 +130,8 @@ export class AutoRadarCommand extends BaseCommand {
 				const guildId            = interaction.guildId!;
 				const channelId          = channel.id;
 				const snowflake          = generateSnowflake();
-				const placeholder        = new ContainerBuilder().addTextDisplayComponents(t => t.setContent($msg.radar.auto.placeholderMessage(location.name)))
 				const placeholderMessage = await channel.send({
-					components: [placeholder],
+					components: [createMessageComponent($msg.radar.auto.placeholderMessage(location.name))],
 					flags: [
 						MessageFlags.SuppressNotifications,
 						MessageFlags.IsComponentsV2
@@ -143,8 +154,7 @@ export class AutoRadarCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					content: $msg.radar.auto.created(channel.toString()),
-					components: []
+					components: [createSuccessMessageComponent($msg.radar.auto.created(channel.toString()))]
 				});
 			} else {
 				await initialReply.delete();
@@ -153,20 +163,22 @@ export class AutoRadarCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationNotFound(),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())]
 					});
 				} else {
 					await interaction.editReply({
-						content: $msg.shared.errors.locationLookupHttpError(err.code, err.status),
-						components: []
+						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))]
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
-				await interaction.editReply({ content: $msg.shared.notices.promptTimedOut(), components: [] });
+				await interaction.editReply({
+					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())]
+				});
 			} else {
 				reportError('Error creating auto-radar destination', err);
-				await interaction.editReply({ content: $msg.shared.errors.unknown(), components: [] });
+				await interaction.editReply({
+					components: [createErrorMessageComponent($msg.shared.errors.unknown())]
+				});
 			}
 		}
 	}

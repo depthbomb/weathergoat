@@ -1,6 +1,7 @@
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
-import { SlashCommandBuilder } from 'discord.js';
+import { createMessageComponent } from '@utils/components';
+import { MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export class HelpCommand extends BaseCommand {
@@ -21,8 +22,10 @@ export class HelpCommand extends BaseCommand {
 			client.getCommandLink('radar'),
 			client.getCommandLink('announcement', 'subscribe'),
 		]);
-		const commandsOverview = $msg.system.helpText(alerts, forecasts, autoRadar, radar, announcement);
 
-		await interaction.reply(commandsOverview);
+		await interaction.reply({
+			components: [createMessageComponent($msg.system.helpText(alerts, forecasts, autoRadar, radar, announcement))],
+			flags: [MessageFlags.IsComponentsV2]
+		});
 	}
 }
