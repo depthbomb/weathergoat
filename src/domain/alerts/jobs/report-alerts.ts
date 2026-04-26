@@ -50,6 +50,8 @@ export class ReportAlertsJob extends BaseJob {
 		if (this.hasIndexedFlag.isFalse) {
 			this.logger.info('Indexing destinations...');
 
+			this.ugcIndex.clear();
+
 			const allDestinations = await db.alertDestination.findMany();
 			for (const destination of allDestinations) {
 				if (!this.ugcIndex.has(destination.countyId)) {
