@@ -81,7 +81,7 @@
 			],
 			"dataSourceSection": [
 				"## Where do you get your data?",
-				"I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api) and the [U.S. Geological Survey API](https://usgs.gov/products/web-tools/apis)."
+				"I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api) and the [U.S. Geological Survey API](https://usgs.gov/products/web-tools/apis). Forward geocoding is provided by [OpenStreetMap](https://openstreetmap.org)."
 			],
 			"aiUsageSection": [
 				"## Do you use AI?",

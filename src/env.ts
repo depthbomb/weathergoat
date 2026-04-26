@@ -5,6 +5,7 @@ export const env = Env.create({
 	BOT_TOKEN:                           Env.schema.secret(),
 	BOT_OWNER_ID:                        Env.schema.string(),
 	OWNER_PREFIX:                        Env.schema.string(),
+	OWNER_EMAIL:                         Env.schema.email(),
 	DATABASE_URL:                        Env.schema.url(),
 	REDIS_URL:                           Env.schema.url(),
 	REDIS_PREFIX:                        Env.schema.string({ defaultValue: 'wg' }),

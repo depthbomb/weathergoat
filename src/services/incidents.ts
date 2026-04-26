@@ -1,5 +1,4 @@
 import { db } from '@database';
-import { logger } from '@lib/logger';
 import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { parseDuration } from '@depthbomb/common/timing';
@@ -8,8 +7,6 @@ import type { IncidentSeverity } from '@database/generated/enums';
 
 @injectable()
 export class IncidentsService {
-	private readonly logger = logger.child().withPrefix(IncidentsService.name.bracketWrap());
-
 	public async isActive(key: string) {
 		const count = await db.incident.count({
 			where: {

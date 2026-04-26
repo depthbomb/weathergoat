@@ -52,7 +52,15 @@ export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 				} else if (isPreconditionError(err)) {
 					await tryToRespond(interaction, this.createPreconditionErrorMessage(err));
 				} else {
-					reportError('Error in interaction handler', err, { interaction: interaction.commandName });
+					reportError('Error in interaction handler', err, {
+						interaction: interaction.commandName,
+						command: command.name,
+						subcommand: interaction.options.getSubcommand(false),
+						userId: interaction.user.id,
+						guildId: interaction.guildId,
+						channelId: interaction.channelId,
+						options: interaction.options.data
+					});
 
 					await tryToRespond(interaction, this.createInteractionFailedErrorMessage());
 				}
@@ -68,7 +76,14 @@ export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 			try {
 				await command.handleAutocomplete(interaction);
 			} catch (err: unknown) {
-				reportError('Error in interaction autocomplete handler', err, { interaction: interaction.commandName });
+				reportError('Error in interaction autocomplete handler', err, {
+					interaction: interaction.commandName,
+					command: command.name,
+					userId: interaction.user.id,
+					guildId: interaction.guildId,
+					channelId: interaction.channelId,
+					options: interaction.options.data
+				});
 			}
 		} else if (interaction.isMessageComponent()) {
 			const resolved = this.getComponent(interaction);
@@ -87,7 +102,14 @@ export class InteractionCreateEvent extends BaseEvent<'interactionCreate'> {
 				} else if (isPreconditionError(err)) {
 					await tryToRespond(interaction, this.createPreconditionErrorMessage(err));
 				} else {
-					reportError('Error in component interaction handler', err, { interaction: interaction.customId });
+					reportError('Error in component interaction handler', err, {
+						interaction: interaction.customId,
+						componentPattern: resolved.match.pattern,
+						userId: interaction.user.id,
+						guildId: interaction.guildId,
+						channelId: interaction.channelId,
+						componentType: interaction.componentType
+					});
 
 					await tryToRespond(interaction, this.createInteractionFailedErrorMessage());
 				}

@@ -8,7 +8,7 @@ A Discord bot for reporting weather alerts and hourly forecasts to channels. Bui
 
 # Self-hosting
 
-While self-hosting WeatherGoat really isn't supported, it's not hard to get it set up and running.
+While self-hosting WeatherGoat isn't supported, it's not hard to get it set up and running on your own machine.
 
 First create a `.env` file in the project root and configure it:
 
@@ -18,7 +18,8 @@ MODE=development
 BOT_TOKEN=abcd
 BOT_OWNER_ID=5678
 
-OWNER_PREFIX=$
+OWNER_PREFIX=%
+OWNER_EMAIL=name@website.tld # used to identify requests made to OpenStreetMap's Nominatim
 
 DATABASE_URL=file:./.data/weathergoat.db
 REDIS_URL=redis://localhost:6379
