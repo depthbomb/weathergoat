@@ -9,7 +9,7 @@ export const enum Color {
 	Danger  = 0xdc2626,
 }
 
-export const CALVER = '2026.4.27' as const;
+export const CALVER = '2026.4.27.1' as const;
 
 export const REPO_OWNER = 'depthbomb' as const;
 export const REPO_NAME  = 'weathergoat' as const;

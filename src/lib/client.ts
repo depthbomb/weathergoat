@@ -198,12 +198,12 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				this.once('clientReady', async () => {
 					try {
 						if (runImmediately) {
-							job.execute(this);
+							job.callExecute(this);
 						}
 					} catch (err) {
 						reportError('Error executing `runImmediately` job', err, { name });
 					} finally {
-						TimerManager.setInterval(() => job.execute(this), duration);
+						TimerManager.setInterval(() => job.callExecute(this), duration);
 					}
 				});
 

@@ -38,6 +38,9 @@ export class DebugCommand extends BaseLegacyCommand {
 					name: job.name,
 					interval: job.interval,
 					runImmediately: job.runImmediately,
+					nextRun: job.nextRun,
+					lastRun: job.lastRun,
+					nextRunMs: job.nextRunMs,
 				})), null, 4);
 				break;
 			case 'features':
