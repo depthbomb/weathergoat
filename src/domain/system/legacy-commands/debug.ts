@@ -28,26 +28,23 @@ export class DebugCommand extends BaseLegacyCommand {
 	}
 
 	public async [Subcommands.Print](message: Message) {
-		let json = '';
+		let json = '{}';
 
 		const domain = this.ctx.params.getString('domain', true);
 		switch (domain) {
 			case 'jobs':
 				const jobs = Array.from(message.client.jobs.values());
-				json = JSON.stringify(jobs.map(({ job, cron }) => ({
+				json = JSON.stringify(jobs.map(job => ({
 					name: job.name,
-					pattern: job.pattern,
+					interval: job.interval,
 					runImmediately: job.runImmediately,
-					previousRun: cron.previousRun(),
-					nextRun: cron.nextRun(),
-					msToNextRun: cron.msToNext(),
 				})), null, 4);
 				break;
 			case 'features':
 				json = JSON.stringify(this.features.all(), null, 4);
 				break;
 			default:
-				throw new LegacyCommandError(`Unknown debug domain \`${domain}\`. Expected \`jobs\` or \`features\`.`);
+				throw new LegacyCommandError(`Unknown domain \`${domain}\`. Expected \`jobs\` or \`features\`.`);
 		}
 
 		await message.reply(json.toCodeBlock('json'));
