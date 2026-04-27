@@ -37,6 +37,7 @@ model AutoRadarMessage {
   velocityRadarImageUrl String
   showReflectivity      Boolean  @default(true)
   showVelocity          Boolean  @default(false)
+  updateInterval        String   @default("5m")
   nextUpdate            DateTime @default(now())
 
   @@index([guildId, nextUpdate])

@@ -5,6 +5,7 @@ import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
+import { parseDuration } from '@depthbomb/common/timing';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import {
@@ -46,7 +47,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 			},
 			take: 500
 		});
-		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, velocityRadarImageUrl, showReflectivity, showVelocity } of dueMessages) {
+		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, velocityRadarImageUrl, showReflectivity, showVelocity, updateInterval } of dueMessages) {
 			try {
 				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
@@ -68,8 +69,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 					continue;
 				}
 
-				const nextUpdate = new Date(Temporal.Now.instant().add({ minutes: 5 }).epochMilliseconds);
-
+				const nextUpdate = parseDuration(updateInterval).fromNow();
 				const container = new ContainerBuilder()
 					.setAccentColor(Color.Primary)
 					.addTextDisplayComponents(t => t
@@ -87,7 +87,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 						return g;
 					})
 					.addTextDisplayComponents(t => t
-						.setContent($msg.radar.job.updateWindow(time(new Date(), 'R'), time(nextUpdate, 'R')))
+						.setContent($msg.radar.job.updateWindow(time(new Date(), 'R'), time(nextUpdate, 'T')))
 					)
 					.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Small))
 					.addTextDisplayComponents(t => t

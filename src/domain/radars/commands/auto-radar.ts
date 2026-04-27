@@ -54,9 +54,35 @@ export class AutoRadarCommand extends BaseCommand {
 					.setDescription('The type of radar image')
 					.setRequired(true)
 				)
-				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area').setRequired(true))
-				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area').setRequired(true))
-				.addChannelOption(o => o.setName('channel').setDescription('The channel to host the auto-updating radar image').setRequired(true)),
+				.addStringOption(o => o
+					.setName('latitude')
+					.setDescription('The latitude of the area')
+					.setRequired(true)
+				)
+				.addStringOption(o => o
+					.setName('longitude')
+					.setDescription('The longitude of the area')
+					.setRequired(true)
+				)
+				.addChannelOption(o => o
+					.setName('channel')
+					.setDescription('The channel to host the auto-updating radar image')
+					.setRequired(true)
+				)
+				.addStringOption(o => o
+					.setName('interval')
+					.setDescription('How frequently the auto-radar message should be updated')
+					.setChoices([
+						{ name: '5 minutes (default)', value: '5m' },
+						{ name: '10 minutes',          value: '10m' },
+						{ name: '15 minutes',          value: '15m' },
+						{ name: '20 minutes',          value: '20m' },
+						{ name: '25 minutes',          value: '25m' },
+						{ name: '30 minutes',          value: '30m' },
+						{ name: '45 minutes',          value: '45m' },
+						{ name: '1 hour',              value: '1h' },
+					])
+				),
 			preconditions: [
 				new CooldownPrecondition({ duration: '5s', global: true })
 			]
@@ -70,6 +96,7 @@ export class AutoRadarCommand extends BaseCommand {
 		const latitude  = interaction.options.getString('latitude', true).trim();
 		const longitude = interaction.options.getString('longitude', true).trim();
 		const channel   = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+		const interval  = interaction.options.getString('interval', false) ?? '5m';
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
@@ -150,6 +177,7 @@ export class AutoRadarCommand extends BaseCommand {
 						velocityRadarImageUrl: location.radar.velocityImageUrl,
 						showReflectivity: radarType === 'both' || radarType === 'reflectivity',
 						showVelocity: radarType === 'both' || radarType === 'base-velocity',
+						updateInterval: interval
 					}
 				});
 

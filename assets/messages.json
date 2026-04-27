@@ -313,7 +313,7 @@
 		"job": {
 			"embedTitle": "# Radar for {location:string}",
 			"embedFooter": "-# The closest station that covers this area is {radarStation:string}.",
-			"updateWindow": "These radar images were last updated {lastUpdated:string} and will be updated {nextUpdate:string}."
+			"updateWindow": "The last update was {lastUpdated:string} and the next update will be around {nextUpdate:string}."
 		},
 		"components": {
 			"deleteAutoRadarButton": {
