@@ -34,7 +34,7 @@ export class UpdateStatusJob extends BaseJob {
 	) {
 		super({
 			name: UpdateStatusJob.name,
-			pattern: '*/15 * * * * *',
+			interval: '15s',
 			runImmediately: true
 		});
 	}

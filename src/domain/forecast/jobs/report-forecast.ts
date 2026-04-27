@@ -11,8 +11,11 @@ import { isTextChannel } from '@sapphire/discord.js-utilities';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
+import type { Nullable } from '@depthbomb/common/typing';
 
 export class ReportForecastsJob extends BaseJob {
+	private lastRunHour: Nullable<number> = null;
+
 	private readonly errorCodes = [
 		RESTJSONErrorCodes.UnknownChannel,
 		RESTJSONErrorCodes.UnknownGuild,
@@ -26,7 +29,7 @@ export class ReportForecastsJob extends BaseJob {
 	) {
 		super({
 			name: ReportForecastsJob.name,
-			pattern: '0 * * * *',
+			interval: '15s',
 			runImmediately: true
 		});
 	}
@@ -35,6 +38,14 @@ export class ReportForecastsJob extends BaseJob {
 		if (this.features.isFeatureEnabled('disableForecastReporting')) {
 			return;
 		}
+
+		const now         = new Date();
+		const currentHour = now.getHours();
+		if (this.lastRunHour === currentHour) {
+			return;
+		}
+
+		this.lastRunHour = currentHour;
 
 		const destinations = await db.forecastDestination.findMany({
 			select: {

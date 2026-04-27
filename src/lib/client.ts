@@ -1,5 +1,4 @@
 import { env } from '@env';
-import { Cron } from 'croner';
 import { join } from 'node:path';
 import { Beacon } from './beacon';
 import { BaseJob } from '@infra/jobs';
@@ -16,6 +15,7 @@ import { FeaturesService } from '@services/features';
 import { Path } from '@depthbomb/node-common/pathlib';
 import { Flag, ResettableValue } from '@depthbomb/common/state';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
+import { TimerManager, parseDuration } from '@depthbomb/common/timing';
 import { BaseComponent, compareComponentMatch } from '@infra/components';
 import { BaseLegacyCommand, LegacyCommandRegistry } from '@infra/legacy-commands';
 import {
@@ -42,7 +42,7 @@ type DomainModule        = { default: DomainDefinition };
 type RegisteredDomain    = { definition: DomainDefinition; rootPath: string; };
 
 export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
-	public readonly jobs                  = new Set<{ job: BaseJob; cron: Cron }>();
+	public readonly jobs                  = new Set<BaseJob>();
 	public readonly events                = new Collection<string, BaseEvent<keyof ClientEvents>>();
 	public readonly commands              = new Collection<string, BaseCommand>();
 	public readonly components            = new Collection<string, BaseComponent>();
@@ -101,11 +101,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	public async destroy() {
 		this.logger.info('Shutting down');
 
-		for (const { cron } of this.jobs) {
-			if (cron.isRunning()) {
-				cron.stop();
-			}
-		}
+		TimerManager.clearAll();
 
 		this.user?.setPresence({ status: 'invisible' });
 
@@ -195,33 +191,29 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 				const job            = container.get<BaseJob>(mod);
 				const name           = job.name;
-				const pattern        = job.pattern;
+				const interval       = job.interval;
 				const runImmediately = job.runImmediately ?? false;
-				const cron = new Cron(pattern, self => job.execute(this, self), {
-					name,
-					paused: true,
-					protect: (job) => this.logger.withMetadata({ name, calledAt: job.currentRun()?.getDate() }).warn('Job overrun'),
-					catch: (err) => reportError('Job error', err, { name })
-				});
+				const duration       = parseDuration(interval).toMilliseconds();
 
 				this.once('clientReady', async () => {
 					try {
 						if (runImmediately) {
-							cron.trigger();
+							job.execute(this);
 						}
 					} catch (err) {
 						reportError('Error executing `runImmediately` job', err, { name });
 					} finally {
-						cron.resume();
+						TimerManager.setInterval(() => job.execute(this), duration);
 					}
 				});
 
-				this.jobs.add({ job, cron });
+				this.jobs.add(job);
 
 				this.logger.withMetadata({
 					domain: domain.definition.id,
 					name,
-					pattern,
+					interval,
+					duration,
 					runImmediately,
 				}).info('Registered job');
 			}

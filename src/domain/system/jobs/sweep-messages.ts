@@ -10,7 +10,7 @@ export class SweepMessagesJob extends BaseJob {
 	) {
 		super({
 			name: SweepMessagesJob.name,
-			pattern: '* * * * *',
+			interval: '1m',
 			runImmediately: true
 		});
 	}

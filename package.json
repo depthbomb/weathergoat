@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
-		"@depthbomb/common": "^3.0.0",
+		"@depthbomb/common": "^3.1.0",
 		"@depthbomb/env": "^1.2.0",
 		"@depthbomb/node-common": "^2.3.0",
 		"@depthbomb/serde": "^1.0.1",
@@ -37,7 +37,6 @@
 		"@sentry/bun": "^10.50.0",
 		"bufferutil": "^4.1.0",
 		"cockatiel": "^3.2.1",
-		"croner": "^10.0.1",
 		"discord.js": "^14.26.3",
 		"fejl": "^4.0.1",
 		"loglayer": "^9.1.0",

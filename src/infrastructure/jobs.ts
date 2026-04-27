@@ -9,9 +9,9 @@ type JobOptions = {
 	 */
 	name: string;
 	/**
-	 * The cron pattern of the job.
+	 * The interval that the job runs at in duration format.
 	 */
-	pattern: string;
+	interval: string;
 	/**
 	 * Whether to run the job immediately after it is registered regardless of whether the job
 	 * should execute.
@@ -30,9 +30,9 @@ export abstract class BaseJob {
 	 */
 	public readonly name: string;
 	/**
-	 * The cron pattern of the job.
+	 * The interval that the job runs at in duration format.
 	 */
-	public readonly pattern: string;
+	public readonly interval: string;
 	/**
 	 * Whether to run the job immediately after it is registered regardless of whether the job
 	 * should execute.
@@ -48,7 +48,7 @@ export abstract class BaseJob {
 
 	public constructor(options: JobOptions) {
 		this.name           = options.name;
-		this.pattern        = options.pattern;
+		this.interval       = options.interval;
 		this.runImmediately = options.runImmediately ?? false;
 		this.logger         = logger.child().withPrefix(`[Job(${this.name})]`);
 	}
@@ -59,5 +59,5 @@ export abstract class BaseJob {
 	 * @param client The bot {@link WeatherGoat|client}.
 	 * @param job The underlying {@link Cron} instance of the job.
 	 */
-	public abstract execute(client: WeatherGoat, job: Cron): Promise<void>;
+	public abstract execute(client: WeatherGoat): Promise<void>;
 }

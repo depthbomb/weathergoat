@@ -14,7 +14,7 @@ export class DispatchAnnouncementsJob extends BaseJob {
 	) {
 		super({
 			name: DispatchAnnouncementsJob.name,
-			pattern: '* * * * *'
+			interval: '1m'
 		});
 	}
 

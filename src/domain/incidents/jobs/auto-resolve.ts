@@ -6,7 +6,7 @@ export class AutoResolveJob extends BaseJob {
 	public constructor() {
 		super({
 			name: AutoResolveJob.name,
-			pattern: '* * * * *',
+			interval: '30s',
 			runImmediately: true
 		});
 	}

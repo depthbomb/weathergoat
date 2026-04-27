@@ -35,7 +35,7 @@ export class ReportAlertsJob extends BaseJob {
 	) {
 		super({
 			name: ReportAlertsJob.name,
-			pattern: '*/15 * * * * *',
+			interval: '15s',
 			runImmediately: true
 		});
 

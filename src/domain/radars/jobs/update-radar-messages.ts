@@ -31,7 +31,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 	) {
 		super({
 			name: UpdateRadarMessagesJob.name,
-			pattern: '* * * * *',
+			interval: '1m',
 			runImmediately: true
 		});
 	}
