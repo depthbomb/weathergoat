@@ -53,6 +53,7 @@ const EVENT_ICON_REGEX = [
 export class BannerService {
 	private readonly templateSVG: string;
 	private readonly cacheDir: Path;
+	private readonly renderCache = new Map<string, Promise<Buffer>>();
 
 	public constructor() {
 		const templatePath = join(ASSETS_DIR, 'images', 'banner-template.svg');
@@ -63,12 +64,21 @@ export class BannerService {
 		this.cacheDir.mkdirSync({ recursive: true });
 	}
 
-	public async generateBanner(alert: Alert) {
+	public async generateBanner(alert: Alert): Promise<Buffer> {
+		const cacheKey = this.createCacheKey(alert.event, alert.severity);
+
+		if (!this.renderCache.has(cacheKey)) {
+			this.renderCache.set(cacheKey, this.renderBanner(alert, cacheKey));
+		}
+
+		return this.renderCache.get(cacheKey)!;
+	}
+
+	private async renderBanner(alert: Alert, cacheKey: string) {
 		const headline = alert.event;
 		const severity = alert.severity;
 		const icon     = this.resolveAlertIcon(headline);
 
-		const cacheKey  = this.createCacheKey(headline, severity);
 		const cachePath = this.cacheDir.joinpath(`${cacheKey}.png`);
 
 		const exists = await cachePath.exists();
@@ -97,7 +107,9 @@ export class BannerService {
 
 		const pngBuf = resvg.render().asPng();
 
-		await cachePath.writeBytes(pngBuf);
+		const tmpPath = this.cacheDir.joinpath(`${cacheKey}.tmp`);
+		await tmpPath.writeBytes(pngBuf);
+		await tmpPath.rename(cachePath);
 
 		return pngBuf;
 	}
@@ -124,8 +136,8 @@ export class BannerService {
 	}
 
 	private getAlertSeverityColors(severity: AlertSeverity) {
-		const colors = ALERT_SEVERITY_COLORS[severity] ?? ALERT_SEVERITY_COLORS.Unknown;
-		return [colors[1], colors[2]];
+		const [,color1, color2] = ALERT_SEVERITY_COLORS[severity] ?? ALERT_SEVERITY_COLORS.Unknown;
+		return [color1, color2];
 	}
 
 	private escapeXml(str: string) {
