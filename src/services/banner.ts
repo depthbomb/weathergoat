@@ -81,8 +81,8 @@ export class BannerService {
 		const svg = this.templateSVG
 			.replace('%COLOR1%', color1)
 			.replace('%COLOR2%', color2)
-			.replace('%HEADLINE%', headline)
-			.replace('%SUBTITLE%', severity)
+			.replace('%HEADLINE%', this.escapeXml(headline))
+			.replace('%SUBTITLE%', this.escapeXml(severity))
 			.replace('%ICON%', icon);
 
 		const resvg = new Resvg(svg, {
@@ -126,5 +126,14 @@ export class BannerService {
 	private getAlertSeverityColors(severity: AlertSeverity) {
 		const colors = ALERT_SEVERITY_COLORS[severity] ?? ALERT_SEVERITY_COLORS.Unknown;
 		return [colors[1], colors[2]];
+	}
+
+	private escapeXml(str: string) {
+		return str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&apos;');
 	}
 }
