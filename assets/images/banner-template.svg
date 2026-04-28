@@ -1,11 +1,11 @@
 <?xml version="1.0" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="240" viewBox="0 0 800 120" class="w-full h-auto block" style="opacity: 1;">
-	<style xmlns="http://www.w3.org/1999/xhtml">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="240" viewBox="0 0 800 120" style="opacity: 1;">
+	<style>
 		.headline { font-family: 'Bungee', sans-serif; }
 		.subtitle { font-family: 'Mozilla Text', sans-serif; }
-    </style>
+	</style>
 	<defs>
-		<linearGradient id="banner-gradient-danger" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="%COLOR1%"/><stop offset="100%" stop-color="%COLOR2%"/></linearGradient>
+		<linearGradient id="banner-gradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="%COLOR1%"/><stop offset="100%" stop-color="%COLOR2%"/></linearGradient>
 		<pattern id="diagonal-stripes" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="white" stroke-width="1" stroke-opacity="0.1"/></pattern>
 		<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
 			<feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
@@ -19,17 +19,17 @@
 			</feMerge>
 		</filter>
 	</defs>
-	
-	<rect width="800" height="120" fill="url(#banner-gradient-danger)"/>
+
+	<rect width="800" height="120" fill="url(#banner-gradient)"/>
 	<rect width="800" height="120" fill="url(#diagonal-stripes)"/>
 	<circle cx="0" cy="120" r="150" fill="white" fill-opacity="0.05"/>
 	<circle cx="800" cy="0" r="100" fill="white" fill-opacity="0.03"/>
-	
+
 	<g transform="translate(50, 60)">
 		<rect x="-25" y="-25" width="50" height="50" rx="12" fill="white" fill-opacity="0.15" stroke="white" stroke-opacity="0.25" stroke-width="1"/>
-		
+
 		%ICON%
-		
+
 		<g transform="translate(45, 0)">
 			<text y="-14" class="subtitle" fill="white" fill-opacity="0.90" font-size="16" font-weight="300" dominant-baseline="middle">%SUBTITLE%</text>
 			<text y="14" class="headline" fill="white" font-size="28" font-weight="400" filter="url(#shadow)" dominant-baseline="middle">%HEADLINE%</text>
