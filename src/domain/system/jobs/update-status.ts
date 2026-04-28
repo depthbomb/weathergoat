@@ -1,4 +1,5 @@
 import { db } from '@database';
+import { uptime } from 'node:os';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
@@ -9,7 +10,9 @@ import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
 export class UpdateStatusJob extends BaseJob {
-	private readonly emoji = [
+	private lastEmoji = '';
+
+	private readonly emoji = Object.freeze([
 		'🌪️',
 		'☀️',
 		'🌤️',
@@ -27,7 +30,7 @@ export class UpdateStatusJob extends BaseJob {
 		'☂️',
 		'🌫️',
 		'🌊'
-	] as const;
+	]);
 
 	public constructor(
 		private readonly features = inject(FeaturesService)
@@ -44,10 +47,8 @@ export class UpdateStatusJob extends BaseJob {
 			return;
 		}
 
-		const duration       = formatDuration(client.uptime, { precision: 3 });
-		const incidentsCount = await db.incident.count({
-			where: { status: IncidentStatus.ACTIVE }
-		});
+		const duration       = formatDuration(uptime() * 1_000, { precision: 3 });
+		const incidentsCount = await db.incident.count({ where: { status: IncidentStatus.ACTIVE } });
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
@@ -61,6 +62,17 @@ export class UpdateStatusJob extends BaseJob {
 	}
 
 	private pickRandomEmoji() {
-		return this.emoji[Math.floor(Math.random() * this.emoji.length)];
+		const lastIndex = this.emoji.indexOf(this.lastEmoji);
+
+		let index = Math.floor(Math.random() * (this.emoji.length - 1));
+		if (index >= lastIndex && lastIndex !== -1) {
+			index++;
+		}
+
+		const chosenEmoji = this.emoji[index];
+
+		this.lastEmoji = chosenEmoji;
+
+		return chosenEmoji;
 	}
 }
