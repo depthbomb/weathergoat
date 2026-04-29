@@ -2,10 +2,10 @@ import { db } from '@database';
 import { BaseJob } from '@infra/jobs';
 import { IncidentStatus } from '@database/generated/enums';
 
-export class AutoResolveJob extends BaseJob {
+export class AutoResolveIncidentsJob extends BaseJob {
 	public constructor() {
 		super({
-			name: AutoResolveJob.name,
+			name: AutoResolveIncidentsJob.name,
 			interval: '30s',
 			runImmediately: true
 		});
