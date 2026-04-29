@@ -70,6 +70,8 @@
 			"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
 			"- Use the {radar:string} command to get the current doppler radar animation for a location",
 			"",
+			"Some commands require you to input coordinates of locations. Use the {geocoding:string} command to look up coordinates by an address or postal code.",
+			"",
 			"Users can subscribe to receiving announcements with the {announcementSubscribe:string} command."
 		],
 		"about": {

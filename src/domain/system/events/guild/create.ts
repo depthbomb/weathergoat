@@ -22,16 +22,17 @@ export class GuildCreateEvent extends BaseEvent<'guildCreate'> {
 			}
 
 			const client = guild.client;
-			const [alerts, forecasts, autoRadar, radar, announcement, incidents, feedback] = await Promise.all([
+			const [alerts, forecasts, autoRadar, radar, announcement, geocoding, incidents, feedback] = await Promise.all([
 				client.getCommandLink('alerts', 'add'),
 				client.getCommandLink('forecasts'),
 				client.getCommandLink('auto-radar'),
 				client.getCommandLink('radar'),
 				client.getCommandLink('announcements', 'subscribe'),
+				client.getCommandLink('geocoding', 'search'),
 				client.getCommandLink('incidents'),
 				client.getCommandLink('feedback'),
 			]);
-			const commandsOverview = $msg.system.helpText(alerts, forecasts, autoRadar, radar, announcement);
+			const commandsOverview = $msg.system.helpText(alerts, forecasts, autoRadar, radar, geocoding, announcement);
 
 			await channel.send($msg.system.events.guildCreate.introMessage(commandsOverview, incidents, feedback));
 
