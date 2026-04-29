@@ -3,10 +3,13 @@ import { JSONProperty, Serializable } from '@depthbomb/serde';
 @Serializable()
 export class Address {
 	@JSONProperty({ name: 'postcode' })
-	public postCode!: string;
+	public postCode?: string;
 
 	@JSONProperty()
-	public town!: string;
+	public city?: string;
+
+	@JSONProperty()
+	public town?: string;
 
 	@JSONProperty()
 	public county!: string;
