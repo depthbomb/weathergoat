@@ -8,6 +8,7 @@ import { formatDuration } from '@depthbomb/common/timing';
 import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
+import { env } from '@env';
 
 export class UpdateStatusJob extends BaseJob {
 	private lastEmoji = '';
@@ -44,6 +45,19 @@ export class UpdateStatusJob extends BaseJob {
 
 	public async execute(client: WeatherGoat<true>) {
 		if (this.features.isFeatureEnabled('disableStatusUpdating')) {
+			return;
+		}
+
+		if (env.get('MODE') === 'development') {
+			client.user.setPresence({
+				status: PresenceUpdateStatus.Idle,
+				activities: [
+					{
+						name: $msg.system.status.devEnvActivity(),
+						type: ActivityType.Custom
+					}
+				]
+			});
 			return;
 		}
 

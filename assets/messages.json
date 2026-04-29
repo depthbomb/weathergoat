@@ -109,6 +109,7 @@
 			}
 		},
 		"status": {
+			"devEnvActivity": "DEVELOPMENT MODE",
 			"activity": {
 				"_one": "1 incident | {emoji:string} Forecasting for {duration:string}",
 				"_other": "{count:number} incidents | {emoji:string} Forecasting for {duration:string}",
@@ -311,7 +312,8 @@
 			]
 		},
 		"job": {
-			"embedTitle": "# Radar for {location:string}",
+			"embedTitle": "# Radar(s) for {location:string}",
+			"bothRadarsDescription": "The left radar shows [reflectivity](https://www.noaa.gov/jetstream/reflectivity) while the right shows [velocity](https://www.noaa.gov/jetstream/velocity).",
 			"embedFooter": "-# The closest station that covers this area is {radarStation:string}.",
 			"updateWindow": "The last update was {lastUpdated:string} and the next update will be around {nextUpdate:string}."
 		},
