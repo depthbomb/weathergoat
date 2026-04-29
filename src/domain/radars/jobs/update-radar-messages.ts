@@ -12,7 +12,6 @@ import {
 	time,
 	ButtonStyle,
 	ButtonBuilder,
-	ActionRowBuilder,
 	ContainerBuilder,
 	RESTJSONErrorCodes,
 	SeparatorSpacingSize
@@ -45,7 +44,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 			where: {
 				nextUpdate: { lte: new Date() }
 			},
-			take: 500
+			take: 100
 		});
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, velocityRadarImageUrl, showReflectivity, showVelocity, updateInterval } of dueMessages) {
 			try {
@@ -74,33 +73,38 @@ export class UpdateRadarMessagesJob extends BaseJob {
 					.setAccentColor(Color.Primary)
 					.addTextDisplayComponents(t => t
 						.setContent($msg.radar.job.embedTitle(location))
-					)
-					.addMediaGalleryComponents(g => {
-						if (showReflectivity) {
-							g.addItems(i => i.setURL(`${radarImageUrl}?s=${generateSnowflake()}`));
-						}
-
-						if (showVelocity) {
-							g.addItems(i => i.setURL(`${velocityRadarImageUrl}?s=${generateSnowflake()}`));
-						}
-
-						return g;
-					})
-					.addTextDisplayComponents(t => t
-						.setContent($msg.radar.job.updateWindow(time(new Date(), 'R'), time(nextUpdate, 'T')))
-					)
-					.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Small))
-					.addTextDisplayComponents(t => t
-						.setContent($msg.radar.job.embedFooter(radarStation))
 					);
+
+				if (showReflectivity && showVelocity) {
+					container.addTextDisplayComponents(t => t.setContent($msg.radar.job.bothRadarsDescription()));
+				}
+
+				container.addMediaGalleryComponents(g => {
+					if (showReflectivity) {
+						g.addItems(i => i.setURL(`${radarImageUrl}?s=${generateSnowflake()}`));
+					}
+
+					if (showVelocity) {
+						g.addItems(i => i.setURL(`${velocityRadarImageUrl}?s=${generateSnowflake()}`));
+					}
+
+					return g;
+				})
+				.addTextDisplayComponents(t => t
+					.setContent($msg.radar.job.updateWindow(time(new Date(), 'R'), time(nextUpdate, 'T')))
+				)
+				.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Small))
+				.addTextDisplayComponents(t => t
+					.setContent($msg.radar.job.embedFooter(radarStation))
+				);
 
 				const deleteButton = new ButtonBuilder()
 					.setCustomId(`delete-auto-radar:${messageId}`)
 					.setLabel($msg.shared.buttons.delete())
 					.setStyle(ButtonStyle.Danger);
-				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
+				container.addActionRowComponents(a => a.addComponents(deleteButton));
 
-				await message.edit({ content: '', components: [container, row] });
+				await message.edit({ content: String.empty(), components: [container] });
 				await db.autoRadarMessage.update({ data: { nextUpdate }, where: { id } });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {

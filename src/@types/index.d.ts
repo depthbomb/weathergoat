@@ -17,3 +17,9 @@ declare module 'discord.js' {
 		clientReady: [client: WeatherGoat<true>];
 	}
 }
+
+declare global {
+	interface StringConstructor {
+		empty(): string;
+	}
+}

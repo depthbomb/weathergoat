@@ -77,3 +77,7 @@ String.prototype.toSlug = function() {
 		.replace(/\s+/g, '-')
 		.replace(/-+/g, '-');
 };
+
+String.empty = function() {
+	return '';
+}
