@@ -137,8 +137,8 @@ export class ReportAlertsJob extends BaseJob {
 						.addTextDisplayComponents(t => t
 							.setContent($msg.alerts.job.headline(
 								alert.isUpdate ? `${$msg.alerts.job.updateTag()} ` : '',
-								alert.certainty,
-								alert.headline
+								alert.headline,
+								alert.certainty
 							))
 						);
 

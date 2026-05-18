@@ -169,7 +169,7 @@
 		},
 		"job": {
 			"updateTag": "[UPDATE]",
-			"headline": "## {updateTag:string}{certainty:string} {headline:string}",
+			"headline": "## {updateTag:string} {headline:string} - {certainty:string}",
 			"term": [
 				"### Validity Period",
 				"This alert is effective as of {effective:string} and expires {expires:string}."
