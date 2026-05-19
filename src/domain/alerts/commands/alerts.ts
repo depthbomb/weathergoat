@@ -215,18 +215,12 @@ export class AlertsCommand extends BaseCommand {
 
 		const exists = await db.alertDestination.exists({ snowflake, guildId });
 		if (!exists) {
-			await interaction.editReply({
-				components: [createWarningMessageComponent($msg.alerts.command.errors.destinationNotFound(snowflake))],
-				withComponents: true
-			});
+			await interaction.editReply($msg.alerts.command.errors.destinationNotFound(snowflake));
 			return;
 		}
 
 		await db.alertDestination.delete({ where: { snowflake } });
-		await interaction.editReply({
-			components: [createSuccessMessageComponent($msg.alerts.command.removed())],
-			withComponents: true
-		});
+		await interaction.editReply($msg.alerts.command.removed());
 
 		this.eventBus.emit('alert-destinations:updated');
 	}
