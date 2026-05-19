@@ -110,9 +110,9 @@ export class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
-				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.job.name === ReportForecastsJob.name)!;
+				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.name === ReportForecastsJob.name)!;
 				const initialMessage = await channel.send({
-					content: $msg.forecasts.command.placeholderMessage(location.name, time(forecastJob.cron.nextRun()!, 'R')),
+					content: $msg.forecasts.command.placeholderMessage(location.name, time(forecastJob.nextRun!, 'R')),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();
