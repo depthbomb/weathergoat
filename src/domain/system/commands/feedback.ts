@@ -37,7 +37,7 @@ export class FeedbackCommand extends BaseCommand {
 					.setRequired(true)
 				),
 			preconditions: [
-				new CooldownPrecondition({ duration: '1h' })
+				new CooldownPrecondition({ duration: '30s' })
 			]
 		});
 	}
