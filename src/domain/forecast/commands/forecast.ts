@@ -7,7 +7,6 @@ import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
 import { LocationService } from '@services/location';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { ReportForecastsJob } from '@domain/forecast/jobs/report-forecast';
 import {
 	createErrorMessageComponent,
 	createSuccessMessageComponent,
@@ -21,7 +20,6 @@ import {
 	GuildOnlyInvocationInNonGuildError
 } from '@errors';
 import {
-	time,
 	ButtonStyle,
 	ChannelType,
 	MessageFlags,
@@ -110,9 +108,8 @@ export class ForecastCommand extends BaseCommand {
 
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
-				const forecastJob    = Array.from(interaction.client.jobs).find(j => j.name === ReportForecastsJob.name)!;
 				const initialMessage = await channel.send({
-					content: $msg.forecasts.command.placeholderMessage(location.name, time(forecastJob.nextRun!, 'R')),
+					content: $msg.forecasts.command.placeholderMessage(location.name),
 					flags: MessageFlags.SuppressNotifications
 				});
 				const snowflake = generateSnowflake();

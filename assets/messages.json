@@ -265,7 +265,7 @@
 			"errors": {
 				"maxDestinationsReached": "You have reached the maximum amount of forecast destinations in this server."
 			},
-			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}** {time:string}. Delete this message at any time to stop.",
+			"placeholderMessage": "-# This message is a placeholder and will be used to display the hourly forecast for **{location:string}**. Delete this message at any time to stop.",
 			"created": [
 				"Hourly forecast reporting created in {channel:string}!",
 				"You can remove this destination by simply deleting the message."
