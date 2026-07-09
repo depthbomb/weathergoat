@@ -16,7 +16,8 @@ export class AboutCommand extends BaseCommand {
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
-		const bunCommitSha = Bun.revision.slice(0, 7);
+		const bunVersion   = Bun.version_with_sha;
+		const bunCommitSha = Bun.revision.slice(0, 8);
 		const bunCommitUrl = `https://github.com/oven-sh/bun/commit/${bunCommitSha}`;
 
 		const container = new ContainerBuilder()
@@ -26,7 +27,7 @@ export class AboutCommand extends BaseCommand {
 				.setThumbnailAccessory(tn => tn.setURL(interaction.client.user.avatarURL()!))
 			)
 			.addTextDisplayComponents(d => d.setContent($msg.system.about.gutsSection(
-				bunCommitSha.toHyperlink(bunCommitUrl),
+				bunVersion.toHyperlink(bunCommitUrl),
 				hostname(),
 				formatDuration(uptime() * 1_000),
 				formatDuration(interaction.client.uptime ?? 0)

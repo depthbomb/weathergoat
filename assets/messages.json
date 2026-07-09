@@ -78,7 +78,7 @@
 			"title": "# About Me (v{version:string})",
 			"gutsSection": [
 				"## What's your technology stack?",
-				"I'm built with the [discord.js](https://discord.js.org) library, use [Prisma ORM](https://prisma.io) to persist data, cache data with [Redis](https://redis.io), and I run on the [Bun](https://bun.sh) runtime ({bunVersion:string}).",
+				"I'm written in TypeScript using the [discord.js](https://discord.js.org) library, persist data with [Prisma ORM](https://prisma.io), cache data with [Redis](https://redis.io), and I run on the [Bun](https://bun.sh) runtime {bunVersion:string}.",
 				"I'm currently hosted on my creator's [Raspberry Pi 5](https://raspberrypi.com/products/raspberry-pi-5) running [Ubuntu Server 24.04](https://ubuntu.com/server) ({hostname:string}). My hardware's uptime is {systemUptime:string} and I have been running for {serviceRuntime:string}."
 			],
 			"dataSourceSection": [
