@@ -34,7 +34,7 @@
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
-		"@sentry/bun": "^10.67.0",
+		"@sentry/bun": "^10.68.0",
 		"bufferutil": "^4.1.0",
 		"cockatiel": "^4.0.0",
 		"discord.js": "^14.27.0",
