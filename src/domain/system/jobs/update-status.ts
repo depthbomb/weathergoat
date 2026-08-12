@@ -1,3 +1,4 @@
+import { env } from '@env';
 import { db } from '@database';
 import { uptime } from 'node:os';
 import { $msg } from '@lib/messages';
@@ -8,30 +9,26 @@ import { formatDuration } from '@depthbomb/common/timing';
 import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
-import { env } from '@env';
 
 export class UpdateStatusJob extends BaseJob {
 	private lastEmoji = '';
 
-	private readonly emoji = Object.freeze([
-		'🌪️',
-		'☀️',
-		'🌤️',
-		'⛅',
-		'🌥️',
-		'☁️',
-		'🌦️',
-		'🌧️',
-		'⛈️',
-		'🌩️',
-		'🌨️',
-		'❄️',
-		'💨',
-		'☔',
-		'☂️',
-		'🌫️',
-		'🌊'
-	]);
+	private readonly emoji = {
+		spring: [
+			'☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌈', '💨', '🌬️', '☔', '☂️',
+			'🌫️', '🌪️',
+		],
+		summer: [
+			'☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '💨', '🌬️', '☔', '☂️', '🌫️',
+			'🌪️', '🌊', '🌡️', '🔥', '🏖️',
+		],
+		autumn: [
+			'🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '💨', '🌬️', '☔', '☂️', '🌫️', '🌪️',
+		],
+		winter: [
+			'⛅', '🌥️', '☁️', '🌨️', '❄️', '🧊', '☃️', '⛄', '💨', '🌬️', '🌫️',
+		],
+	} as const;
 
 	public constructor(
 		private readonly features = inject(FeaturesService)
@@ -76,14 +73,16 @@ export class UpdateStatusJob extends BaseJob {
 	}
 
 	private pickRandomEmoji() {
-		const lastIndex = this.emoji.indexOf(this.lastEmoji);
+		const month = new Date().getMonth();
+		const season = month >= 2 && month <= 4 ? 'spring' : month >= 5 && month <= 7 ? 'summer' : month >= 8 && month <= 10 ? 'autumn' : 'winter';
+		const emojis = this.emoji[season];
 
-		let index = Math.floor(Math.random() * (this.emoji.length - 1));
-		if (index >= lastIndex && lastIndex !== -1) {
-			index++;
+		let index = Math.floor(Math.random() * emojis.length);
+		if (emojis.length > 1 && emojis[index] === this.lastEmoji) {
+			index = (index + 1) % emojis.length;
 		}
 
-		const chosenEmoji = this.emoji[index];
+		const chosenEmoji = emojis[index];
 
 		this.lastEmoji = chosenEmoji;
 
