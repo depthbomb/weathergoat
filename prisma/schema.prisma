@@ -119,7 +119,7 @@ model AnnouncementDelivery {
   nextAttemptAt  DateTime                 @default(now())
   createdAt      DateTime                 @default(now())
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
-  subscription   AnnouncementSubscription @relation(fields: [subscriptionId], references: [id])
+  subscription   AnnouncementSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@unique([announcementId, subscriptionId])
   @@index([announcementId])
