@@ -1,11 +1,12 @@
 import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { inject } from '@needle-di/core';
+import { reportError } from '@lib/logger';
 import { BaseCommand } from '@infra/commands';
 import { GeocodingService } from '@services/geocoding';
 import { CooldownPrecondition } from '@preconditions/cooldown';
-import { isUndefined, isNonEmptyString } from '@depthbomb/common/guards';
-import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { HTTPRequestError, isWeatherGoatError } from '@errors';
+import { inlineCode, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { createErrorMessageComponent, createWarningMessageComponent } from '@utils/components';
 import type { APIEmbedField, ChatInputCommandInteraction } from 'discord.js';
 
@@ -42,10 +43,10 @@ export class GeocodingCommand extends BaseCommand {
 	}
 
 	public async [Subcommands.Search](interaction: ChatInputCommandInteraction) {
-		const query = interaction.options.getString('query', true);
-		if (!isNonEmptyString(query)) {
-			await interaction.editReply({
-				components: [createErrorMessageComponent($msg.announcements.command.subscribe.alreadySubscribed())],
+		const query = interaction.options.getString('query', true).trim();
+		if (!query.length) {
+			await interaction.reply({
+				components: [createErrorMessageComponent($msg.geocoding.command.errors.emptyQuery())],
 				flags: MessageFlags.IsComponentsV2
 			});
 			return;
@@ -57,7 +58,7 @@ export class GeocodingCommand extends BaseCommand {
 			const res = await this.geocoding.queryLocationInfo(query);
 			if (!res.length) {
 				await interaction.editReply({
-					components: [createWarningMessageComponent($msg.announcements.command.subscribe.alreadySubscribed())],
+					components: [createWarningMessageComponent($msg.geocoding.command.errors.noResults())],
 					flags: MessageFlags.IsComponentsV2
 				});
 				return;
@@ -65,31 +66,48 @@ export class GeocodingCommand extends BaseCommand {
 
 			const location = res[0];
 			const fields   = [] as APIEmbedField[];
+			const address  = location.address;
 
-			fields.push({ name: 'County', value: location.address.county, inline: true });
-
-			// TODO test this more?
-			if (isUndefined(location.address.town)) {
-				fields.push({ name: 'City', value: location.address.city!, inline: true });
-			} else {
-				fields.push({ name: 'Town', value: location.address.town, inline: true });
+			if (address?.county) {
+				fields.push({ name: 'County', value: address.county, inline: true });
+			}
+			if (address?.town) {
+				fields.push({ name: 'Town', value: address.town, inline: true });
+			} else if (address?.city) {
+				fields.push({ name: 'City', value: address.city, inline: true });
+			}
+			if (address?.state) {
+				fields.push({ name: 'State', value: address.state, inline: true });
 			}
 
 			fields.push(
-				{ name: 'State', value: location.address.state, inline: true },
-				{ name: 'Latitude', value: location.latitude.toInlineCode(), inline: true },
-				{ name: 'Longitude', value: location.longitude.toInlineCode(), inline: true }
+				{ name: 'Latitude', value: inlineCode(location.latitude), inline: true },
+				{ name: 'Longitude', value: inlineCode(location.longitude), inline: true }
 			);
 
 			const embed = new EmbedBuilder()
 				.setColor(Color.Success)
 				.setDescription(location.displayName)
-				.addFields(fields)
-				.setFooter({ text: location.license })
+				.addFields(fields);
+
+			if (location.license) {
+				embed.setFooter({ text: location.license });
+			}
 
 			await interaction.editReply({ embeds: [embed] });
-		} catch (err) {
-			console.error(err);
+		} catch (err: unknown) {
+			if (isWeatherGoatError(err, HTTPRequestError)) {
+				await interaction.editReply({
+					components: [createErrorMessageComponent($msg.geocoding.command.errors.http(err.code, err.status))],
+					flags: MessageFlags.IsComponentsV2
+				});
+			} else {
+				reportError('Error searching for a geocoded location', err, { query });
+				await interaction.editReply({
+					components: [createErrorMessageComponent($msg.geocoding.command.errors.unknown())],
+					flags: MessageFlags.IsComponentsV2
+				});
+			}
 		}
 	}
 }

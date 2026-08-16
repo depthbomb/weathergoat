@@ -12,19 +12,19 @@ export class Address {
 	public town?: string;
 
 	@JSONProperty()
-	public county!: string;
+	public county?: string;
 
 	@JSONProperty()
-	public state!: string;
+	public state?: string;
 
 	@JSONProperty({ name: 'ISO3166-2-lvl4' })
-	public iso3166SubdivisionLevel4!: string;
+	public iso3166SubdivisionLevel4?: string;
 
 	@JSONProperty()
-	public country!: string;
+	public country?: string;
 
 	@JSONProperty({ name: 'country_code' })
-	public countryCode!: string;
+	public countryCode?: string;
 }
 
 @Serializable()
@@ -60,5 +60,5 @@ export class NominatimFreeFormQuery {
 	public displayName!: string;
 
 	@JSONProperty({ type: () => Address })
-	public address!: Address;
+	public address?: Address;
 }

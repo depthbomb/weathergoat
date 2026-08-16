@@ -289,6 +289,16 @@
 			"autoResolveFieldTitle": "Target resolution"
 		}
 	},
+	"geocoding": {
+		"command": {
+			"errors": {
+				"emptyQuery": "Enter a location, address, or postal code to search for.",
+				"noResults": "No matching U.S. locations were found.",
+				"http": "The geocoding service returned an error.```{errorCode:number}: {errorStatus:string}```",
+				"unknown": "The geocoding service could not complete that search. Please try again later."
+			}
+		}
+	},
 	"radar": {
 		"view": {
 			"errors": {
