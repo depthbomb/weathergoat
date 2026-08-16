@@ -23,6 +23,7 @@ export class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 		await db.forecastDestination.deleteMany({ where });
 		await db.autoRadarMessage.deleteMany({ where });
 		await db.volatileMessage.deleteMany({ where });
+		await db.sentAlert.deleteMany({ where });
 
 		this.eventBus.emit('alert-destinations:updated');
 	}

@@ -229,7 +229,8 @@ export class ReportAlertsJob extends BaseJob {
 							alertId: alert.id,
 							guildId,
 							channelId: channelId,
-							messageId: sentMessage.id
+							messageId: sentMessage.id,
+							expiresAt: alert.expires
 						},
 						select: {
 							alertId: true,
