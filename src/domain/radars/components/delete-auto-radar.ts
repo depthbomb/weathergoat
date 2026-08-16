@@ -37,7 +37,7 @@ export class DeleteAutoRadarButton extends BaseComponent {
 
 		const autoRadarMessage = await db.autoRadarMessage.findFirst({ where });
 		if (!autoRadarMessage) {
-			await interaction.reply({
+			await interaction.followUp({
 				content: $msg.radar.components.deleteAutoRadarButton.couldNotFindMessage(),
 				flags: MessageFlags.Ephemeral
 			});

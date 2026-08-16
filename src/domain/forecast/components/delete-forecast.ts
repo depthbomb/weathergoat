@@ -37,7 +37,7 @@ export class DeleteForecastButton extends BaseComponent {
 
 		const forecastMessage = await db.forecastDestination.findFirst({ where });
 		if (!forecastMessage) {
-			await interaction.reply({
+			await interaction.followUp({
 				content: $msg.forecasts.components.deleteButton.couldNotFindMessage(),
 				flags: MessageFlags.Ephemeral
 			});
