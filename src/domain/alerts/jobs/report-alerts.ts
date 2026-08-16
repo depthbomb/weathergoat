@@ -54,7 +54,14 @@ export class ReportAlertsJob extends BaseJob {
 
 			this.ugcIndex.clear();
 
-			const allDestinations = await db.alertDestination.findMany();
+			const allDestinations = await db.alertDestination.findMany({
+				where: {
+					OR: [
+						{ expiresAt: null },
+						{ expiresAt: { gt: new Date() } }
+					]
+				}
+			});
 			for (const destination of allDestinations) {
 				if (!this.ugcIndex.has(destination.countyId)) {
 					this.ugcIndex.set(destination.countyId, []);
@@ -146,8 +153,12 @@ export class ReportAlertsJob extends BaseJob {
 				continue;
 			}
 
-			for (const { latitude, longitude, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
+			for (const { latitude, longitude, countyId, guildId, channelId, autoCleanup, radarImageUrl, expiresAt } of destinations) {
 				try {
+					if (expiresAt !== null && expiresAt.getTime() <= Date.now()) {
+						continue;
+					}
+
 					const sentAlertKey = this.createSentAlertKey(alert.id, guildId, channelId);
 					if (sentAlerts.has(sentAlertKey)) {
 						continue;

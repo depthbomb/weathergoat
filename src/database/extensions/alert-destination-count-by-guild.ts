@@ -6,7 +6,15 @@ export default Prisma.defineExtension({
 		alertDestination: {
 			async countByGuild<T>(this: T, guildId: string): Promise<number> {
 				const ctx = Prisma.getExtensionContext(this);
-				const cnt = await (ctx as any).count({ where: { guildId } }) as number;
+				const cnt = await (ctx as any).count({
+					where: {
+						guildId,
+						OR: [
+							{ expiresAt: null },
+							{ expiresAt: { gt: new Date() } }
+						]
+					}
+				}) as number;
 
 				return cnt;
 			}

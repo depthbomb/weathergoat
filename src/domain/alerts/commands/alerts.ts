@@ -9,6 +9,7 @@ import { LocationService } from '@services/location';
 import { EventBusService } from '@services/event-bus';
 import { CooldownPrecondition } from '@preconditions/cooldown';
 import { isValidSnowflake, generateSnowflake } from '@lib/snowflake';
+import { resolveDestinationExpiration } from '../destination-expiration';
 import {
 	createErrorMessageComponent,
 	createSuccessMessageComponent,
@@ -58,6 +59,17 @@ export class AlertsCommand extends BaseCommand {
 					.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
 					.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
 					.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
+					.addStringOption(o => o
+						.setName('expires-after')
+						.setDescription('How long to check this location for alerts (never expires by default)')
+						.addChoices([
+							{ name: '24 hours', value: '24h' },
+							{ name: '3 days',   value: '3d' },
+							{ name: '1 week',   value: '1w' },
+							{ name: '1 month',  value: '1mo' }
+						])
+						.setRequired(false)
+					)
 				)
 				.addSubcommand(sc => sc
 					.setName(Subcommands.Remove)
@@ -91,6 +103,7 @@ export class AlertsCommand extends BaseCommand {
 		const longitude    = interaction.options.getString('longitude', true).trim();
 		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
+		const expiresAfter = interaction.options.getString('expires-after');
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
@@ -109,7 +122,11 @@ export class AlertsCommand extends BaseCommand {
 			const exists = await db.alertDestination.exists({
 				latitude: location.latitude,
 				longitude: location.longitude,
-				channelId: channel.id
+				channelId: channel.id,
+				OR: [
+					{ expiresAt: null },
+					{ expiresAt: { gt: new Date() } }
+				]
 			});
 			if (exists) {
 				await interaction.editReply({
@@ -154,6 +171,7 @@ export class AlertsCommand extends BaseCommand {
 			const { customId } = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 30_000 });
 			if (customId === 'confirm') {
 				const snowflake   = generateSnowflake();
+				const expiresAt   = resolveDestinationExpiration(expiresAfter);
 				const destination = await db.alertDestination.create({
 					data: {
 						snowflake,
@@ -164,6 +182,7 @@ export class AlertsCommand extends BaseCommand {
 						countyId: location.countyId,
 						channelId: channel.id,
 						autoCleanup,
+						expiresAt,
 						radarImageUrl: location.radar.reflectivityImageUrl
 					},
 					select: { snowflake: true }
@@ -233,10 +252,15 @@ export class AlertsCommand extends BaseCommand {
 				latitude: true,
 				longitude: true,
 				channelId: true,
-				autoCleanup: true
+				autoCleanup: true,
+				expiresAt: true
 			},
 			where: {
-				guildId
+				guildId,
+				OR: [
+					{ expiresAt: null },
+					{ expiresAt: { gt: new Date() } }
+				]
 			}
 		});
 		if (!destinations.length) {
@@ -248,14 +272,14 @@ export class AlertsCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle($msg.alerts.command.listTitle());
 
-		for (const { snowflake, latitude, longitude, channelId, autoCleanup } of destinations) {
+		for (const { snowflake, latitude, longitude, channelId, autoCleanup, expiresAt } of destinations) {
 			const location = await this.location.getLocation(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${location.name} (${latitude}, ${longitude})`,
 				value: [
 					$msg.shared.status.reportingTo(channel!.toString()),
-					JSON.stringify({ snowflake, autoCleanup }, null, 4).toCodeBlock('json')
+					JSON.stringify({ snowflake, autoCleanup, expiresAt }, null, 4).toCodeBlock('json')
 				].join('\n')
 			});
 		}
