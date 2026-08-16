@@ -114,6 +114,8 @@ model AnnouncementDelivery {
   sentAt         DateTime?
   failedAt       DateTime?
   error          String?
+  attemptCount   Int                      @default(0)
+  nextAttemptAt  DateTime                 @default(now())
   createdAt      DateTime                 @default(now())
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
   subscription   AnnouncementSubscription @relation(fields: [subscriptionId], references: [id])
@@ -121,6 +123,7 @@ model AnnouncementDelivery {
   @@unique([announcementId, subscriptionId])
   @@index([announcementId])
   @@index([subscriptionId])
+  @@index([sentAt, nextAttemptAt])
 }
 
 enum IncidentStatus {

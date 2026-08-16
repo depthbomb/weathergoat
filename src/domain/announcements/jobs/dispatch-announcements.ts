@@ -8,6 +8,10 @@ import { FeaturesService } from '@services/features';
 import { MessageFlags, ContainerBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
+const MAX_DELIVERY_ATTEMPTS = 5;
+const RETRY_BASE_DELAY_MS   = 5 * 60 * 1_000;
+const RETRY_MAX_DELAY_MS    = 6 * 60 * 60 * 1_000;
+
 export class DispatchAnnouncementsJob extends BaseJob {
 	public constructor(
 		private readonly features = inject(FeaturesService)
@@ -23,8 +27,17 @@ export class DispatchAnnouncementsJob extends BaseJob {
 			return;
 		}
 
+		const now = new Date();
 		const batch = await db.announcementDelivery.findMany({
-			where: { sentAt: null },
+			where: {
+				sentAt: null,
+				attemptCount: { lt: MAX_DELIVERY_ATTEMPTS },
+				nextAttemptAt: { lte: now }
+			},
+			orderBy: [
+				{ nextAttemptAt: 'asc' },
+				{ id: 'asc' }
+			],
 			take: 10,
 			include: { subscription: true, announcement: true }
 		});
@@ -48,15 +61,43 @@ export class DispatchAnnouncementsJob extends BaseJob {
 				await dm.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
 				await db.announcementDelivery.update({
 					where: { id: delivery.id },
-					data: { sentAt: new Date() }
+					data: {
+						sentAt: new Date(),
+						failedAt: null,
+						error: null
+					}
 				});
 			} catch (err) {
-				reportError('Failed to dispatch announcement', err, { announcement, delivery });
+				const failedAt       = new Date();
+				const attemptCount    = delivery.attemptCount + 1;
+				const nextAttemptAt   = this.getNextAttemptAt(failedAt, attemptCount);
+				const terminalFailure = attemptCount >= MAX_DELIVERY_ATTEMPTS;
+
 				await db.announcementDelivery.update({
 					where: { id: delivery.id },
-					data: { failedAt: new Date(), error: (err as Error).message }
+					data: {
+						failedAt,
+						error: err instanceof Error ? err.message : String(err),
+						attemptCount,
+						nextAttemptAt
+					}
 				});
+
+				const metadata = { deliveryId: delivery.id, attemptCount, nextAttemptAt };
+				if (terminalFailure) {
+					reportError('Announcement delivery exhausted its retry limit', err, { announcement, delivery, ...metadata });
+				} else {
+					this.logger
+						.withError(err)
+						.withMetadata(metadata)
+						.warn('Announcement delivery scheduled for retry');
+				}
 			}
 		}
+	}
+
+	private getNextAttemptAt(failedAt: Date, attemptCount: number) {
+		const delay = Math.min(RETRY_BASE_DELAY_MS * (2 ** Math.max(attemptCount - 1, 0)), RETRY_MAX_DELAY_MS);
+		return new Date(failedAt.getTime() + delay);
 	}
 }
