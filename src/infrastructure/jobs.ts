@@ -50,6 +50,7 @@ export abstract class BaseJob {
 
 	private _nextRun: Date;
 	private _lastRun: Nullable<Date> = null;
+	private _isRunning = false;
 
 	public constructor(options: JobOptions) {
 		this.name           = options.name;
@@ -75,6 +76,13 @@ export abstract class BaseJob {
 	}
 
 	/**
+	 * Whether the job is currently executing.
+	 */
+	public get isRunning() {
+		return this._isRunning;
+	}
+
+	/**
 	 * The number of milliseconds from the last interval in which the job will run.
 	 */
 	public get nextRunMs() {
@@ -95,12 +103,23 @@ export abstract class BaseJob {
 	 * @param client The bot {@link WeatherGoat|client}.
 	 * @internal
 	 */
-	public callExecute(client: WeatherGoat) {
+	public async callExecute(client: WeatherGoat) {
 		const parsedDuration = parseDuration(this.interval);
 
-		this.execute(client);
-
-		this._lastRun = new Date();
 		this._nextRun = parsedDuration.fromNow();
+		if (this._isRunning) {
+			this.logger.warn('Skipped execution because the previous run is still active');
+			return false;
+		}
+
+		this._isRunning = true;
+
+		try {
+			await this.execute(client);
+			return true;
+		} finally {
+			this._lastRun = new Date();
+			this._isRunning = false;
+		}
 	}
 }

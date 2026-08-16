@@ -54,6 +54,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	private commandLinksLoaded        = false;
 	private commandLinksLoadPromise?: Promise<void>;
+	private readonly activeJobExecutions = new Set<Promise<void>>();
 
 	private readonly legacyCommandAliases = new Collection<string, BaseLegacyCommand>();
 	private readonly beacon               = new Beacon();
@@ -102,6 +103,13 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.logger.info('Shutting down');
 
 		TimerManager.clearAll();
+		if (this.activeJobExecutions.size > 0) {
+			this.logger
+				.withMetadata({ count: this.activeJobExecutions.size })
+				.info('Waiting for active jobs to finish');
+
+			await Promise.allSettled([...this.activeJobExecutions]);
+		}
 
 		this.user?.setPresence({ status: 'invisible' });
 
@@ -195,16 +203,14 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				const runImmediately = job.runImmediately ?? false;
 				const duration       = parseDuration(interval).toMilliseconds();
 
-				this.once('clientReady', async () => {
-					try {
-						if (runImmediately) {
-							job.callExecute(this);
-						}
-					} catch (err) {
-						reportError('Error executing `runImmediately` job', err, { name });
-					} finally {
-						TimerManager.setInterval(() => job.callExecute(this), duration);
+				this.once('clientReady', () => {
+					const execute = () => this.executeJob(job);
+
+					if (runImmediately) {
+						execute();
 					}
+
+					TimerManager.setInterval(execute, duration);
 				});
 
 				this.jobs.add(job);
@@ -218,6 +224,22 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				}).info('Registered job');
 			}
 		}
+	}
+
+	private executeJob(job: BaseJob) {
+		const execution = (async () => {
+			try {
+				await job.callExecute(this);
+			} catch (err) {
+				reportError('Error executing job', err, { name: job.name });
+			}
+		})();
+
+		this.activeJobExecutions.add(execution);
+		void execution.then(
+			() => this.activeJobExecutions.delete(execution),
+			() => this.activeJobExecutions.delete(execution)
+		);
 	}
 
 	private async registerEvents() {

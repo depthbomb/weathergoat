@@ -1,8 +1,8 @@
 import { db } from '@database';
 import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
-import { parseDuration } from '@depthbomb/common/timing';
 import { Prisma } from '@database/generated/client';
+import { parseDuration } from '@depthbomb/common/timing';
 import { IncidentStatus } from '@database/generated/enums';
 import type { IncidentSeverity } from '@database/generated/enums';
 
