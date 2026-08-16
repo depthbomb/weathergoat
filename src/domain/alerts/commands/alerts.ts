@@ -58,7 +58,6 @@ export class AlertsCommand extends BaseCommand {
 					.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to check for active alerts').setRequired(true))
 					.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send alerts to').setRequired(true))
 					.addBooleanOption(o => o.setName('auto-cleanup').setDescription('Whether my messages should be deleted periodically (true by default)').setRequired(false))
-					.addBooleanOption(o => o.setName('ping-on-severe').setDescription('Whether to ping everyone when a severe or extreme alert is posted (false by default)').setRequired(false))
 				)
 				.addSubcommand(sc => sc
 					.setName(Subcommands.Remove)
@@ -92,7 +91,6 @@ export class AlertsCommand extends BaseCommand {
 		const longitude    = interaction.options.getString('longitude', true).trim();
 		const channel      = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
 		const autoCleanup  = interaction.options.getBoolean('auto-cleanup') ?? true;
-		const pingOnSevere = interaction.options.getBoolean('ping-on-severe') ?? false;
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
@@ -166,7 +164,6 @@ export class AlertsCommand extends BaseCommand {
 						countyId: location.countyId,
 						channelId: channel.id,
 						autoCleanup,
-						pingOnSevere,
 						radarImageUrl: location.radar.reflectivityImageUrl
 					},
 					select: { snowflake: true }
@@ -236,8 +233,7 @@ export class AlertsCommand extends BaseCommand {
 				latitude: true,
 				longitude: true,
 				channelId: true,
-				autoCleanup: true,
-				pingOnSevere: true
+				autoCleanup: true
 			},
 			where: {
 				guildId
@@ -252,14 +248,14 @@ export class AlertsCommand extends BaseCommand {
 			.setColor(Color.Primary)
 			.setTitle($msg.alerts.command.listTitle());
 
-		for (const { snowflake, latitude, longitude, channelId, autoCleanup, pingOnSevere } of destinations) {
+		for (const { snowflake, latitude, longitude, channelId, autoCleanup } of destinations) {
 			const location = await this.location.getLocation(latitude, longitude);
 			const channel = await interaction.client.channels.fetch(channelId);
 			embed.addFields({
 				name: `${location.name} (${latitude}, ${longitude})`,
 				value: [
 					$msg.shared.status.reportingTo(channel!.toString()),
-					JSON.stringify({ snowflake, autoCleanup, pingOnSevere }, null, 4).toCodeBlock('json')
+					JSON.stringify({ snowflake, autoCleanup }, null, 4).toCodeBlock('json')
 				].join('\n')
 			});
 		}

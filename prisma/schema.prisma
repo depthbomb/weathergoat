@@ -21,7 +21,6 @@ model AlertDestination {
   channelId     String
   autoCleanup   Boolean @default(true)
   radarImageUrl String?
-  pingOnSevere  Boolean @default(false)
 
   @@index([guildId])
 }
