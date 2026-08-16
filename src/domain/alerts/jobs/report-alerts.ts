@@ -21,6 +21,8 @@ import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 import type { AlertDestination } from '@database/generated/client';
 
+const SENT_ALERT_QUERY_BATCH_SIZE = 500;
+
 export class ReportAlertsJob extends BaseJob {
 	private readonly hasIndexedFlag  = new Flag(false);
 	private readonly ugcIndex        = new Collection<string, AlertDestination[]>();
@@ -92,6 +94,43 @@ export class ReportAlertsJob extends BaseJob {
 			}
 		}
 
+		if (destinationMap.size === 0) {
+			return;
+		}
+
+		const relevantAlertIds = new Set(destinationMap.keys());
+		for (const alert of alerts) {
+			if (!destinationMap.has(alert.id)) {
+				continue;
+			}
+
+			for (const reference of alert.expiredReferences ?? []) {
+				relevantAlertIds.add(reference.alertId);
+			}
+		}
+
+		const sentAlerts      = await this.loadSentAlerts(relevantAlertIds);
+		const channelRequests = new Map<string, ReturnType<typeof client.channels.fetch>>();
+		const webhookRequests = new Map<string, ReturnType<typeof this.getOrCreateWebhook>>();
+		const fetchChannel    = (channelId: string) => {
+			let request = channelRequests.get(channelId);
+			if (!request) {
+				request = client.channels.fetch(channelId);
+				channelRequests.set(channelId, request);
+			}
+
+			return request;
+		};
+		const fetchWebhook    = (channel: TextChannel) => {
+			let request = webhookRequests.get(channel.id);
+			if (!request) {
+				request = this.getOrCreateWebhook(channel);
+				webhookRequests.set(channel.id, request);
+			}
+
+			return request;
+		};
+
 		for (const alert of alerts) {
 			const expiredReferenceIds = new Set<string>();
 
@@ -109,23 +148,17 @@ export class ReportAlertsJob extends BaseJob {
 
 			for (const { latitude, longitude, countyId, guildId, channelId, autoCleanup, radarImageUrl } of destinations) {
 				try {
-					const channel = await client.channels.fetch(channelId);
+					const sentAlertKey = this.createSentAlertKey(alert.id, guildId, channelId);
+					if (sentAlerts.has(sentAlertKey)) {
+						continue;
+					}
+
+					const channel = await fetchChannel(channelId);
 					if (!isTextChannel(channel)) {
 						continue;
 					}
 
-					const existing = await db.sentAlert.findFirst({
-						where: {
-							alertId: alert.id,
-							guildId,
-							channelId
-						}
-					});
-					if (existing) {
-						continue;
-					}
-
-					const webhook     = await this.getOrCreateWebhook(channel);
+					const webhook     = await fetchWebhook(channel);
 					const description = alert.description.toCodeBlock('md');
 					const container   = new ContainerBuilder()
 						.setAccentColor(this.getAlertSeverityColor(alert))
@@ -191,39 +224,25 @@ export class ReportAlertsJob extends BaseJob {
 						await this.sweeper.enqueueMessage(sentMessage, expiresAt);
 					}
 
-					await db.sentAlert.create({
+					const sentAlert = await db.sentAlert.create({
 						data: {
 							alertId: alert.id,
 							guildId,
 							channelId: channelId,
 							messageId: sentMessage.id
+						},
+						select: {
+							alertId: true,
+							guildId: true,
+							channelId: true,
+							messageId: true
 						}
 					});
+					sentAlerts.set(sentAlertKey, sentAlert);
 
 					if (expiredReferenceIds.size) {
-						const expiredSentAlerts = await db.sentAlert.findMany({
-							where: {
-								guildId,
-								channelId,
-								alertId: {
-									in: [...expiredReferenceIds]
-								}
-							},
-							select: {
-								alertId: true,
-								guildId: true,
-								channelId: true,
-								messageId: true
-							}
-						});
-
-						const byAlertId = new Collection<string, typeof expiredSentAlerts[number]>();
-						for (const sent of expiredSentAlerts) {
-							byAlertId.set(sent.alertId, sent);
-						}
-
 						for (const alertId of expiredReferenceIds) {
-							const expiredSentAlert = byAlertId.get(alertId);
+							const expiredSentAlert = sentAlerts.get(this.createSentAlertKey(alertId, guildId, channelId));
 							if (!expiredSentAlert) {
 								continue;
 							}
@@ -245,6 +264,43 @@ export class ReportAlertsJob extends BaseJob {
 				}
 			}
 		}
+	}
+
+	private async loadSentAlerts(alertIds: Set<string>) {
+		const byDestination = new Map<string, {
+			alertId: string;
+			guildId: string;
+			channelId: string;
+			messageId: string;
+		}>();
+		const ids = [...alertIds];
+
+		for (let offset = 0; offset < ids.length; offset += SENT_ALERT_QUERY_BATCH_SIZE) {
+			const batch = await db.sentAlert.findMany({
+				where: {
+					alertId: { in: ids.slice(offset, offset + SENT_ALERT_QUERY_BATCH_SIZE) }
+				},
+				select: {
+					alertId: true,
+					guildId: true,
+					channelId: true,
+					messageId: true
+				}
+			});
+
+			for (const sentAlert of batch) {
+				byDestination.set(
+					this.createSentAlertKey(sentAlert.alertId, sentAlert.guildId, sentAlert.channelId),
+					sentAlert
+				);
+			}
+		}
+
+		return byDestination;
+	}
+
+	private createSentAlertKey(alertId: string, guildId: string, channelId: string) {
+		return `${alertId}\u0000${guildId}\u0000${channelId}`;
 	}
 
 	private async getOrCreateWebhook(channel: TextChannel) {
