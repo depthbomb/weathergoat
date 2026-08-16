@@ -47,9 +47,9 @@ export type ResolvedLocation = LocationInfo & {
 @injectable()
 export class LocationService {
 	private readonly client: HTTPClient;
+	private readonly probeClient: HTTPClient;
 	private readonly coordinatePattern: RegExp;
 	private readonly nearestSearchRadii: readonly number[];
-	private readonly seedSearchRadii: readonly number[];
 	private readonly nearestSearchBearings: readonly number[];
 	private readonly coverageRegions: readonly CoverageRegion[];
 
@@ -63,10 +63,17 @@ export class LocationService {
 				Accept: 'application/ld+json'
 			}
 		});
+		this.probeClient = this.http.getClient('location-probe', {
+			baseUrl: API_BASE_ENDPOINT,
+			headers: {
+				Accept: 'application/ld+json'
+			},
+			retry: false
+		});
 		this.coordinatePattern     = /^(-?\d+(?:\.\d+)?)$/;
-		this.nearestSearchRadii    = [0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
-		this.seedSearchRadii       = [0.1, 0.25, 0.5, 1];
-		this.nearestSearchBearings = [0, 45, 90, 135, 180, 225, 270, 315];
+		// Six rings with four probes each, plus one final coverage seed, caps fallback at 25 probes.
+		this.nearestSearchRadii    = [0.05, 0.25, 1, 2, 4, 8];
+		this.nearestSearchBearings = [0, 90, 180, 270];
 		this.coverageRegions       = [
 			{
 				// Contiguous US
@@ -212,6 +219,10 @@ export class LocationService {
 	 * @param cacheTTL How long the coordinate info should be cached.
 	 */
 	public async getLocation(latitude: string, longitude: string, cacheTTL = '1w'): Promise<LocationInfo> {
+		return this.getLocationWithClient(this.client, latitude, longitude, cacheTTL);
+	}
+
+	private async getLocationWithClient(client: HTTPClient, latitude: string, longitude: string, cacheTTL: string): Promise<LocationInfo> {
 		const normalizedLatitude  = latitude.trim();
 		const normalizedLongitude = longitude.trim();
 		const cacheKey            = `coordinates:v2:${normalizedLatitude},${normalizedLongitude}`;
@@ -220,7 +231,7 @@ export class LocationService {
 			return JSON.parse(cached) as LocationInfo;
 		}
 
-		const res = await this.client.get(`/points/${normalizedLatitude},${normalizedLongitude}`);
+		const res = await client.get(`/points/${normalizedLatitude},${normalizedLongitude}`);
 
 		HTTPRequestError.assert(res.ok, res.statusText, {
 			code: res.status,
@@ -258,21 +269,11 @@ export class LocationService {
 		const seedLatitude  = this.normalizeCoordinate(seed.latitude);
 		const seedLongitude = this.normalizeCoordinate(seed.longitude);
 		const directSeed    = await this.tryGetLocation(seedLatitude, seedLongitude, cacheTTL);
-		if (directSeed) {
-			return directSeed;
-		}
 
-		return this.findNearestFromRings(
-			originLatitude,
-			originLongitude,
-			seed.latitude,
-			seed.longitude,
-			this.seedSearchRadii,
-			cacheTTL
-		);
+		return directSeed;
 	}
 
-	private async findNearestFromRings( originLatitude: number, originLongitude: number, searchCenterLatitude: number, searchCenterLongitude: number, radii: readonly number[], cacheTTL: string) {
+	private async findNearestFromRings(originLatitude: number, originLongitude: number, searchCenterLatitude: number, searchCenterLongitude: number, radii: readonly number[], cacheTTL: string) {
 		for (const radius of radii) {
 			const candidates   = this.generateNearbyCandidates(searchCenterLatitude, searchCenterLongitude, radius);
 			const evaluations  = await Promise.all(candidates.map(async candidate => {
@@ -312,7 +313,7 @@ export class LocationService {
 
 	private async tryGetLocation(latitude: string, longitude: string, cacheTTL: string) {
 		try {
-			return await this.getLocation(latitude, longitude, cacheTTL);
+			return await this.getLocationWithClient(this.probeClient, latitude, longitude, cacheTTL);
 		} catch (err: unknown) {
 			if (isWeatherGoatError(err, HTTPRequestError) && err.code === 404) {
 				return null;
