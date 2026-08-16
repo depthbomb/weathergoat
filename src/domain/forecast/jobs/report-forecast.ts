@@ -3,18 +3,19 @@ import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
+import { reportError } from '@lib/logger';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { ForecastService } from '@services/forecast';
 import { LocationService } from '@services/location';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { HourlyProgressTracker } from '../hourly-progress-tracker';
 import { isDiscordAPIError, isDiscordAPIErrorCode } from '@errors';
 import { ButtonStyle, EmbedBuilder, ButtonBuilder, ActionRowBuilder, RESTJSONErrorCodes } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
-import type { Nullable } from '@depthbomb/common/typing';
 
 export class ReportForecastsJob extends BaseJob {
-	private lastRunHour: Nullable<number> = null;
+	private readonly progress = new HourlyProgressTracker<number>();
 
 	private readonly errorCodes = [
 		RESTJSONErrorCodes.UnknownChannel,
@@ -39,13 +40,9 @@ export class ReportForecastsJob extends BaseJob {
 			return;
 		}
 
-		const now         = new Date();
-		const currentHour = now.getHours();
-		if (this.lastRunHour === currentHour) {
+		if (!this.progress.begin(new Date())) {
 			return;
 		}
-
-		this.lastRunHour = currentHour;
 
 		const destinations = await db.forecastDestination.findMany({
 			select: {
@@ -59,6 +56,10 @@ export class ReportForecastsJob extends BaseJob {
 			}
 		});
 		for (const { id, latitude, longitude, guildId, channelId, messageId, radarImageUrl } of destinations) {
+			if (this.progress.hasCompleted(id)) {
+				continue;
+			}
+
 			try {
 				const channel = await client.channels.fetch(channelId);
 				if (!isTextChannel(channel)) {
@@ -67,6 +68,7 @@ export class ReportForecastsJob extends BaseJob {
 						.warn('Forecast destination channel is missing or not a text channel, deleting record');
 
 					await db.forecastDestination.delete({ where: { messageId } });
+					this.progress.markCompleted(id);
 					continue;
 				}
 
@@ -77,6 +79,7 @@ export class ReportForecastsJob extends BaseJob {
 						.warn('Forecast destination message is not editable, deleting record');
 
 					await db.forecastDestination.delete({ where: { messageId } });
+					this.progress.markCompleted(id);
 					continue;
 				}
 
@@ -105,20 +108,22 @@ export class ReportForecastsJob extends BaseJob {
 				const row = new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton);
 
 				await message.edit({ content: '', embeds: [embed], components: [row] });
+				this.progress.markCompleted(id);
 			} catch (err) {
-				if (isDiscordAPIError(err)) {
+				if (isDiscordAPIError(err) && isDiscordAPIErrorCode(err, this.errorCodes)) {
 					const { code, message } = err;
-					if (isDiscordAPIErrorCode(err, this.errorCodes)) {
-						this.logger
-							.withMetadata({ guildId, channelId, messageId, code, message })
-							.error('Could not fetch required resource(s), deleting corresponding record');
+					this.logger
+						.withMetadata({ guildId, channelId, messageId, code, message })
+						.error('Could not fetch required resource(s), deleting corresponding record');
 
-						await db.forecastDestination.delete({ where: { id } });
-					}
+					await db.forecastDestination.delete({ where: { id } });
+					this.progress.markCompleted(id);
 				} else {
-					throw err;
+					reportError('Error reporting forecast destination', err, { id, guildId, channelId, messageId });
 				}
 			}
 		}
+
+		this.progress.finish(destinations.map(destination => destination.id));
 	}
 }
