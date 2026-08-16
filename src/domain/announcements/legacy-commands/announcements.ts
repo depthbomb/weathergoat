@@ -52,18 +52,28 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 		const snowflake = generateSnowflake();
 
 		try {
-			const announcement = await db.announcement.create({
-				data: {
-					snowflake,
-					title,
-					body
+			await db.$transaction(async tx => {
+				const subscriptions = await tx.announcementSubscription.findMany({
+					select: { id: true }
+				});
+				const announcement = await tx.announcement.create({
+					data: {
+						snowflake,
+						title,
+						body
+					},
+					select: { id: true }
+				});
+
+				if (subscriptions.length > 0) {
+					await tx.announcementDelivery.createMany({
+						data: subscriptions.map(subscription => ({
+							announcementId: announcement.id,
+							subscriptionId: subscription.id
+						}))
+					});
 				}
 			});
-
-			const subscriptions = await db.announcementSubscription.findMany();
-			const deliveries    = subscriptions.map(s => ({ announcementId: announcement.id, subscriptionId: s.id }));
-
-			await db.announcementDelivery.createMany({ data: deliveries });
 			await message.reply($msg.announcements.legacy.create.success());
 		} catch (err) {
 			reportError('Unable to create announcement record', err, { snowflake });
