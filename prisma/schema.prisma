@@ -1,8 +1,9 @@
 generator client {
-  provider     = "prisma-client"
-  runtime      = "bun"
-  output       = "../src/database/generated"
-  moduleFormat = "esm"
+  provider        = "prisma-client"
+  runtime         = "bun"
+  output          = "../src/database/generated"
+  moduleFormat    = "esm"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -145,7 +146,7 @@ model Incident {
   autoResolveAt DateTime?
   resolvedAt    DateTime?
 
-  @@unique([key, status], name: "key_status")
+  @@unique([key], name: "active_key", map: "Incident_active_key_key", where: raw("status = 'ACTIVE'"))
   @@index([status])
   @@index([severity])
   @@index([createdAt])

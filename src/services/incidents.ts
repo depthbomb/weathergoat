@@ -2,6 +2,7 @@ import { db } from '@database';
 import { injectable } from '@needle-di/core';
 import { generateSnowflake } from '@lib/snowflake';
 import { parseDuration } from '@depthbomb/common/timing';
+import { Prisma } from '@database/generated/client';
 import { IncidentStatus } from '@database/generated/enums';
 import type { IncidentSeverity } from '@database/generated/enums';
 
@@ -43,27 +44,54 @@ export class IncidentsService {
 	public async getOrCreate(severity: IncidentSeverity, title: string, description: string, autoResolveDuration: string) {
 		const key           = title.toSlug();
 		const autoResolveAt = parseDuration(autoResolveDuration).fromNow();
+		const update        = {
+			severity,
+			description,
+			autoResolveAt
+		};
 
-		return db.incident.upsert({
+		const activeIncident = await db.incident.findFirst({
 			where: {
-				key_status: {
+				key,
+				status: IncidentStatus.ACTIVE
+			}
+		});
+		if (activeIncident) {
+			return db.incident.update({
+				where: { id: activeIncident.id },
+				data: update
+			});
+		}
+
+		try {
+			return await db.incident.create({
+				data: {
+					snowflake: generateSnowflake(),
+					key,
+					title,
+					description,
+					severity,
+					autoResolveAt
+				}
+			});
+		} catch (err) {
+			if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2002') {
+				throw err;
+			}
+
+			// Another caller created the active incident after our initial lookup. Reuse that row
+			// instead of surfacing the partial unique-index race to the caller.
+			const concurrentIncident = await db.incident.findFirstOrThrow({
+				where: {
 					key,
 					status: IncidentStatus.ACTIVE
 				}
-			},
-			update: {
-				severity,
-				description,
-				autoResolveAt
-			},
-			create: {
-				snowflake: generateSnowflake(),
-				key,
-				title,
-				description,
-				severity,
-				autoResolveAt
-			}
-		});
+			});
+
+			return db.incident.update({
+				where: { id: concurrentIncident.id },
+				data: update
+			});
+		}
 	}
 }
