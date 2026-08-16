@@ -34,6 +34,12 @@ type HTTPClientOptions = {
 	 * Whether to use a retry policy to retry failed requests.
 	 */
 	retry: boolean;
+	/**
+	 * Maximum duration of each request attempt in milliseconds.
+	 *
+	 * @default 15000
+	 */
+	timeoutMs?: number;
 };
 type CreateHTTPClientOptions = Omit<HTTPClientOptions, 'name' | 'retry'> & {
 	/**
@@ -61,10 +67,12 @@ const RETRYABLE_STATUS_CODES = new Set([
 	503, // Service Unavailable
 	504, // Gateway Timeout
 ]);
+const DEFAULT_TIMEOUT_MS = 15_000;
 
 export class HTTPClient {
 	private readonly name: string;
 	private readonly retry: boolean;
+	private readonly timeoutMs: number;
 	private readonly baseUrl?: string;
 	private readonly tokens?: Record<string, string | number | boolean>;
 	private readonly headers: Headers;
@@ -76,6 +84,7 @@ export class HTTPClient {
 	public constructor(options: HTTPClientOptions) {
 		this.name        = options.name;
 		this.retry       = options.retry;
+		this.timeoutMs   = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 		this.baseUrl     = options.baseUrl;
 		this.tokens      = options.tokens;
 		this.headers     = new Headers({ 'user-agent': BOT_USER_AGENT });
@@ -84,6 +93,10 @@ export class HTTPClient {
 			backoff: new ConstantBackoff(1_500)
 		});
 		this.logger      = logger.child().withPrefix(`[HTTP(${this.name})]`);
+
+		if (!Number.isSafeInteger(this.timeoutMs) || this.timeoutMs <= 0) {
+			throw new RangeError('HTTP client timeout must be a positive safe integer.');
+		}
 
 		this._mergeHeaders(this.headers, options.headers);
 	}
@@ -132,16 +145,21 @@ export class HTTPClient {
 			requestId,
 			method: init?.method,
 			url: requestUrl,
-			retry: this.retry
+			retry: this.retry,
+			timeoutMs: this.timeoutMs
 		}).debug('Making HTTP request');
 
 		const startTime = hrtime.bigint();
 
+		const fetchRequest = () => requestUrl.fetch({
+			...requestInit,
+			signal: this._createRequestSignal(requestInit.signal)
+		});
 		let res: Response;
 		if (this.retry) {
-			res = await this.retryPolicy.execute(() => requestUrl.fetch(requestInit));
+			res = await this.retryPolicy.execute(fetchRequest);
 		} else {
-			res = await requestUrl.fetch(requestInit);
+			res = await fetchRequest();
 		}
 
 		const endTime = hrtime.bigint();
@@ -163,6 +181,13 @@ export class HTTPClient {
 		}
 
 		new Headers(source).forEach((value, key) => target.set(key, value));
+	}
+
+	private _createRequestSignal(callerSignal?: AbortSignal | null) {
+		const timeoutSignal = AbortSignal.timeout(this.timeoutMs);
+		return callerSignal
+			? AbortSignal.any([callerSignal, timeoutSignal])
+			: timeoutSignal;
 	}
 
 	private _resolveBaseUrl(requestTokens?: Record<string, string | number | boolean>) {
@@ -208,7 +233,8 @@ export class HTTPService {
 		const baseUrl       = options?.baseUrl;
 		const headers       = options?.headers;
 		const tokens        = options?.tokens;
-		const client        = new HTTPClient({ name, baseUrl, tokens, headers, retry });
+		const timeoutMs     = options?.timeoutMs;
+		const client        = new HTTPClient({ name, baseUrl, tokens, headers, retry, timeoutMs });
 
 		this.clients.set(name, client);
 		this.logger.withMetadata({ name, ...options }).info('Created HTTP client');
