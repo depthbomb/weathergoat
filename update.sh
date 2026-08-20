@@ -38,6 +38,10 @@ fi
 
 ok "Repository updated"
 
+step "Deduping packages"
+bun dedupe
+ok "Packages deduped"
+
 step "Installing dependencies"
 bun install --frozen-lockfile
 ok "Dependencies installed"
@@ -53,6 +57,10 @@ ok "Messages generated"
 step "Running database migrations"
 bun run migrate:p
 ok "Migrations applied"
+
+step "Pruning packages"
+bun prune --production
+ok "Packages pruned"
 
 step "Restarting wg.service"
 sudo systemctl restart wg.service
