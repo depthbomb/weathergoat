@@ -18,7 +18,7 @@
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
 		"@depthbomb/common": "^3.2.0",
-		"@depthbomb/env": "^1.2.0",
+		"@depthbomb/env": "^2.0.0",
 		"@depthbomb/node-common": "^2.4.0",
 		"@depthbomb/serde": "^2.0.0",
 		"@loglayer/plugin-redaction": "^4.1.0",
@@ -26,15 +26,15 @@
 		"@loglayer/transport-log-file-rotation": "^3.3.0",
 		"@loglayer/transport-simple-pretty-terminal": "^3.3.0",
 		"@needle-di/core": "^1.2.0",
-		"@prisma/adapter-libsql": "^7.9.1",
-		"@prisma/client": "^7.9.1",
+		"@prisma/adapter-libsql": "^7.10.0",
+		"@prisma/client": "^7.10.0",
 		"@resvg/resvg-js": "^2.6.2",
 		"@sapphire/discord.js-utilities": "^7.3.3",
 		"@sapphire/node-utilities": "^1.0.2",
 		"@sapphire/ratelimits": "^2.4.11",
 		"@sapphire/snowflake": "^3.5.5",
 		"@sapphire/stopwatch": "^1.5.4",
-		"@sentry/bun": "^10.70.0",
+		"@sentry/bun": "^10.71.0",
 		"bufferutil": "^4.1.0",
 		"cockatiel": "^4.0.0",
 		"discord.js": "^14.27.0",
@@ -46,7 +46,7 @@
 	},
 	"devDependencies": {
 		"bun-types": "1.4.0",
-		"prisma": "^7.9.1",
+		"prisma": "^7.10.0",
 		"typescript": "7.0.2"
 	}
 }
