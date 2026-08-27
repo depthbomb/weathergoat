@@ -10,3 +10,8 @@ src/database/generated/**/*
 .env.*
 *.generated.ts
 audit.json
+
+# Local Codex handoff and durable AI working state
+AGENTS.md
+docs/project-handoff-earthquake.md
+docs/project/
