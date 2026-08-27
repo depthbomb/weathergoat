@@ -4,10 +4,10 @@ import { WeatherGoat } from '@lib/client';
 import { isDiscordAPIErrorCode } from '@errors';
 import { RESTJSONErrorCodes } from 'discord.js';
 import { inject, injectable } from '@needle-di/core';
+import { parseDuration } from '@depthbomb/common/timing';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 import type { LogLayer } from 'loglayer';
 import type { Message } from 'discord.js';
-import { parseDuration } from '@depthbomb/common/timing';
 
 @injectable()
 export class SweeperService {
