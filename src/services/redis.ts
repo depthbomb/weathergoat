@@ -42,6 +42,33 @@ export class RedisService {
 		);
 	}
 
+	public async setIfAbsent(key: string, value: string, ttlMs: number) {
+		if (!Number.isSafeInteger(ttlMs) || ttlMs <= 0) {
+			throw new RangeError('Redis TTL must be a positive safe integer.');
+		}
+
+		const result = await this.client.set(
+			this.getPrefixedKey(key),
+			value,
+			'NX',
+			'PX',
+			String(ttlMs)
+		);
+
+		return result === 'OK';
+	}
+
+	public async evaluate(script: string, keys: string[], args: Array<string | number> = []) {
+		const prefixedKeys = keys.map(key => this.getPrefixedKey(key));
+
+		return this.client.eval(
+			script,
+			prefixedKeys.length,
+			...prefixedKeys,
+			...args
+		);
+	}
+
 	public close() {
 		this.client.close();
 	}
