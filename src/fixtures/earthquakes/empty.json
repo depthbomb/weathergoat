@@ -1,0 +1,13 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "generated": 1787860252000,
+    "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+    "title": "Sanitized deterministic empty USGS fixture",
+    "api": "2.7.0",
+    "count": 0,
+    "status": 200
+  },
+  "bbox": [],
+  "features": []
+}

@@ -157,3 +157,93 @@ model Incident {
   @@index([severity])
   @@index([createdAt])
 }
+
+model EarthquakeSubscription {
+  id           Int                  @id @default(autoincrement())
+  snowflake    String               @unique
+  guildId      String
+  channelId    String
+  locationName String
+  latitude     Float
+  longitude    Float
+  radiusKm     Float
+  minMagnitude Float
+  createdAt    DateTime             @default(now())
+  deliveries   EarthquakeDelivery[]
+
+  @@unique([guildId, channelId, latitude, longitude, radiusKm, minMagnitude])
+  @@index([guildId])
+  @@index([channelId])
+}
+
+model EarthquakeEvent {
+  id              String               @id
+  sourceUpdatedAt DateTime
+  eventTime       DateTime
+  firstObservedAt DateTime             @default(now())
+  lastObservedAt  DateTime             @default(now())
+  magnitude       Float?
+  magnitudeType   String?
+  place           String?
+  status          String?
+  eventType       String?
+  longitude       Float
+  latitude        Float
+  depthKm         Float
+  significance    Int?
+  felt            Int?
+  tsunami         Boolean              @default(false)
+  url             String
+  detailUrl       String?
+  productMetadata String?
+  deliveries      EarthquakeDelivery[]
+
+  @@index([eventTime])
+  @@index([lastObservedAt])
+  @@index([magnitude])
+}
+
+enum EarthquakeDeliveryState {
+  PENDING
+  SENT
+  FAILED
+  AMBIGUOUS
+}
+
+model EarthquakeDelivery {
+  id                  Int                     @id @default(autoincrement())
+  subscriptionId      Int
+  eventId             String
+  state               EarthquakeDeliveryState @default(PENDING)
+  messageId           String?                 @unique
+  deliveredRevisionAt DateTime?
+  firstEligibleAt     DateTime
+  lastEligible        Boolean                 @default(true)
+  attemptCount        Int                     @default(0)
+  nextAttemptAt       DateTime                @default(now())
+  claimToken          String?
+  claimExpiresAt      DateTime?
+  deliveredAt         DateTime?
+  failedAt            DateTime?
+  error               String?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  subscription        EarthquakeSubscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  event               EarthquakeEvent         @relation(fields: [eventId], references: [id])
+
+  @@unique([subscriptionId, eventId])
+  @@index([state, nextAttemptAt])
+  @@index([claimExpiresAt])
+  @@index([eventId])
+}
+
+model EarthquakeIngestionState {
+  id              String    @id
+  lastModified    String?
+  lastGeneratedAt DateTime?
+  baselinedAt     DateTime?
+  lastSuccessAt   DateTime?
+  lastFailureAt   DateTime?
+  lastError       String?
+  updatedAt       DateTime  @updatedAt
+}

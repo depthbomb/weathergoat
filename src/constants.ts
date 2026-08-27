@@ -42,7 +42,8 @@ export const FEATURE_FLAGS = [
 	'disableRadarMessageUpdating',
 	'disableStatusUpdating',
 	'disableFeedbackSubmissions',
-	'disableAnnouncementDispatching'
+	'disableAnnouncementDispatching',
+	'disableEarthquakeIngestion'
 ] as const;
 
 export const ALERT_SEVERITY_COLORS = {

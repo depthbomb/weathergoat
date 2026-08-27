@@ -38,3 +38,8 @@ disableAnnouncementDispatching:
   description: Announcement dispatching killswitch
   enabled: !!bool false
   <<: *defaults
+
+disableEarthquakeIngestion:
+  description: Earthquake ingestion killswitch
+  enabled: !!bool false
+  <<: *defaults
