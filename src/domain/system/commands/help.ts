@@ -15,30 +15,17 @@ export class HelpCommand extends BaseCommand {
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		const client = interaction.client;
-		const [alerts, forecasts, autoRadar, radar, earthquakeRecent, earthquakeNearby, earthquakeSubscribe, geocoding, announcement] = await Promise.all([
+		const [alerts, forecasts, autoRadar, radar, geocoding, announcement] = await Promise.all([
 			client.getCommandLink('alerts', 'add'),
 			client.getCommandLink('forecasts'),
 			client.getCommandLink('auto-radar'),
 			client.getCommandLink('radar'),
-			client.getCommandLink('earthquake', 'recent'),
-			client.getCommandLink('earthquake', 'nearby'),
-			client.getCommandLink('earthquake', 'subscribe'),
 			client.getCommandLink('geocoding', 'search'),
 			client.getCommandLink('announcements', 'subscribe'),
 		]);
 
 		await interaction.reply({
-			components: [createMessageComponent($msg.system.helpText(
-				alerts,
-				forecasts,
-				autoRadar,
-				radar,
-				earthquakeRecent,
-				earthquakeNearby,
-				earthquakeSubscribe,
-				geocoding,
-				announcement
-			))],
+			components: [createMessageComponent($msg.system.helpText(alerts, forecasts, autoRadar, radar, geocoding, announcement))],
 			flags: [MessageFlags.IsComponentsV2]
 		});
 	}

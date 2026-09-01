@@ -69,8 +69,6 @@
 			"- Use the {forecasts:string} command to designate a channel for reporting hourly forecasts to",
 			"- Use the {autoRadar:string} command to designate a channel to keep an auto-updating doppler radar animation in",
 			"- Use the {radar:string} command to get the current doppler radar animation for a location",
-			"- Use the {earthquakeRecent:string} command for recent global USGS earthquakes and {earthquakeNearby:string} to search near a place",
-			"- Server managers can use {earthquakeSubscribe:string} to create an opt-in earthquake channel subscription",
 			"",
 			"Some commands require you to input coordinates of locations. Use the {geocoding:string} command to look up coordinates by an address or postal code.",
 			"",
@@ -85,7 +83,7 @@
 			],
 			"dataSourceSection": [
 				"## Where do you get your data?",
-				"I get all of my info from the [National Weather Service API](https://weather.gov/documentation/services-web-api) and the [U.S. Geological Survey API](https://www.usgs.gov/products/web-tools/apis). Forward geocoding is provided by [OpenStreetMap](https://openstreetmap.org)."
+				"I get all of my weather information from the [National Weather Service API](https://weather.gov/documentation/services-web-api). Forward geocoding is provided by [OpenStreetMap](https://openstreetmap.org)."
 			],
 			"aiUsageSection": [
 				"## Do you use AI?",

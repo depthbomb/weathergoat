@@ -1,7 +1,7 @@
 import { HTTPRequestError } from '@errors';
 import { URLPath } from '@depthbomb/common/url';
 import { test, expect, describe } from 'bun:test';
-import { createNominatimQuery, createGlobalNominatimQuery, deserializeNominatimResponse } from './geocoding';
+import { createNominatimQuery, deserializeNominatimResponse } from './geocoding';
 
 describe('geocoding requests', () => {
 	test('encodes user input and contact email as individual query parameters', () => {
@@ -12,19 +12,6 @@ describe('geocoding requests', () => {
 		expect(url.searchParams.get('email')).toBe('weather+bot@example.com');
 		expect(url.searchParams.getAll('format')).toEqual(['jsonv2']);
 		expect(url.hash).toBe('');
-	});
-
-	test('global searches omit the U.S. country filter and remain bounded', () => {
-		const query = createGlobalNominatimQuery('Tokyo, Japan', 'owner@example.com');
-
-		expect(query).toEqual({
-			q: 'Tokyo, Japan',
-			format: 'jsonv2',
-			addressdetails: 1,
-			limit: 5,
-			email: 'owner@example.com'
-		});
-		expect(query).not.toHaveProperty('countrycodes');
 	});
 
 	test('rejects unsuccessful responses before parsing the body', async () => {

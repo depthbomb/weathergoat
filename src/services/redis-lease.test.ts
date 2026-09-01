@@ -53,26 +53,26 @@ describe('Redis leases', () => {
 		const redis = new FakeRedis();
 		const service = new RedisLeaseService(redis);
 
-		const lease = await service.acquire('earthquake-ingestion', 30_000, 'worker-a');
-		const contender = await service.acquire('earthquake-ingestion', 30_000, 'worker-b');
+		const lease = await service.acquire('scheduled-job', 30_000, 'worker-a');
+		const contender = await service.acquire('scheduled-job', 30_000, 'worker-b');
 
 		expect(lease).not.toBeNull();
 		expect(lease!.held).toBeTrue();
 		expect(lease!.ownerToken).toBe('worker-a');
-		expect(redis.ttls.get('earthquake-ingestion')).toBe(30_000);
+		expect(redis.ttls.get('scheduled-job')).toBe(30_000);
 		expect(contender).toBeNull();
 	});
 
 	test('renews only while the owner token still matches', async () => {
 		const redis = new FakeRedis();
 		const service = new RedisLeaseService(redis);
-		const lease = (await service.acquire('earthquake-ingestion', 30_000, 'worker-a'))!;
+		const lease = (await service.acquire('scheduled-job', 30_000, 'worker-a'))!;
 
-		redis.ttls.set('earthquake-ingestion', 1);
+		redis.ttls.set('scheduled-job', 1);
 		await lease.renew();
-		expect(redis.ttls.get('earthquake-ingestion')).toBe(30_000);
+		expect(redis.ttls.get('scheduled-job')).toBe(30_000);
 
-		redis.values.set('earthquake-ingestion', 'worker-b');
+		redis.values.set('scheduled-job', 'worker-b');
 		await expect(lease.renew()).rejects.toBeInstanceOf(RedisLeaseLostError);
 		expect(lease.held).toBeFalse();
 		expect(lease.lost).toBeTrue();
@@ -83,10 +83,10 @@ describe('Redis leases', () => {
 	test('releases only its own lease and is idempotent after release', async () => {
 		const redis = new FakeRedis();
 		const service = new RedisLeaseService(redis);
-		const lease = (await service.acquire('earthquake-ingestion', 30_000, 'worker-a'))!;
+		const lease = (await service.acquire('scheduled-job', 30_000, 'worker-a'))!;
 
 		expect(await lease.release()).toBeTrue();
-		expect(redis.values.has('earthquake-ingestion')).toBeFalse();
+		expect(redis.values.has('scheduled-job')).toBeFalse();
 		expect(await lease.release()).toBeFalse();
 		expect(redis.evaluations).toBe(1);
 		expect(lease.lostSignal.aborted).toBeFalse();
@@ -95,19 +95,19 @@ describe('Redis leases', () => {
 	test('does not remove a successor lease after ownership changes', async () => {
 		const redis = new FakeRedis();
 		const service = new RedisLeaseService(redis);
-		const lease = (await service.acquire('earthquake-ingestion', 30_000, 'worker-a'))!;
+		const lease = (await service.acquire('scheduled-job', 30_000, 'worker-a'))!;
 
-		redis.values.set('earthquake-ingestion', 'worker-b');
+		redis.values.set('scheduled-job', 'worker-b');
 
 		expect(await lease.release()).toBeFalse();
-		expect(redis.values.get('earthquake-ingestion')).toBe('worker-b');
+		expect(redis.values.get('scheduled-job')).toBe('worker-b');
 		expect(lease.lostSignal.aborted).toBeTrue();
 	});
 
 	test('marks the lease lost when Redis cannot confirm renewal', async () => {
 		const redis = new FakeRedis();
 		const service = new RedisLeaseService(redis);
-		const lease = (await service.acquire('earthquake-ingestion', 30_000, 'worker-a'))!;
+		const lease = (await service.acquire('scheduled-job', 30_000, 'worker-a'))!;
 		const failure = new Error('connection lost');
 
 		redis.evaluateError = failure;

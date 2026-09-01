@@ -17,16 +17,6 @@ export function createNominatimQuery(query: string, email: string): QueryObject 
 	};
 }
 
-export function createGlobalNominatimQuery(query: string, email: string): QueryObject {
-	return {
-		q: query.trim(),
-		format: 'jsonv2',
-		addressdetails: 1,
-		limit: 5,
-		email
-	};
-}
-
 export async function deserializeNominatimResponse(res: Response) {
 	HTTPRequestError.assert(res.ok, res.statusText, {
 		code: res.status,
@@ -54,14 +44,6 @@ export class GeocodingService {
 	public async queryLocationInfo(query: string) {
 		const res = await this.client.get({
 			query: createNominatimQuery(query, env.get('OWNER_EMAIL'))
-		});
-
-		return deserializeNominatimResponse(res);
-	}
-
-	public async queryGlobalLocationInfo(query: string) {
-		const res = await this.client.get({
-			query: createGlobalNominatimQuery(query, env.get('OWNER_EMAIL'))
 		});
 
 		return deserializeNominatimResponse(res);
