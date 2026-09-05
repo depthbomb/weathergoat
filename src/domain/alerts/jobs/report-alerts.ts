@@ -8,6 +8,7 @@ import { AlertSeverity } from '@models/Alert';
 import { Flag } from '@depthbomb/common/state';
 import { AlertsService } from '@services/alerts';
 import { BannerService } from '@services/banner';
+import { AlertDeliveryService, sendAlertWebhook } from '@services/alert-delivery';
 import { ALERT_SEVERITY_COLORS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
@@ -33,7 +34,8 @@ export class ReportAlertsJob extends BaseJob {
 		private readonly alerts   = inject(AlertsService),
 		private readonly sweeper  = inject(SweeperService),
 		private readonly banner   = inject(BannerService),
-		private readonly features = inject(FeaturesService)
+		private readonly features = inject(FeaturesService),
+		private readonly delivery = inject(AlertDeliveryService)
 	) {
 		super({
 			name: ReportAlertsJob.name,
@@ -48,6 +50,7 @@ export class ReportAlertsJob extends BaseJob {
 		if (this.features.isFeatureEnabled('disableAlertReporting')) {
 			return;
 		}
+		await this.delivery.recover();
 
 		if (this.hasIndexedFlag.isFalse) {
 			this.logger.info('Indexing destinations...');
@@ -83,6 +86,7 @@ export class ReportAlertsJob extends BaseJob {
 		const destinationMap = new Collection<string, AlertDestination[]>();
 		const alerts         = await this.alerts.getActiveAlerts();
 		for (const alert of alerts) {
+			if (alert.expires.getTime() <= Date.now()) continue;
 			const ugcs = alert.geocode.UGC;
 			if (!ugcs) {
 				continue;
@@ -222,35 +226,18 @@ export class ReportAlertsJob extends BaseJob {
 
 					const banner      = await this.banner.generateBanner(alert);
 					const attachment  = new AttachmentBuilder(banner, { name: 'banner.png' });
-					const sentMessage = await webhook.send({
+					const sentMessage = await this.delivery.deliver({
+						alertId: alert.id, guildId, channelId, expiresAt: alert.expires, autoCleanup
+					}, () => sendAlertWebhook(webhook, {
 						username: this.webhookUsername,
 						avatarURL: client.user.avatarURL()!,
 						files: [attachment],
 						components: [container],
 						flags: MessageFlags.IsComponentsV2
-					});
+					}));
 
-					if (autoCleanup) {
-						const expiresAt = alert.expires;
-						await this.sweeper.enqueueMessage(sentMessage, expiresAt);
-					}
-
-					const sentAlert = await db.sentAlert.create({
-						data: {
-							alertId: alert.id,
-							guildId,
-							channelId: channelId,
-							messageId: sentMessage.id,
-							expiresAt: alert.expires
-						},
-						select: {
-							alertId: true,
-							guildId: true,
-							channelId: true,
-							messageId: true
-						}
-					});
-					sentAlerts.set(sentAlertKey, sentAlert);
+					if (!sentMessage) continue;
+					sentAlerts.set(sentAlertKey, { alertId: alert.id, guildId, channelId, messageId: sentMessage.id });
 
 					if (expiredReferenceIds.size) {
 						for (const alertId of expiredReferenceIds) {
@@ -318,7 +305,7 @@ export class ReportAlertsJob extends BaseJob {
 	private async getOrCreateWebhook(channel: TextChannel) {
 		const reason   = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
-		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.client === channel.client);
+		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.owner?.id === channel.client.user?.id && w.token);
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name: this.webhookUsername, reason });
 

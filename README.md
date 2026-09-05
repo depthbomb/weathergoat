@@ -38,6 +38,20 @@ Finally use `bun start` to start the bot. Make sure you set the `MODE` environme
 
 For managing application commands, see owner-only commands below.
 
+Alert publication uses durable delivery claims to prevent retries from duplicating
+messages after bookkeeping failures. See [delivery recovery](docs/alert-delivery.md)
+for migration and operator instructions, including ambiguous send outcomes.
+
+Geocoding uses a process-wide queue with at least one second between Nominatim
+requests, at most 32 queued/running lookups, and a 256-entry, 24-hour result cache.
+Concurrent identical searches share one request. Provider `Retry-After` cooldowns
+apply to the queue; long cooldowns return an error instead of keeping an interaction
+waiting. Run one bot process per public Nominatim quota, or use a shared limiter
+before adding processes. See the [provider policy](https://operations.osmfoundation.org/policies/nominatim/).
+
+Discord user/member caches are bounded; see [cache validation](docs/cache-validation.md)
+for limits and the reproducible offline benchmark.
+
 # Development
 
 Run `bun install --frozen-lockfile` to install dependencies, `bun run lint` to check code with Oxlint, and `bun run lint:fix` to apply automatic fixes. Linting covers source, tests, scripts, and root configuration files; generated Prisma clients, generated message catalogs, and local data are excluded in `.oxlintrc.json`. Correctness rules are enabled, and warnings fail the lint command.

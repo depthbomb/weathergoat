@@ -71,6 +71,22 @@ model SentAlert {
   @@index([expiresAt])
 }
 
+model AlertDeliveryClaim {
+  id          Int      @id @default(autoincrement())
+  alertId     String
+  guildId     String
+  channelId   String
+  expiresAt   DateTime
+  autoCleanup Boolean
+  messageId   String?
+  finalized   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@unique([alertId, guildId, channelId])
+  @@index([finalized, messageId])
+  @@index([expiresAt])
+}
+
 model VolatileMessage {
   id        Int      @id @default(autoincrement())
   guildId   String

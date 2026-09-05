@@ -11,6 +11,9 @@ export class CleanupSentAlertsJob extends BaseJob {
 	}
 
 	public async execute() {
+		await db.alertDeliveryClaim.deleteMany({
+			where: { finalized: true, expiresAt: { lte: new Date() } }
+		});
 		const { count } = await db.sentAlert.deleteMany({
 			where: {
 				expiresAt: { lte: new Date() }
