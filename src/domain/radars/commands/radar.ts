@@ -2,11 +2,11 @@ import { Color } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
 import { generateSnowflake } from '@lib/snowflake';
-import { Collection, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
 export class RadarCommand extends BaseCommand {
-	private readonly radars: Collection<string, string>;
+	private readonly radars: ReadonlyArray<readonly [name: string, station: string]>;
 
 	public constructor() {
 		super({
@@ -21,7 +21,7 @@ export class RadarCommand extends BaseCommand {
 				)
 		});
 
-		this.radars = new Collection([
+		this.radars = [
 			['Aberdeen, South Dakota', 'KABR'],
 			['Albuquerque, New Mexico', 'KABX'],
 			['Wakefield, Virginia', 'KAKQ'],
@@ -36,8 +36,8 @@ export class RadarCommand extends BaseCommand {
 			['Bismarck, North Dakota', 'KBIS'],
 			['Billings, Montana', 'KBLX'],
 			['Birmingham, Alabama', 'KBMX'],
-			['Taunton, Massachusetts', 'KBRO'],
-			['Brownsville, Texas', 'KBOX'],
+			['Taunton, Massachusetts', 'KBOX'],
+			['Brownsville, Texas', 'KBRO'],
 			['Buffalo, New York', 'KBUF'],
 			['Boca Chica Key/Key West, Florida', 'KBYX'],
 			['West Columbia, South Carolina', 'KCAE'],
@@ -71,10 +71,9 @@ export class RadarCommand extends BaseCommand {
 			['New Braunfels/Austin/San Antonio, Texas', 'KEWX'],
 			['Eglin AFB, Florida & Mobile, Alabama', 'KEVX'],
 			['Edwards AFB, California', 'KEYX'],
-			['Las Vegas, Nevada', 'KEYX'],
 			['Roanoke/Blacksburg/Roanoke, Virginia', 'KFCX'],
 			['Norman, Oklahoma', 'KFDR'],
-			['Albuquerque, New Mexico', 'KFDX'],
+			['Cannon AFB, New Mexico', 'KFDX'],
 			['Peachtree City/Atlanta, Georgia', 'KFFC'],
 			['Sioux Falls, South Dakota', 'KFSD'],
 			['Flagstaff, Arizona', 'KFSX'],
@@ -195,12 +194,12 @@ export class RadarCommand extends BaseCommand {
 			['Hawai\'i', 'HAWAII'],
 			['Guam', 'GUAM'],
 			['Puerto Rico', 'TJUA'],
-		]);
+		];
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction): Promise<unknown> {
 		const station = interaction.options.getString('station', true);
-		if (!this.radars.find(v => v === station)) {
+		if (!this.radars.some(([, code]) => code === station)) {
 			return interaction.reply($msg.radar.view.errors.invalidStation(station));
 		}
 
@@ -215,8 +214,8 @@ export class RadarCommand extends BaseCommand {
 
 	public override async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
 		const value = interaction.options.getFocused().trim().toLowerCase();
-		const filtered = this.radars.filter((v, k) => k.toLowerCase().includes(value) || v.toLowerCase().includes(value));
-		const limited  = [...filtered.entries()].slice(0, 25);
+		const filtered = this.radars.filter(([name, code]) => name.toLowerCase().includes(value) || code.toLowerCase().includes(value));
+		const limited  = filtered.slice(0, 25);
 
 		return interaction.respond(limited.map(([name, station]) => ({ name, value: station })));
 	}
