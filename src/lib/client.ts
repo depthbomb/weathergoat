@@ -1,6 +1,7 @@
 import { env } from '@env';
 import { join } from 'node:path';
 import { Beacon } from './beacon';
+import { createCacheOptions } from './cache-options';
 import { BaseJob } from '@infra/jobs';
 import { container } from '@container';
 import { DOMAINS_DIR } from '@constants';
@@ -66,6 +67,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		private readonly features = inject(FeaturesService)
 	) {
 		super({
+			...createCacheOptions(),
 			shards: 'auto',
 			presence: {
 				status: 'dnd'
