@@ -68,7 +68,10 @@ export class BannerService {
 		const cacheKey = this.createCacheKey(alert.event, alert.severity);
 
 		if (!this.renderCache.has(cacheKey)) {
-			this.renderCache.set(cacheKey, this.renderBanner(alert, cacheKey));
+			this.renderCache.set(cacheKey, this.renderBanner(alert, cacheKey).catch(error => {
+				this.renderCache.delete(cacheKey);
+				throw error;
+			}));
 		}
 
 		return this.renderCache.get(cacheKey)!;
