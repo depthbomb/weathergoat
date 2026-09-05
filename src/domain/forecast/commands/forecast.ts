@@ -127,7 +127,8 @@ export class ForecastCommand extends BaseCommand {
 				});
 
 				await interaction.editReply({
-					components: [createSuccessMessageComponent($msg.forecasts.command.created(channel.toString()))]
+					components: [createSuccessMessageComponent($msg.forecasts.command.created(channel.toString()))],
+					flags: MessageFlags.IsComponentsV2
 				});
 			} else {
 				await initialReply.delete();
@@ -136,21 +137,25 @@ export class ForecastCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())]
+						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())],
+						flags: MessageFlags.IsComponentsV2
 					});
 				} else {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))]
+						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))],
+						flags: MessageFlags.IsComponentsV2
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({
-					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())]
+					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())],
+					flags: MessageFlags.IsComponentsV2
 				});
 			} else {
 				reportError('Error creating forecast destination', err);
 				await interaction.editReply({
-					components: [createErrorMessageComponent($msg.shared.errors.unknown())]
+					components: [createErrorMessageComponent($msg.shared.errors.unknown())],
+					flags: MessageFlags.IsComponentsV2
 				});
 			}
 		}

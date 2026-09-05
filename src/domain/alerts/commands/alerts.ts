@@ -131,7 +131,7 @@ export class AlertsCommand extends BaseCommand {
 			if (exists) {
 				await interaction.editReply({
 					components: [createWarningMessageComponent($msg.alerts.command.errors.destinationExists())],
-					withComponents: true
+					flags: MessageFlags.IsComponentsV2
 				});
 				return;
 			}
@@ -191,7 +191,8 @@ export class AlertsCommand extends BaseCommand {
 				this.eventBus.emit('alert-destinations:updated');
 
 				await interaction.editReply({
-					components: [createSuccessMessageComponent($msg.alerts.command.created(channel.toString(), removeLink, destination.snowflake))]
+					components: [createSuccessMessageComponent($msg.alerts.command.created(channel.toString(), removeLink, destination.snowflake))],
+					flags: MessageFlags.IsComponentsV2
 				});
 			} else {
 				await initialReply.delete();
@@ -200,21 +201,25 @@ export class AlertsCommand extends BaseCommand {
 			if (isWeatherGoatError(err, HTTPRequestError)) {
 				if (err.code === 404) {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())]
+						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())],
+						flags: MessageFlags.IsComponentsV2
 					});
 				} else {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))]
+						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))],
+						flags: MessageFlags.IsComponentsV2
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({
-					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())]
+					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())],
+					flags: MessageFlags.IsComponentsV2
 				});
 			} else {
 				reportError('Error creating alert destination', err);
 				await interaction.editReply({
-					components: [createErrorMessageComponent($msg.shared.errors.unknown())]
+					components: [createErrorMessageComponent($msg.shared.errors.unknown())],
+					flags: MessageFlags.IsComponentsV2
 				});
 			}
 		}
