@@ -5,6 +5,7 @@ assets/images/emoji/*.svg
 node_modules/
 
 src/database/generated/**/*
+src/database/contract/
 
 .env
 .env.*

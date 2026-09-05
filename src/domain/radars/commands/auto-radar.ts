@@ -36,15 +36,13 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 type RadarType = 'reflectivity' | 'base-velocity' | 'both';
 
 export class AutoRadarCommand extends BaseCommand {
-	public constructor(
-		private readonly location = inject(LocationService)
-	) {
+	public constructor(private readonly location = inject(LocationService)) {
 		super({
 			data: new SlashCommandBuilder()
 				.setName('auto-radar')
 				.setDescription('Designates a channel to post an auto-updating radar image for a region')
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-				.addStringOption(o => o
+				.addStringOption((o) => o
 					.setName('radar-type')
 					.addChoices([
 						{ name: 'Reflectivity (recommended)', value: 'reflectivity' },
@@ -52,40 +50,34 @@ export class AutoRadarCommand extends BaseCommand {
 						{ name: 'Both', value: 'both' },
 					])
 					.setDescription('The type of radar image')
-					.setRequired(true)
+					.setRequired(true),
 				)
-				.addStringOption(o => o
-					.setName('latitude')
-					.setDescription('The latitude of the area')
-					.setRequired(true)
+				.addStringOption((o) =>
+					o.setName('latitude').setDescription('The latitude of the area').setRequired(true),
 				)
-				.addStringOption(o => o
-					.setName('longitude')
-					.setDescription('The longitude of the area')
-					.setRequired(true)
+				.addStringOption((o) =>
+					o.setName('longitude').setDescription('The longitude of the area').setRequired(true),
 				)
-				.addChannelOption(o => o
+				.addChannelOption((o) => o
 					.setName('channel')
 					.setDescription('The channel to host the auto-updating radar image')
-					.setRequired(true)
+					.setRequired(true),
 				)
-				.addStringOption(o => o
+				.addStringOption((o) => o
 					.setName('interval')
 					.setDescription('How frequently the auto-radar message should be updated')
 					.setChoices([
 						{ name: '5 minutes (default)', value: '5m' },
-						{ name: '10 minutes',          value: '10m' },
-						{ name: '15 minutes',          value: '15m' },
-						{ name: '20 minutes',          value: '20m' },
-						{ name: '25 minutes',          value: '25m' },
-						{ name: '30 minutes',          value: '30m' },
-						{ name: '45 minutes',          value: '45m' },
-						{ name: '1 hour',              value: '1h' },
-					])
+						{ name: '10 minutes', value: '10m' },
+						{ name: '15 minutes', value: '15m' },
+						{ name: '20 minutes', value: '20m' },
+						{ name: '25 minutes', value: '25m' },
+						{ name: '30 minutes', value: '30m' },
+						{ name: '45 minutes', value: '45m' },
+						{ name: '1 hour', value: '1h' },
+					]),
 				),
-			preconditions: [
-				new CooldownPrecondition({ duration: '5s', global: true })
-			]
+			preconditions: [new CooldownPrecondition({ duration: '5s', global: true })],
 		});
 	}
 
@@ -100,9 +92,13 @@ export class AutoRadarCommand extends BaseCommand {
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
-		const existingCount = await db.autoRadarMessage.countByGuild(guildId);
+		const existingCount = await db.orm.public.AutoRadarMessage.where((f) => f.guildId.eq(guildId))
+			.aggregate((a) => ({ count: a.count() }))
+			.then((r) => r.count);
 
-		MaxDestinationError.assert(existingCount < maxCount, $msg.radar.auto.errors.maxMessagesReached(), { max: maxCount });
+		MaxDestinationError.assert(existingCount < maxCount, $msg.radar.auto.errors.maxMessagesReached(), {
+			max: maxCount,
+		});
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
 			await interaction.reply($msg.shared.errors.invalidCoordinates());
@@ -115,77 +111,74 @@ export class AutoRadarCommand extends BaseCommand {
 			const location = await this.location.resolveCoordinates(latitude, longitude);
 			const locationPrompt = location.wasAdjusted
 				? $msg.shared.prompts.locationConfirmAdjustedWithImage(
-					location.requested.latitude,
-					location.requested.longitude,
-					location.latitude,
-					location.longitude,
-					location.name
-				) : $msg.radar.auto.locationConfirmWithImage(
-					location.latitude,
-					location.longitude,
-					location.name
-				);
+						location.requested.latitude,
+						location.requested.longitude,
+						location.latitude,
+						location.longitude,
+						location.name,
+					)
+				: $msg.radar.auto.locationConfirmWithImage(location.latitude, location.longitude, location.name);
 
 			const container = new ContainerBuilder()
-				.addTextDisplayComponents(t => t.setContent(locationPrompt))
-				.addMediaGalleryComponents(g => g
-					.addItems(i => i.setURL(location.radar.reflectivityImageUrl))
-					.addItems(i => i.setURL(location.radar.velocityImageUrl))
+				.addTextDisplayComponents((t) => t.setContent(locationPrompt))
+				.addMediaGalleryComponents((g) => g
+					.addItems((i) => i.setURL(location.radar.reflectivityImageUrl))
+					.addItems((i) => i.setURL(location.radar.velocityImageUrl)),
 				)
-				.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Large))
-				.addActionRowComponents(a => a
+				.addSeparatorComponents((s) => s.setSpacing(SeparatorSpacingSize.Large))
+				.addActionRowComponents((a) => a
 					.addComponents(
 						new ButtonBuilder()
 							.setCustomId('confirm')
 							.setLabel($msg.shared.buttons.yes())
-							.setStyle(ButtonStyle.Success)
+							.setStyle(ButtonStyle.Success),
 					)
 					.addComponents(
 						new ButtonBuilder()
 							.setCustomId('deny')
 							.setLabel($msg.shared.buttons.no())
-							.setStyle(ButtonStyle.Danger)
-					)
+							.setStyle(ButtonStyle.Danger),
+					),
 				);
 			const initialReply = await interaction.editReply({
 				components: [container],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 
-			const confirmation = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id && ['confirm', 'deny'].includes(i.customId), time: 30_000 });
+			const confirmation = await initialReply.awaitMessageComponent({
+				filter: (i) => i.user.id === interaction.user.id && ['confirm', 'deny'].includes(i.customId),
+				time: 30_000,
+			});
+
 			await confirmation.deferUpdate();
+
 			const { customId } = confirmation;
 			if (customId === 'confirm') {
-				const guildId            = interaction.guildId!;
-				const channelId          = channel.id;
-				const snowflake          = generateSnowflake();
+				const guildId = interaction.guildId!;
+				const channelId = channel.id;
+				const snowflake = generateSnowflake();
 				const placeholderMessage = await channel.send({
 					components: [createMessageComponent($msg.radar.auto.placeholderMessage(location.name))],
-					flags: [
-						MessageFlags.SuppressNotifications,
-						MessageFlags.IsComponentsV2
-					]
+					flags: [MessageFlags.SuppressNotifications, MessageFlags.IsComponentsV2],
 				});
 
-				await db.autoRadarMessage.create({
-					data: {
-						snowflake,
-						guildId,
-						channelId,
-						messageId: placeholderMessage.id,
-						location: location.name,
-						radarStation: location.radar.station,
-						radarImageUrl: location.radar.reflectivityImageUrl,
-						velocityRadarImageUrl: location.radar.velocityImageUrl,
-						showReflectivity: radarType === 'both' || radarType === 'reflectivity',
-						showVelocity: radarType === 'both' || radarType === 'base-velocity',
-						updateInterval: interval
-					}
+				await db.orm.public.AutoRadarMessage.create({
+					snowflake: snowflake,
+					guildId: guildId,
+					channelId: channelId,
+					messageId: placeholderMessage.id,
+					location: location.name,
+					radarStation: location.radar.station,
+					radarImageUrl: location.radar.reflectivityImageUrl,
+					velocityRadarImageUrl: location.radar.velocityImageUrl,
+					showReflectivity: radarType === 'both' || radarType === 'reflectivity',
+					showVelocity: radarType === 'both' || radarType === 'base-velocity',
+					updateInterval: interval,
 				});
 
 				await interaction.editReply({
 					components: [createSuccessMessageComponent($msg.radar.auto.created(channel.toString()))],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			} else {
 				await initialReply.delete();
@@ -195,24 +188,26 @@ export class AutoRadarCommand extends BaseCommand {
 				if (err.code === 404) {
 					await interaction.editReply({
 						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())],
-						flags: MessageFlags.IsComponentsV2
+						flags: MessageFlags.IsComponentsV2,
 					});
 				} else {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))],
-						flags: MessageFlags.IsComponentsV2
+						components: [
+							createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status)),
+						],
+						flags: MessageFlags.IsComponentsV2,
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({
 					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			} else {
 				reportError('Error creating auto-radar destination', err);
 				await interaction.editReply({
 					components: [createErrorMessageComponent($msg.shared.errors.unknown())],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			}
 		}

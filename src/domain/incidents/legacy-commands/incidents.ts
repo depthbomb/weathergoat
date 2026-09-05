@@ -1,6 +1,6 @@
 import { inject } from '@needle-di/core';
+import { IncidentSeverity } from '@database/models';
 import { IncidentsService } from '@services/incidents';
-import { IncidentSeverity } from '@database/generated/enums';
 import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 

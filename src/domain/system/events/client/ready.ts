@@ -17,7 +17,7 @@ export class ClientReadyEvent extends BaseEvent<'clientReady'> {
 		this.logger.withMetadata({ readyAt }).info('Logged in to Discord');
 
 		const [sha, help, incidents] = await Promise.all([
-			$`git rev-parse --short HEAD`.text(),
+			process.env['RELEASE_REVISION'] ?? $`git rev-parse --short HEAD`.text(),
 			client.getCommandLink('help'),
 			client.getCommandLink('incidents')
 		]);

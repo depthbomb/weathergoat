@@ -4,43 +4,45 @@ import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
 import { HTTPRequestError } from '@errors';
+import { toInstant } from '@database/values';
 import { AlertSeverity } from '@models/Alert';
 import { Flag } from '@depthbomb/common/state';
 import { AlertsService } from '@services/alerts';
 import { BannerService } from '@services/banner';
-import { AlertDeliveryService, sendAlertWebhook } from '@services/alert-delivery';
 import { ALERT_SEVERITY_COLORS } from '@constants';
 import { generateSnowflake } from '@lib/snowflake';
 import { SweeperService } from '@services/sweeper';
 import { FeaturesService } from '@services/features';
+import { or } from '@prisma/orm-postgres/orm-client';
 import { EventBusService } from '@services/event-bus';
 import { isUndefined } from '@depthbomb/common/guards';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { sendAlertWebhook, AlertDeliveryService } from '@services/alert-delivery';
 import { time, Collection, MessageFlags, ContainerBuilder, AttachmentBuilder, SeparatorSpacingSize } from 'discord.js';
 import type { Alert } from '@models/Alert';
 import type { TextChannel } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
-import type { AlertDestination } from '@database/generated/client';
+import type { AlertDestination } from '@database/models';
 
-const SENT_ALERT_QUERY_BATCH_SIZE = 500;
+const SENT_ALERT_QUERY_BATCH_SIZE = 500 as const;
 
 export class ReportAlertsJob extends BaseJob {
-	private readonly hasIndexedFlag  = new Flag(false);
-	private readonly ugcIndex        = new Collection<string, AlertDestination[]>();
+	private readonly hasIndexedFlag = new Flag(false);
+	private readonly ugcIndex = new Collection<string, AlertDestination[]>();
 	private readonly webhookUsername = 'WeatherGoat#Alerts' as const;
 
 	public constructor(
 		private readonly eventBus = inject(EventBusService),
-		private readonly alerts   = inject(AlertsService),
-		private readonly sweeper  = inject(SweeperService),
-		private readonly banner   = inject(BannerService),
+		private readonly alerts = inject(AlertsService),
+		private readonly sweeper = inject(SweeperService),
+		private readonly banner = inject(BannerService),
 		private readonly features = inject(FeaturesService),
-		private readonly delivery = inject(AlertDeliveryService)
+		private readonly delivery = inject(AlertDeliveryService),
 	) {
 		super({
 			name: ReportAlertsJob.name,
 			interval: '30s',
-			runImmediately: true
+			runImmediately: true,
 		});
 
 		this.eventBus.on('alert-destinations:updated', () => this.hasIndexedFlag.setFalse());
@@ -50,6 +52,7 @@ export class ReportAlertsJob extends BaseJob {
 		if (this.features.isFeatureEnabled('disableAlertReporting')) {
 			return;
 		}
+
 		await this.delivery.recover();
 
 		if (this.hasIndexedFlag.isFalse) {
@@ -57,14 +60,9 @@ export class ReportAlertsJob extends BaseJob {
 
 			this.ugcIndex.clear();
 
-			const allDestinations = await db.alertDestination.findMany({
-				where: {
-					OR: [
-						{ expiresAt: null },
-						{ expiresAt: { gt: new Date() } }
-					]
-				}
-			});
+			const allDestinations = await db.orm.public.AlertDestination.where((f) =>
+				or(f.expiresAt.isNull(), f.expiresAt.gt(toInstant(new Date()))),
+			).all();
 			for (const destination of allDestinations) {
 				if (!this.ugcIndex.has(destination.countyId)) {
 					this.ugcIndex.set(destination.countyId, []);
@@ -84,9 +82,12 @@ export class ReportAlertsJob extends BaseJob {
 		}
 
 		const destinationMap = new Collection<string, AlertDestination[]>();
-		const alerts         = await this.alerts.getActiveAlerts();
+		const alerts = await this.alerts.getActiveAlerts();
 		for (const alert of alerts) {
-			if (alert.expires.getTime() <= Date.now()) continue;
+			if (alert.expires.getTime() <= Date.now()) {
+				continue;
+			}
+
 			const ugcs = alert.geocode.UGC;
 			if (!ugcs) {
 				continue;
@@ -120,10 +121,10 @@ export class ReportAlertsJob extends BaseJob {
 			}
 		}
 
-		const sentAlerts      = await this.loadSentAlerts(relevantAlertIds);
+		const sentAlerts = await this.loadSentAlerts(relevantAlertIds);
 		const channelRequests = new Map<string, ReturnType<typeof client.channels.fetch>>();
 		const webhookRequests = new Map<string, ReturnType<typeof this.getOrCreateWebhook>>();
-		const fetchChannel    = (channelId: string) => {
+		const fetchChannel = (channelId: string) => {
 			let request = channelRequests.get(channelId);
 			if (!request) {
 				request = client.channels.fetch(channelId);
@@ -132,7 +133,7 @@ export class ReportAlertsJob extends BaseJob {
 
 			return request;
 		};
-		const fetchWebhook    = (channel: TextChannel) => {
+		const fetchWebhook = (channel: TextChannel) => {
 			let request = webhookRequests.get(channel.id);
 			if (!request) {
 				request = this.getOrCreateWebhook(channel);
@@ -157,9 +158,18 @@ export class ReportAlertsJob extends BaseJob {
 				continue;
 			}
 
-			for (const { latitude, longitude, countyId, guildId, channelId, autoCleanup, radarImageUrl, expiresAt } of destinations) {
+			for (const {
+				latitude,
+				longitude,
+				countyId,
+				guildId,
+				channelId,
+				autoCleanup,
+				radarImageUrl,
+				expiresAt,
+			} of destinations) {
 				try {
-					if (expiresAt !== null && expiresAt.getTime() <= Date.now()) {
+					if (expiresAt !== null && expiresAt.epochMilliseconds <= Date.now()) {
 						continue;
 					}
 
@@ -173,68 +183,74 @@ export class ReportAlertsJob extends BaseJob {
 						continue;
 					}
 
-					const webhook     = await fetchWebhook(channel);
+					const webhook = await fetchWebhook(channel);
 					const description = alert.description.toCodeBlock('md');
-					const container   = new ContainerBuilder()
+					const container = new ContainerBuilder()
 						.setAccentColor(this.getAlertSeverityColor(alert))
-						.addMediaGalleryComponents(g => g
-							.addItems(i => i
-								.setURL('attachment://banner.png')
-							)
-						)
-						.addTextDisplayComponents(t => t
-							.setContent($msg.alerts.job.headline(
-								alert.isUpdate ? `${$msg.alerts.job.updateTag()} ` : '',
-								alert.headline,
-								alert.certainty
-							))
+						.addMediaGalleryComponents((g) => g.addItems((i) => i.setURL('attachment://banner.png')))
+						.addTextDisplayComponents((t) =>
+							t.setContent(
+								$msg.alerts.job.headline(
+									alert.isUpdate ? `${$msg.alerts.job.updateTag()} ` : '',
+									alert.headline,
+									alert.certainty,
+								),
+							),
 						);
 
 					if (description.length > 2_000) {
-						container.addTextDisplayComponents(t => t
-							.setContent($msg.alerts.job.payloadTooLargePlaceholder(
-								latitude,
-								longitude,
-								`#alert_${alert.id.split('.').slice(-3).join('_')}`
-							))
+						container.addTextDisplayComponents((t) =>
+							t.setContent(
+								$msg.alerts.job.payloadTooLargePlaceholder(
+									latitude,
+									longitude,
+									`#alert_${alert.id.split('.').slice(-3).join('_')}`,
+								),
+							),
 						);
 					} else {
-						container.addTextDisplayComponents(t => t.setContent(alert.description.toCodeBlock('md')));
+						container.addTextDisplayComponents((t) => t.setContent(alert.description.toCodeBlock('md')));
 					}
 
 					container
-						.addSeparatorComponents(s => s.setSpacing(SeparatorSpacingSize.Large))
-						.addTextDisplayComponents(t => t
-							.setContent($msg.alerts.job.term(time(alert.effective, 'R'), time(alert.expires, 'R')))
+						.addSeparatorComponents((s) => s.setSpacing(SeparatorSpacingSize.Large))
+						.addTextDisplayComponents((t) =>
+							t.setContent($msg.alerts.job.term(time(alert.effective, 'R'), time(alert.expires, 'R'))),
 						)
-						.addTextDisplayComponents(t => t
-							.setContent($msg.alerts.job.affectedAreas(alert.areaDesc))
-						);
+						.addTextDisplayComponents((t) => t.setContent($msg.alerts.job.affectedAreas(alert.areaDesc)));
 
 					const instructions = alert.instruction;
 					if (!isUndefined(instructions)) {
-						container.addTextDisplayComponents(t => t.setContent($msg.alerts.job.instructions(instructions.toCodeBlock('md'))));
-					}
-
-					if (radarImageUrl) {
-						container.addMediaGalleryComponents(g => g
-							.addItems(i => i
-								.setURL(radarImageUrl + `?v=${generateSnowflake()}`)
-							)
+						container.addTextDisplayComponents((t) =>
+							t.setContent($msg.alerts.job.instructions(instructions.toCodeBlock('md'))),
 						);
 					}
 
-					const banner      = await this.banner.generateBanner(alert);
-					const attachment  = new AttachmentBuilder(banner, { name: 'banner.png' });
-					const sentMessage = await this.delivery.deliver({
-						alertId: alert.id, guildId, channelId, expiresAt: alert.expires, autoCleanup
-					}, () => sendAlertWebhook(webhook, {
-						username: this.webhookUsername,
-						avatarURL: client.user.avatarURL()!,
-						files: [attachment],
-						components: [container],
-						flags: MessageFlags.IsComponentsV2
-					}));
+					if (radarImageUrl) {
+						container.addMediaGalleryComponents((g) =>
+							g.addItems((i) => i.setURL(radarImageUrl + `?v=${generateSnowflake()}`)),
+						);
+					}
+
+					const banner = await this.banner.generateBanner(alert);
+					const attachment = new AttachmentBuilder(banner, { name: 'banner.png' });
+					const sentMessage = await this.delivery.deliver(
+						{
+							alertId: alert.id,
+							guildId,
+							channelId,
+							expiresAt: alert.expires,
+							autoCleanup,
+						},
+						() =>
+							sendAlertWebhook(webhook, {
+								username: this.webhookUsername,
+								avatarURL: client.user.avatarURL()!,
+								files: [attachment],
+								components: [container],
+								flags: MessageFlags.IsComponentsV2,
+							}),
+					);
 
 					if (!sentMessage) continue;
 					sentAlerts.set(sentAlertKey, { alertId: alert.id, guildId, channelId, messageId: sentMessage.id });
@@ -250,7 +266,7 @@ export class ReportAlertsJob extends BaseJob {
 								expiredSentAlert.guildId,
 								expiredSentAlert.channelId,
 								expiredSentAlert.messageId,
-								new Date()
+								new Date(),
 							);
 						}
 					}
@@ -266,31 +282,27 @@ export class ReportAlertsJob extends BaseJob {
 	}
 
 	private async loadSentAlerts(alertIds: Set<string>) {
-		const byDestination = new Map<string, {
-			alertId: string;
-			guildId: string;
-			channelId: string;
-			messageId: string;
-		}>();
+		const byDestination = new Map<
+			string,
+			{
+				alertId: string;
+				guildId: string;
+				channelId: string;
+				messageId: string;
+			}
+		>();
 		const ids = [...alertIds];
 
 		for (let offset = 0; offset < ids.length; offset += SENT_ALERT_QUERY_BATCH_SIZE) {
-			const batch = await db.sentAlert.findMany({
-				where: {
-					alertId: { in: ids.slice(offset, offset + SENT_ALERT_QUERY_BATCH_SIZE) }
-				},
-				select: {
-					alertId: true,
-					guildId: true,
-					channelId: true,
-					messageId: true
-				}
-			});
+			const batch = await db.orm.public.SentAlert
+				.where((f) => f.alertId.in(ids.slice(offset, offset + SENT_ALERT_QUERY_BATCH_SIZE)))
+					.select('alertId', 'guildId', 'channelId', 'messageId')
+					.all();
 
 			for (const sentAlert of batch) {
 				byDestination.set(
 					this.createSentAlertKey(sentAlert.alertId, sentAlert.guildId, sentAlert.channelId),
-					sentAlert
+					sentAlert,
 				);
 			}
 		}
@@ -303,9 +315,11 @@ export class ReportAlertsJob extends BaseJob {
 	}
 
 	private async getOrCreateWebhook(channel: TextChannel) {
-		const reason   = 'Required for weather alert reporting';
+		const reason = 'Required for weather alert reporting';
 		const webhooks = await channel.fetchWebhooks();
-		let ourWebhook = webhooks.find(w => w.name === this.webhookUsername && w.owner?.id === channel.client.user?.id && w.token);
+		let ourWebhook = webhooks.find(
+			(w) => w.name === this.webhookUsername && w.owner?.id === channel.client.user?.id && w.token,
+		);
 		if (!ourWebhook) {
 			ourWebhook = await channel.createWebhook({ name: this.webhookUsername, reason });
 

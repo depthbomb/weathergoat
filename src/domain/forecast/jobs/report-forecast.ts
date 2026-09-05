@@ -4,6 +4,7 @@ import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
 import { reportError } from '@lib/logger';
+import { requireRecord } from '@database/values';
 import { generateSnowflake } from '@lib/snowflake';
 import { FeaturesService } from '@services/features';
 import { ForecastService } from '@services/forecast';
@@ -20,18 +21,18 @@ export class ReportForecastsJob extends BaseJob {
 	private readonly errorCodes = [
 		RESTJSONErrorCodes.UnknownChannel,
 		RESTJSONErrorCodes.UnknownGuild,
-		RESTJSONErrorCodes.UnknownMessage
+		RESTJSONErrorCodes.UnknownMessage,
 	];
 
 	public constructor(
 		private readonly location = inject(LocationService),
 		private readonly forecast = inject(ForecastService),
-		private readonly features = inject(FeaturesService)
+		private readonly features = inject(FeaturesService),
 	) {
 		super({
 			name: ReportForecastsJob.name,
 			interval: '15s',
-			runImmediately: true
+			runImmediately: true,
 		});
 	}
 
@@ -40,18 +41,21 @@ export class ReportForecastsJob extends BaseJob {
 			return;
 		}
 
-		const destinations = await db.forecastDestination.findMany({
-			select: {
-				id: true,
-				latitude: true,
-				longitude: true,
-				guildId: true,
-				channelId: true,
-				messageId: true,
-				radarImageUrl: true,
-			}
-		});
-		if (!this.progress.begin(new Date(), destinations.map(destination => destination.id))) {
+		const destinations = await db.orm.public.ForecastDestination.select(
+			'id',
+			'latitude',
+			'longitude',
+			'guildId',
+			'channelId',
+			'messageId',
+			'radarImageUrl',
+		).all();
+		if (
+			!this.progress.begin(
+				new Date(),
+				destinations.map((destination) => destination.id),
+			)
+		) {
 			return;
 		}
 
@@ -67,7 +71,9 @@ export class ReportForecastsJob extends BaseJob {
 						.withMetadata({ guildId, channelId, messageId })
 						.warn('Forecast destination channel is missing or not a text channel, deleting record');
 
-					await db.forecastDestination.delete({ where: { messageId } });
+					await db.orm.public.ForecastDestination.where((f) => f.messageId.eq(messageId))
+						.delete()
+						.then(requireRecord);
 					this.progress.markCompleted(id);
 					continue;
 				}
@@ -78,7 +84,9 @@ export class ReportForecastsJob extends BaseJob {
 						.withMetadata({ guildId, channelId, messageId })
 						.warn('Forecast destination message is not editable, deleting record');
 
-					await db.forecastDestination.delete({ where: { messageId } });
+					await db.orm.public.ForecastDestination.where((f) => f.messageId.eq(messageId))
+						.delete()
+						.then(requireRecord);
 					this.progress.markCompleted(id);
 					continue;
 				}
@@ -116,7 +124,9 @@ export class ReportForecastsJob extends BaseJob {
 						.withMetadata({ guildId, channelId, messageId, code, message })
 						.error('Could not fetch required resource(s), deleting corresponding record');
 
-					await db.forecastDestination.delete({ where: { id } });
+					await db.orm.public.ForecastDestination.where((f) => f.id.eq(id))
+						.delete()
+						.then(requireRecord);
 					this.progress.markCompleted(id);
 				} else {
 					reportError('Error reporting forecast destination', err, { id, guildId, channelId, messageId });
@@ -124,6 +134,6 @@ export class ReportForecastsJob extends BaseJob {
 			}
 		}
 
-		this.progress.finish(destinations.map(destination => destination.id));
+		this.progress.finish(destinations.map((destination) => destination.id));
 	}
 }

@@ -1,3 +1,4 @@
+import { toInstant, requireRecord } from '@database/values';
 import { db } from '@database';
 import { logger } from '@lib/logger';
 import { WeatherGoat } from '@lib/client';
@@ -13,9 +14,7 @@ import type { Message } from 'discord.js';
 export class SweeperService {
 	private readonly logger: LogLayer;
 
-	public constructor(
-		private readonly bot = inject(WeatherGoat)
-	) {
+	public constructor(private readonly bot = inject(WeatherGoat)) {
 		this.logger = logger.child().withPrefix(SweeperService.name.bracketWrap());
 	}
 
@@ -24,11 +23,7 @@ export class SweeperService {
 	 */
 	public getDueMessages() {
 		const now = new Date();
-		return db.volatileMessage.findMany({
-			where: {
-				expiresAt: { lte: now }
-			}
-		});
+		return db.orm.public.VolatileMessage.where((f) => f.expiresAt.lte(toInstant(now))).all();
 	}
 
 	/**
@@ -40,7 +35,12 @@ export class SweeperService {
 	 * @param messageId The ID of the message.
 	 * @param expires The duration string (e.g. `1 day`) or Date when the message should be swept.
 	 */
-	public async enqueueMessage(guildId: string, channelId: string, messageId: string, expires: string | Date): Promise<void>;
+	public async enqueueMessage(
+		guildId: string,
+		channelId: string,
+		messageId: string,
+		expires: string | Date,
+	): Promise<void>;
 	/**
 	 * Enqueues a message to be deleted at a later time. If the record already exists then it is
 	 * updated with the new time instead.
@@ -49,7 +49,12 @@ export class SweeperService {
 	 * @param expires The duration string (e.g. `1 day`) or Date when the message should be swept.
 	 */
 	public async enqueueMessage(message: Message<boolean>, expires: string | Date): Promise<void>;
-	public async enqueueMessage(arg1: string | Message<boolean>, arg2: string | Date, arg3?: string, arg4?: string | Date): Promise<void> {
+	public async enqueueMessage(
+		arg1: string | Message<boolean>,
+		arg2: string | Date,
+		arg3?: string,
+		arg4?: string | Date,
+	): Promise<void> {
 		let guildId: string;
 		let channelId: string;
 		let messageId: string;
@@ -73,22 +78,15 @@ export class SweeperService {
 			expiresAt = typeof arg2 === 'string' ? parseDuration(arg2).fromNow() : arg2;
 		}
 
-		await db.volatileMessage.upsert({
-			where: {
-				guildId,
-				channelId,
-				messageId
-			},
-			update: {
-				expiresAt
-			},
-			create: {
-				guildId,
-				channelId,
-				messageId,
-				expiresAt
-			}
-		});
+		await db.runtime().execute(
+			db.raw.sql`
+			INSERT INTO "VolatileMessage" ("guildId", "channelId", "messageId", "expiresAt")
+			VALUES (${guildId}, ${channelId}, ${messageId}, ${expiresAt.toISOString()}::timestamptz)
+			ON CONFLICT ("messageId") DO UPDATE SET "expiresAt" = EXCLUDED."expiresAt"
+		`
+				.affectedCount()
+				.build(),
+		);
 	}
 
 	/**
@@ -104,7 +102,7 @@ export class SweeperService {
 		const nonRetryableErrorCodes = [
 			RESTJSONErrorCodes.UnknownGuild,
 			RESTJSONErrorCodes.UnknownChannel,
-			RESTJSONErrorCodes.UnknownMessage
+			RESTJSONErrorCodes.UnknownMessage,
 		];
 
 		for (const { id, channelId, messageId } of messages) {
@@ -135,7 +133,9 @@ export class SweeperService {
 					.error('Error while deleting volatile message');
 			} finally {
 				if (shouldDeleteRecord) {
-					await db.volatileMessage.delete({ where: { id } });
+					await db.orm.public.VolatileMessage.where((f) => f.id.eq(id))
+						.delete()
+						.then(requireRecord);
 				}
 			}
 		}
@@ -143,4 +143,3 @@ export class SweeperService {
 		return [sweepCount, errorCount] as const;
 	}
 }
-

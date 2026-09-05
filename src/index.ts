@@ -14,6 +14,7 @@ import { logger, reportError } from '@lib/logger';
 const shuttingDownFlag = new Flag(false);
 
 async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
+	let exitCode = code;
 	if (shuttingDownFlag.isTrue) {
 		return;
 	}
@@ -27,6 +28,7 @@ async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
 
 		await app.destroy();
 	} catch (err) {
+		exitCode = 1;
 		reportError('Error during shutdown', err);
 	} finally {
 		if (process.stdin.isTTY) {
@@ -34,7 +36,7 @@ async function shutdown(app: WeatherGoat, code: number, reason?: unknown) {
 			process.stdin.pause();
 		}
 
-		process.exitCode = code;
+		process.exitCode = exitCode;
 	}
 }
 

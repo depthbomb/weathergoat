@@ -1,5 +1,6 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
+import { requireRecord } from '@database/values';
 import { assume } from '@depthbomb/common/typing';
 import { BaseComponent } from '@infra/components';
 import { isGuildMember } from '@sapphire/discord.js-utilities';
@@ -20,7 +21,7 @@ export class DeleteForecastButton extends BaseComponent {
 		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
 			await interaction.reply({
 				content: $msg.forecasts.components.deleteButton.noPermission(),
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -28,23 +29,23 @@ export class DeleteForecastButton extends BaseComponent {
 		await interaction.deferUpdate();
 
 		const { guildId, channelId } = interaction;
-		const [messageId]            = match.wildcards;
+		const [messageId] = match.wildcards;
 
 		assume<string>(guildId);
 		assume<string>(channelId);
 
 		const where = { guildId, channelId, messageId };
 
-		const forecastMessage = await db.forecastDestination.findFirst({ where });
+		const forecastMessage = await db.orm.public.ForecastDestination.where(where).first();
 		if (!forecastMessage) {
 			await interaction.followUp({
 				content: $msg.forecasts.components.deleteButton.couldNotFindMessage(),
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
 
-		await db.forecastDestination.delete({ where });
+		await db.orm.public.ForecastDestination.where(where).delete().then(requireRecord);
 		await interaction.message.delete();
 	}
 }

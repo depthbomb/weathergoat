@@ -1,0 +1,289 @@
+// use prisma-next
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
+
+namespace public {
+  model AlertDeliveryClaim {
+    id          Int            @id(map: "AlertDeliveryClaim_pkey") @default(autoincrement())
+    alertId     String
+    guildId     String
+    channelId   String
+    expiresAt   Timestamptz(3)
+    autoCleanup Boolean
+    messageId   String?
+    finalized   Boolean        @default(false)
+    createdAt   Timestamptz(3) @default(now())
+
+    @@index([alertId, guildId, channelId], map: "AlertDeliveryClaim_alertId_guildId_channelId_key", unique: true)
+    @@index([expiresAt], map: "AlertDeliveryClaim_expiresAt_idx")
+    @@index([finalized, messageId], map: "AlertDeliveryClaim_finalized_messageId_idx")
+    @@map("AlertDeliveryClaim")
+  }
+
+  model AlertDestination {
+    id            Int             @id(map: "AlertDestination_pkey") @default(autoincrement())
+    snowflake     String
+    latitude      String
+    longitude     String
+    zoneId        String
+    countyId      String
+    guildId       String
+    channelId     String
+    autoCleanup   Boolean         @default(true)
+    radarImageUrl String?
+    expiresAt     Timestamptz(3)?
+
+    @@index([expiresAt], map: "AlertDestination_expiresAt_idx")
+    @@index([guildId], map: "AlertDestination_guildId_idx")
+    @@index([snowflake], map: "AlertDestination_snowflake_key", unique: true)
+    @@map("AlertDestination")
+  }
+
+  model Announcement {
+    id                     Int                    @id(map: "Announcement_pkey") @default(autoincrement())
+    snowflake              String
+    title                  String
+    body                   String
+    createdAt              Timestamptz(3)         @default(now())
+    updatedAt              temporal.timestamptz(3, onCreate: now, onUpdate: now)
+    announcementDeliveries AnnouncementDelivery[]
+
+    @@index([snowflake], map: "Announcement_snowflake_key", unique: true)
+    @@map("Announcement")
+  }
+
+  model AnnouncementSubscription {
+    id                     Int                    @id(map: "AnnouncementSubscription_pkey") @default(autoincrement())
+    userId                 String
+    createdAt              Timestamptz(3)         @default(now())
+    updatedAt              temporal.timestamptz(3, onCreate: now, onUpdate: now)
+    announcementDeliveries AnnouncementDelivery[]
+
+    @@index([userId], map: "AnnouncementSubscription_userId_key", unique: true)
+    @@map("AnnouncementSubscription")
+  }
+
+  model AnnouncementDelivery {
+    id             Int                      @id(map: "AnnouncementDelivery_pkey") @default(autoincrement())
+    announcementId Int
+    subscriptionId Int
+    sentAt         Timestamptz(3)?
+    failedAt       Timestamptz(3)?
+    error          String?
+    attemptCount   Int                      @default(0)
+    nextAttemptAt  Timestamptz(3)           @default(now())
+    createdAt      Timestamptz(3)           @default(now())
+    announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "AnnouncementDelivery_announcementId_fkey")
+    subscription   AnnouncementSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "AnnouncementDelivery_subscriptionId_fkey")
+
+    @@index([announcementId], map: "AnnouncementDelivery_announcementId_idx")
+    @@index([announcementId, subscriptionId], map: "AnnouncementDelivery_announcementId_subscriptionId_key", unique: true)
+    @@index([sentAt, nextAttemptAt], map: "AnnouncementDelivery_sentAt_nextAttemptAt_idx")
+    @@index([subscriptionId], map: "AnnouncementDelivery_subscriptionId_idx")
+    @@map("AnnouncementDelivery")
+  }
+
+  model AutoRadarMessage {
+    id                    Int            @id(map: "AutoRadarMessage_pkey") @default(autoincrement())
+    snowflake             String
+    guildId               String
+    channelId             String
+    messageId             String
+    location              String
+    radarStation          String
+    radarImageUrl         String
+    velocityRadarImageUrl String
+    showReflectivity      Boolean        @default(true)
+    showVelocity          Boolean        @default(false)
+    updateInterval        String         @default("5m")
+    nextUpdate            Timestamptz(3) @default(now())
+
+    @@index([guildId, nextUpdate], map: "AutoRadarMessage_guildId_nextUpdate_idx")
+    @@index([messageId], map: "AutoRadarMessage_messageId_key", unique: true)
+    @@index([snowflake], map: "AutoRadarMessage_snowflake_key", unique: true)
+    @@map("AutoRadarMessage")
+  }
+
+  model EarthquakeEvent {
+    id                   String               @id(map: "EarthquakeEvent_pkey")
+    sourceUpdatedAt      temporal.timestamptz(3, onCreate: now, onUpdate: now)
+    eventTime            Timestamptz(3)
+    firstObservedAt      Timestamptz(3)       @default(now())
+    lastObservedAt       Timestamptz(3)       @default(now())
+    magnitude            Float?
+    magnitudeType        String?
+    place                String?
+    status               String?
+    eventType            String?
+    longitude            Float
+    latitude             Float
+    depthKm              Float
+    significance         Int?
+    felt                 Int?
+    tsunami              Boolean              @default(false)
+    url                  String
+    detailUrl            String?
+    productMetadata      String?
+    earthquakeDeliveries EarthquakeDelivery[]
+
+    @@index([eventTime], map: "EarthquakeEvent_eventTime_idx")
+    @@index([lastObservedAt], map: "EarthquakeEvent_lastObservedAt_idx")
+    @@index([magnitude], map: "EarthquakeEvent_magnitude_idx")
+    @@map("EarthquakeEvent")
+  }
+
+  model EarthquakeSubscription {
+    id                   Int                  @id(map: "EarthquakeSubscription_pkey") @default(autoincrement())
+    snowflake            String
+    guildId              String
+    channelId            String
+    locationName         String
+    latitude             Float
+    longitude            Float
+    radiusKm             Float
+    minMagnitude         Float
+    createdAt            Timestamptz(3)       @default(now())
+    earthquakeDeliveries EarthquakeDelivery[]
+
+    @@index([channelId], map: "EarthquakeSubscription_channelId_idx")
+    @@index([guildId, channelId, latitude, longitude, radiusKm, minMagnitude], map: "EarthquakeSubscription_guildId_channelId_latitude_longitude_key", unique: true)
+    @@index([guildId], map: "EarthquakeSubscription_guildId_idx")
+    @@index([snowflake], map: "EarthquakeSubscription_snowflake_key", unique: true)
+    @@map("EarthquakeSubscription")
+  }
+
+  model EarthquakeDelivery {
+    id                  Int                              @id(map: "EarthquakeDelivery_pkey") @default(autoincrement())
+    subscriptionId      Int
+    eventId             String
+    state               pg.enum(EarthquakeDeliveryState) @default("PENDING")
+    messageId           String?
+    deliveredRevisionAt Timestamptz(3)?
+    firstEligibleAt     Timestamptz(3)
+    lastEligible        Boolean                          @default(true)
+    attemptCount        Int                              @default(0)
+    nextAttemptAt       Timestamptz(3)                   @default(now())
+    claimToken          String?
+    claimExpiresAt      Timestamptz(3)?
+    deliveredAt         Timestamptz(3)?
+    failedAt            Timestamptz(3)?
+    error               String?
+    createdAt           Timestamptz(3)                   @default(now())
+    updatedAt           temporal.timestamptz(3, onCreate: now, onUpdate: now)
+    event               EarthquakeEvent                  @relation(fields: [eventId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "EarthquakeDelivery_eventId_fkey")
+    subscription        EarthquakeSubscription           @relation(fields: [subscriptionId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "EarthquakeDelivery_subscriptionId_fkey", index: false)
+
+    @@index([claimExpiresAt], map: "EarthquakeDelivery_claimExpiresAt_idx")
+    @@index([eventId], map: "EarthquakeDelivery_eventId_idx")
+    @@index([messageId], map: "EarthquakeDelivery_messageId_key", unique: true)
+    @@index([state, nextAttemptAt], map: "EarthquakeDelivery_state_nextAttemptAt_idx")
+    @@index([subscriptionId, eventId], map: "EarthquakeDelivery_subscriptionId_eventId_key", unique: true)
+    @@map("EarthquakeDelivery")
+  }
+
+  model EarthquakeIngestionState {
+    id              String          @id(map: "EarthquakeIngestionState_pkey")
+    lastModified    String?
+    lastGeneratedAt Timestamptz(3)?
+    baselinedAt     Timestamptz(3)?
+    lastSuccessAt   Timestamptz(3)?
+    lastFailureAt   Timestamptz(3)?
+    lastError       String?
+    updatedAt       temporal.timestamptz(3, onCreate: now, onUpdate: now)
+    @@map("EarthquakeIngestionState")
+  }
+
+  model FeedbackBan {
+    id        Int            @id(map: "FeedbackBan_pkey") @default(autoincrement())
+    userId    String
+    reason    String?
+    active    Boolean        @default(true)
+    createdAt Timestamptz(3) @default(now())
+    updatedAt temporal.timestamptz(3, onCreate: now, onUpdate: now)
+
+    @@index([userId], map: "FeedbackBan_userId_idx")
+    @@index([userId], map: "FeedbackBan_userId_key", unique: true)
+    @@map("FeedbackBan")
+  }
+
+  model ForecastDestination {
+    id            Int     @id(map: "ForecastDestination_pkey") @default(autoincrement())
+    snowflake     String
+    latitude      String
+    longitude     String
+    guildId       String
+    channelId     String
+    messageId     String
+    radarImageUrl String?
+
+    @@index([guildId], map: "ForecastDestination_guildId_idx")
+    @@index([messageId], map: "ForecastDestination_messageId_key", unique: true)
+    @@index([snowflake], map: "ForecastDestination_snowflake_key", unique: true)
+    @@map("ForecastDestination")
+  }
+
+  model Incident {
+    id            Int                       @id(map: "Incident_pkey") @default(autoincrement())
+    snowflake     String
+    key           String
+    title         String
+    description   String
+    status        pg.enum(IncidentStatus)   @default("ACTIVE")
+    severity      pg.enum(IncidentSeverity)
+    createdAt     Timestamptz(3)            @default(now())
+    autoResolveAt Timestamptz(3)?
+    resolvedAt    Timestamptz(3)?
+
+    @@index([key], map: "Incident_active_key_key", where: "(status = 'ACTIVE'::\"IncidentStatus\")", unique: true)
+    @@index([createdAt], map: "Incident_createdAt_idx")
+    @@index([severity], map: "Incident_severity_idx")
+    @@index([snowflake], map: "Incident_snowflake_key", unique: true)
+    @@index([status], map: "Incident_status_idx")
+    @@map("Incident")
+  }
+
+
+
+  model SentAlert {
+    id        Int            @id(map: "SentAlert_pkey") @default(autoincrement())
+    alertId   String
+    guildId   String
+    channelId String
+    messageId String
+    expiresAt Timestamptz(3)
+
+    @@index([alertId, guildId, channelId], map: "SentAlert_alertId_guildId_channelId_key", unique: true)
+    @@index([expiresAt], map: "SentAlert_expiresAt_idx")
+    @@index([guildId, channelId, alertId], map: "SentAlert_guildId_channelId_alertId_idx")
+    @@map("SentAlert")
+  }
+
+  model VolatileMessage {
+    id        Int            @id(map: "VolatileMessage_pkey") @default(autoincrement())
+    guildId   String
+    channelId String
+    messageId String
+    expiresAt Timestamptz(3)
+
+    @@index([expiresAt], map: "VolatileMessage_expiresAt_idx")
+    @@index([messageId], map: "VolatileMessage_messageId_key", unique: true)
+    @@map("VolatileMessage")
+  }
+
+  native_enum EarthquakeDeliveryState {
+    PENDING = "PENDING"
+    SENT = "SENT"
+    FAILED = "FAILED"
+    AMBIGUOUS = "AMBIGUOUS"
+  }
+
+  native_enum IncidentSeverity {
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+  }
+
+  native_enum IncidentStatus {
+    ACTIVE = "ACTIVE"
+    RESOLVED = "RESOLVED"
+  }
+}

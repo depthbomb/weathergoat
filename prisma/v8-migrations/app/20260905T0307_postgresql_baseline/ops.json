@@ -1,0 +1,2476 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.EarthquakeDeliveryState",
+    "label": "Create enum type \"EarthquakeDeliveryState\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "EarthquakeDeliveryState"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"EarthquakeDeliveryState\"",
+        "sql": "CREATE TYPE \"public\".\"EarthquakeDeliveryState\" AS ENUM ('PENDING', 'SENT', 'FAILED', 'AMBIGUOUS')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.IncidentSeverity",
+    "label": "Create enum type \"IncidentSeverity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "IncidentSeverity"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"IncidentSeverity\"",
+        "sql": "CREATE TYPE \"public\".\"IncidentSeverity\" AS ENUM ('LOW', 'MEDIUM', 'HIGH')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.IncidentStatus",
+    "label": "Create enum type \"IncidentStatus\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "IncidentStatus"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"IncidentStatus\"",
+        "sql": "CREATE TYPE \"public\".\"IncidentStatus\" AS ENUM ('ACTIVE', 'RESOLVED')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.AlertDeliveryClaim",
+    "label": "Create table \"AlertDeliveryClaim\"",
+    "summary": "Creates table \"AlertDeliveryClaim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AlertDeliveryClaim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AlertDeliveryClaim\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AlertDeliveryClaim\"",
+        "sql": "CREATE TABLE \"public\".\"AlertDeliveryClaim\" (\n  \"alertId\" text NOT NULL,\n  \"autoCleanup\" bool NOT NULL,\n  \"channelId\" text NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"expiresAt\" timestamptz(3) NOT NULL,\n  \"finalized\" bool DEFAULT false NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"messageId\" text,\n  CONSTRAINT \"AlertDeliveryClaim_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AlertDeliveryClaim\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.AlertDestination",
+    "label": "Create table \"AlertDestination\"",
+    "summary": "Creates table \"AlertDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AlertDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AlertDestination\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AlertDestination\"",
+        "sql": "CREATE TABLE \"public\".\"AlertDestination\" (\n  \"autoCleanup\" bool DEFAULT true NOT NULL,\n  \"channelId\" text NOT NULL,\n  \"countyId\" text NOT NULL,\n  \"expiresAt\" timestamptz(3),\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"latitude\" text NOT NULL,\n  \"longitude\" text NOT NULL,\n  \"radarImageUrl\" text,\n  \"snowflake\" text NOT NULL,\n  \"zoneId\" text NOT NULL,\n  CONSTRAINT \"AlertDestination_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AlertDestination\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.Announcement",
+    "label": "Create table \"Announcement\"",
+    "summary": "Creates table \"Announcement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Announcement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Announcement\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Announcement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Announcement\"",
+        "sql": "CREATE TABLE \"public\".\"Announcement\" (\n  \"body\" text NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"snowflake\" text NOT NULL,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  CONSTRAINT \"Announcement_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Announcement\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Announcement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.AnnouncementDelivery",
+    "label": "Create table \"AnnouncementDelivery\"",
+    "summary": "Creates table \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AnnouncementDelivery\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AnnouncementDelivery\"",
+        "sql": "CREATE TABLE \"public\".\"AnnouncementDelivery\" (\n  \"announcementId\" int4 NOT NULL,\n  \"attemptCount\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"error\" text,\n  \"failedAt\" timestamptz(3),\n  \"id\" SERIAL NOT NULL,\n  \"nextAttemptAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"sentAt\" timestamptz(3),\n  \"subscriptionId\" int4 NOT NULL,\n  CONSTRAINT \"AnnouncementDelivery_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AnnouncementDelivery\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.AnnouncementSubscription",
+    "label": "Create table \"AnnouncementSubscription\"",
+    "summary": "Creates table \"AnnouncementSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AnnouncementSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AnnouncementSubscription\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementSubscription\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AnnouncementSubscription\"",
+        "sql": "CREATE TABLE \"public\".\"AnnouncementSubscription\" (\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"userId\" text NOT NULL,\n  CONSTRAINT \"AnnouncementSubscription_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AnnouncementSubscription\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementSubscription\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.AutoRadarMessage",
+    "label": "Create table \"AutoRadarMessage\"",
+    "summary": "Creates table \"AutoRadarMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AutoRadarMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AutoRadarMessage\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AutoRadarMessage\"",
+        "sql": "CREATE TABLE \"public\".\"AutoRadarMessage\" (\n  \"channelId\" text NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"location\" text NOT NULL,\n  \"messageId\" text NOT NULL,\n  \"nextUpdate\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"radarImageUrl\" text NOT NULL,\n  \"radarStation\" text NOT NULL,\n  \"showReflectivity\" bool DEFAULT true NOT NULL,\n  \"showVelocity\" bool DEFAULT false NOT NULL,\n  \"snowflake\" text NOT NULL,\n  \"updateInterval\" text DEFAULT '5m' NOT NULL,\n  \"velocityRadarImageUrl\" text NOT NULL,\n  CONSTRAINT \"AutoRadarMessage_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AutoRadarMessage\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.EarthquakeDelivery",
+    "label": "Create table \"EarthquakeDelivery\"",
+    "summary": "Creates table \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"EarthquakeDelivery\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"EarthquakeDelivery\"",
+        "sql": "CREATE TABLE \"public\".\"EarthquakeDelivery\" (\n  \"attemptCount\" int4 DEFAULT 0 NOT NULL,\n  \"claimExpiresAt\" timestamptz(3),\n  \"claimToken\" text,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"deliveredAt\" timestamptz(3),\n  \"deliveredRevisionAt\" timestamptz(3),\n  \"error\" text,\n  \"eventId\" text NOT NULL,\n  \"failedAt\" timestamptz(3),\n  \"firstEligibleAt\" timestamptz(3) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"lastEligible\" bool DEFAULT true NOT NULL,\n  \"messageId\" text,\n  \"nextAttemptAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"state\" \"EarthquakeDeliveryState\" DEFAULT 'PENDING'::\"EarthquakeDeliveryState\" NOT NULL,\n  \"subscriptionId\" int4 NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  CONSTRAINT \"EarthquakeDelivery_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"EarthquakeDelivery\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.EarthquakeEvent",
+    "label": "Create table \"EarthquakeEvent\"",
+    "summary": "Creates table \"EarthquakeEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "EarthquakeEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"EarthquakeEvent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"EarthquakeEvent\"",
+        "sql": "CREATE TABLE \"public\".\"EarthquakeEvent\" (\n  \"depthKm\" float8 NOT NULL,\n  \"detailUrl\" text,\n  \"eventTime\" timestamptz(3) NOT NULL,\n  \"eventType\" text,\n  \"felt\" int4,\n  \"firstObservedAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"lastObservedAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"latitude\" float8 NOT NULL,\n  \"longitude\" float8 NOT NULL,\n  \"magnitude\" float8,\n  \"magnitudeType\" text,\n  \"place\" text,\n  \"productMetadata\" text,\n  \"significance\" int4,\n  \"sourceUpdatedAt\" timestamptz(3) NOT NULL,\n  \"status\" text,\n  \"tsunami\" bool DEFAULT false NOT NULL,\n  \"url\" text NOT NULL,\n  CONSTRAINT \"EarthquakeEvent_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"EarthquakeEvent\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.EarthquakeIngestionState",
+    "label": "Create table \"EarthquakeIngestionState\"",
+    "summary": "Creates table \"EarthquakeIngestionState\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "EarthquakeIngestionState"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"EarthquakeIngestionState\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeIngestionState\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"EarthquakeIngestionState\"",
+        "sql": "CREATE TABLE \"public\".\"EarthquakeIngestionState\" (\n  \"baselinedAt\" timestamptz(3),\n  \"id\" text NOT NULL,\n  \"lastError\" text,\n  \"lastFailureAt\" timestamptz(3),\n  \"lastGeneratedAt\" timestamptz(3),\n  \"lastModified\" text,\n  \"lastSuccessAt\" timestamptz(3),\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  CONSTRAINT \"EarthquakeIngestionState_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"EarthquakeIngestionState\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeIngestionState\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.EarthquakeSubscription",
+    "label": "Create table \"EarthquakeSubscription\"",
+    "summary": "Creates table \"EarthquakeSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "EarthquakeSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"EarthquakeSubscription\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"EarthquakeSubscription\"",
+        "sql": "CREATE TABLE \"public\".\"EarthquakeSubscription\" (\n  \"channelId\" text NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"latitude\" float8 NOT NULL,\n  \"locationName\" text NOT NULL,\n  \"longitude\" float8 NOT NULL,\n  \"minMagnitude\" float8 NOT NULL,\n  \"radiusKm\" float8 NOT NULL,\n  \"snowflake\" text NOT NULL,\n  CONSTRAINT \"EarthquakeSubscription_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"EarthquakeSubscription\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.FeedbackBan",
+    "label": "Create table \"FeedbackBan\"",
+    "summary": "Creates table \"FeedbackBan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "FeedbackBan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"FeedbackBan\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"FeedbackBan\"",
+        "sql": "CREATE TABLE \"public\".\"FeedbackBan\" (\n  \"active\" bool DEFAULT true NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"reason\" text,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"userId\" text NOT NULL,\n  CONSTRAINT \"FeedbackBan_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"FeedbackBan\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.ForecastDestination",
+    "label": "Create table \"ForecastDestination\"",
+    "summary": "Creates table \"ForecastDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ForecastDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ForecastDestination\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ForecastDestination\"",
+        "sql": "CREATE TABLE \"public\".\"ForecastDestination\" (\n  \"channelId\" text NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"latitude\" text NOT NULL,\n  \"longitude\" text NOT NULL,\n  \"messageId\" text NOT NULL,\n  \"radarImageUrl\" text,\n  \"snowflake\" text NOT NULL,\n  CONSTRAINT \"ForecastDestination_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ForecastDestination\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.Incident",
+    "label": "Create table \"Incident\"",
+    "summary": "Creates table \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Incident\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Incident\"",
+        "sql": "CREATE TABLE \"public\".\"Incident\" (\n  \"autoResolveAt\" timestamptz(3),\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"description\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"key\" text NOT NULL,\n  \"resolvedAt\" timestamptz(3),\n  \"severity\" \"IncidentSeverity\" NOT NULL,\n  \"snowflake\" text NOT NULL,\n  \"status\" \"IncidentStatus\" DEFAULT 'ACTIVE'::\"IncidentStatus\" NOT NULL,\n  \"title\" text NOT NULL,\n  CONSTRAINT \"Incident_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Incident\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.SentAlert",
+    "label": "Create table \"SentAlert\"",
+    "summary": "Creates table \"SentAlert\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "SentAlert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"SentAlert\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"SentAlert\"",
+        "sql": "CREATE TABLE \"public\".\"SentAlert\" (\n  \"alertId\" text NOT NULL,\n  \"channelId\" text NOT NULL,\n  \"expiresAt\" timestamptz(3) NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"messageId\" text NOT NULL,\n  CONSTRAINT \"SentAlert_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"SentAlert\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.VolatileMessage",
+    "label": "Create table \"VolatileMessage\"",
+    "summary": "Creates table \"VolatileMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "VolatileMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"VolatileMessage\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"VolatileMessage\"",
+        "sql": "CREATE TABLE \"public\".\"VolatileMessage\" (\n  \"channelId\" text NOT NULL,\n  \"expiresAt\" timestamptz(3) NOT NULL,\n  \"guildId\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"messageId\" text NOT NULL,\n  CONSTRAINT \"VolatileMessage_pkey\" PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"VolatileMessage\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDeliveryClaim.AlertDeliveryClaim_alertId_guildId_channelId_key",
+    "label": "Create index \"AlertDeliveryClaim_alertId_guildId_channelId_key\" on \"AlertDeliveryClaim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDeliveryClaim_alertId_guildId_channelId_key",
+        "table": "AlertDeliveryClaim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDeliveryClaim_alertId_guildId_channelId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_alertId_guildId_channelId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDeliveryClaim_alertId_guildId_channelId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AlertDeliveryClaim_alertId_guildId_channelId_key\" ON \"public\".\"AlertDeliveryClaim\" (\"alertId\", \"guildId\", \"channelId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDeliveryClaim_alertId_guildId_channelId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_alertId_guildId_channelId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDeliveryClaim.AlertDeliveryClaim_expiresAt_idx",
+    "label": "Create index \"AlertDeliveryClaim_expiresAt_idx\" on \"AlertDeliveryClaim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDeliveryClaim_expiresAt_idx",
+        "table": "AlertDeliveryClaim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDeliveryClaim_expiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_expiresAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDeliveryClaim_expiresAt_idx\"",
+        "sql": "CREATE INDEX \"AlertDeliveryClaim_expiresAt_idx\" ON \"public\".\"AlertDeliveryClaim\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDeliveryClaim_expiresAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_expiresAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDeliveryClaim.AlertDeliveryClaim_finalized_messageId_idx",
+    "label": "Create index \"AlertDeliveryClaim_finalized_messageId_idx\" on \"AlertDeliveryClaim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDeliveryClaim_finalized_messageId_idx",
+        "table": "AlertDeliveryClaim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDeliveryClaim_finalized_messageId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_finalized_messageId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDeliveryClaim_finalized_messageId_idx\"",
+        "sql": "CREATE INDEX \"AlertDeliveryClaim_finalized_messageId_idx\" ON \"public\".\"AlertDeliveryClaim\" (\"finalized\", \"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDeliveryClaim_finalized_messageId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDeliveryClaim_finalized_messageId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDestination.AlertDestination_expiresAt_idx",
+    "label": "Create index \"AlertDestination_expiresAt_idx\" on \"AlertDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDestination_expiresAt_idx",
+        "table": "AlertDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDestination_expiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_expiresAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDestination_expiresAt_idx\"",
+        "sql": "CREATE INDEX \"AlertDestination_expiresAt_idx\" ON \"public\".\"AlertDestination\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDestination_expiresAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_expiresAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDestination.AlertDestination_guildId_idx",
+    "label": "Create index \"AlertDestination_guildId_idx\" on \"AlertDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDestination_guildId_idx",
+        "table": "AlertDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDestination_guildId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_guildId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDestination_guildId_idx\"",
+        "sql": "CREATE INDEX \"AlertDestination_guildId_idx\" ON \"public\".\"AlertDestination\" (\"guildId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDestination_guildId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_guildId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AlertDestination.AlertDestination_snowflake_key",
+    "label": "Create index \"AlertDestination_snowflake_key\" on \"AlertDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AlertDestination_snowflake_key",
+        "table": "AlertDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AlertDestination_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AlertDestination_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AlertDestination_snowflake_key\" ON \"public\".\"AlertDestination\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AlertDestination_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AlertDestination_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Announcement.Announcement_snowflake_key",
+    "label": "Create index \"Announcement_snowflake_key\" on \"Announcement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Announcement_snowflake_key",
+        "table": "Announcement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Announcement_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Announcement_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Announcement_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"Announcement_snowflake_key\" ON \"public\".\"Announcement\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Announcement_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Announcement_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnnouncementDelivery.AnnouncementDelivery_announcementId_idx",
+    "label": "Create index \"AnnouncementDelivery_announcementId_idx\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnnouncementDelivery_announcementId_idx",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnnouncementDelivery_announcementId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_announcementId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnnouncementDelivery_announcementId_idx\"",
+        "sql": "CREATE INDEX \"AnnouncementDelivery_announcementId_idx\" ON \"public\".\"AnnouncementDelivery\" (\"announcementId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnnouncementDelivery_announcementId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_announcementId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnnouncementDelivery.AnnouncementDelivery_announcementId_subscriptionId_key",
+    "label": "Create index \"AnnouncementDelivery_announcementId_subscriptionId_key\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnnouncementDelivery_announcementId_subscriptionId_key",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnnouncementDelivery_announcementId_subscriptionId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_announcementId_subscriptionId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnnouncementDelivery_announcementId_subscriptionId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AnnouncementDelivery_announcementId_subscriptionId_key\" ON \"public\".\"AnnouncementDelivery\" (\"announcementId\", \"subscriptionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnnouncementDelivery_announcementId_subscriptionId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_announcementId_subscriptionId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnnouncementDelivery.AnnouncementDelivery_sentAt_nextAttemptAt_idx",
+    "label": "Create index \"AnnouncementDelivery_sentAt_nextAttemptAt_idx\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnnouncementDelivery_sentAt_nextAttemptAt_idx",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnnouncementDelivery_sentAt_nextAttemptAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_sentAt_nextAttemptAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnnouncementDelivery_sentAt_nextAttemptAt_idx\"",
+        "sql": "CREATE INDEX \"AnnouncementDelivery_sentAt_nextAttemptAt_idx\" ON \"public\".\"AnnouncementDelivery\" (\"sentAt\", \"nextAttemptAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnnouncementDelivery_sentAt_nextAttemptAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_sentAt_nextAttemptAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnnouncementDelivery.AnnouncementDelivery_subscriptionId_idx",
+    "label": "Create index \"AnnouncementDelivery_subscriptionId_idx\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnnouncementDelivery_subscriptionId_idx",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnnouncementDelivery_subscriptionId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_subscriptionId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnnouncementDelivery_subscriptionId_idx\"",
+        "sql": "CREATE INDEX \"AnnouncementDelivery_subscriptionId_idx\" ON \"public\".\"AnnouncementDelivery\" (\"subscriptionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnnouncementDelivery_subscriptionId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementDelivery_subscriptionId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AnnouncementSubscription.AnnouncementSubscription_userId_key",
+    "label": "Create index \"AnnouncementSubscription_userId_key\" on \"AnnouncementSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AnnouncementSubscription_userId_key",
+        "table": "AnnouncementSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AnnouncementSubscription_userId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementSubscription_userId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AnnouncementSubscription_userId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AnnouncementSubscription_userId_key\" ON \"public\".\"AnnouncementSubscription\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AnnouncementSubscription_userId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AnnouncementSubscription_userId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AutoRadarMessage.AutoRadarMessage_guildId_nextUpdate_idx",
+    "label": "Create index \"AutoRadarMessage_guildId_nextUpdate_idx\" on \"AutoRadarMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AutoRadarMessage_guildId_nextUpdate_idx",
+        "table": "AutoRadarMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AutoRadarMessage_guildId_nextUpdate_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_guildId_nextUpdate_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AutoRadarMessage_guildId_nextUpdate_idx\"",
+        "sql": "CREATE INDEX \"AutoRadarMessage_guildId_nextUpdate_idx\" ON \"public\".\"AutoRadarMessage\" (\"guildId\", \"nextUpdate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AutoRadarMessage_guildId_nextUpdate_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_guildId_nextUpdate_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AutoRadarMessage.AutoRadarMessage_messageId_key",
+    "label": "Create index \"AutoRadarMessage_messageId_key\" on \"AutoRadarMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AutoRadarMessage_messageId_key",
+        "table": "AutoRadarMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AutoRadarMessage_messageId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_messageId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AutoRadarMessage_messageId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AutoRadarMessage_messageId_key\" ON \"public\".\"AutoRadarMessage\" (\"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AutoRadarMessage_messageId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_messageId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AutoRadarMessage.AutoRadarMessage_snowflake_key",
+    "label": "Create index \"AutoRadarMessage_snowflake_key\" on \"AutoRadarMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AutoRadarMessage_snowflake_key",
+        "table": "AutoRadarMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AutoRadarMessage_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AutoRadarMessage_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"AutoRadarMessage_snowflake_key\" ON \"public\".\"AutoRadarMessage\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AutoRadarMessage_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AutoRadarMessage_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeDelivery.EarthquakeDelivery_claimExpiresAt_idx",
+    "label": "Create index \"EarthquakeDelivery_claimExpiresAt_idx\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeDelivery_claimExpiresAt_idx",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeDelivery_claimExpiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_claimExpiresAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeDelivery_claimExpiresAt_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeDelivery_claimExpiresAt_idx\" ON \"public\".\"EarthquakeDelivery\" (\"claimExpiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeDelivery_claimExpiresAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_claimExpiresAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeDelivery.EarthquakeDelivery_eventId_idx",
+    "label": "Create index \"EarthquakeDelivery_eventId_idx\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeDelivery_eventId_idx",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeDelivery_eventId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_eventId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeDelivery_eventId_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeDelivery_eventId_idx\" ON \"public\".\"EarthquakeDelivery\" (\"eventId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeDelivery_eventId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_eventId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeDelivery.EarthquakeDelivery_messageId_key",
+    "label": "Create index \"EarthquakeDelivery_messageId_key\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeDelivery_messageId_key",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeDelivery_messageId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_messageId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeDelivery_messageId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"EarthquakeDelivery_messageId_key\" ON \"public\".\"EarthquakeDelivery\" (\"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeDelivery_messageId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_messageId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeDelivery.EarthquakeDelivery_state_nextAttemptAt_idx",
+    "label": "Create index \"EarthquakeDelivery_state_nextAttemptAt_idx\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeDelivery_state_nextAttemptAt_idx",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeDelivery_state_nextAttemptAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_state_nextAttemptAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeDelivery_state_nextAttemptAt_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeDelivery_state_nextAttemptAt_idx\" ON \"public\".\"EarthquakeDelivery\" (\"state\", \"nextAttemptAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeDelivery_state_nextAttemptAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_state_nextAttemptAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeDelivery.EarthquakeDelivery_subscriptionId_eventId_key",
+    "label": "Create index \"EarthquakeDelivery_subscriptionId_eventId_key\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeDelivery_subscriptionId_eventId_key",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeDelivery_subscriptionId_eventId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_subscriptionId_eventId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeDelivery_subscriptionId_eventId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"EarthquakeDelivery_subscriptionId_eventId_key\" ON \"public\".\"EarthquakeDelivery\" (\"subscriptionId\", \"eventId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeDelivery_subscriptionId_eventId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeDelivery_subscriptionId_eventId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeEvent.EarthquakeEvent_eventTime_idx",
+    "label": "Create index \"EarthquakeEvent_eventTime_idx\" on \"EarthquakeEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeEvent_eventTime_idx",
+        "table": "EarthquakeEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeEvent_eventTime_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_eventTime_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeEvent_eventTime_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeEvent_eventTime_idx\" ON \"public\".\"EarthquakeEvent\" (\"eventTime\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeEvent_eventTime_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_eventTime_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeEvent.EarthquakeEvent_lastObservedAt_idx",
+    "label": "Create index \"EarthquakeEvent_lastObservedAt_idx\" on \"EarthquakeEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeEvent_lastObservedAt_idx",
+        "table": "EarthquakeEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeEvent_lastObservedAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_lastObservedAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeEvent_lastObservedAt_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeEvent_lastObservedAt_idx\" ON \"public\".\"EarthquakeEvent\" (\"lastObservedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeEvent_lastObservedAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_lastObservedAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeEvent.EarthquakeEvent_magnitude_idx",
+    "label": "Create index \"EarthquakeEvent_magnitude_idx\" on \"EarthquakeEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeEvent_magnitude_idx",
+        "table": "EarthquakeEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeEvent_magnitude_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_magnitude_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeEvent_magnitude_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeEvent_magnitude_idx\" ON \"public\".\"EarthquakeEvent\" (\"magnitude\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeEvent_magnitude_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeEvent_magnitude_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeSubscription.EarthquakeSubscription_channelId_idx",
+    "label": "Create index \"EarthquakeSubscription_channelId_idx\" on \"EarthquakeSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeSubscription_channelId_idx",
+        "table": "EarthquakeSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeSubscription_channelId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_channelId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeSubscription_channelId_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeSubscription_channelId_idx\" ON \"public\".\"EarthquakeSubscription\" (\"channelId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeSubscription_channelId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_channelId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeSubscription.EarthquakeSubscription_guildId_channelId_latitude_longitude_key",
+    "label": "Create index \"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\" on \"EarthquakeSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeSubscription_guildId_channelId_latitude_longitude_key",
+        "table": "EarthquakeSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\"",
+        "sql": "CREATE UNIQUE INDEX \"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\" ON \"public\".\"EarthquakeSubscription\" (\"guildId\", \"channelId\", \"latitude\", \"longitude\", \"radiusKm\", \"minMagnitude\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_guildId_channelId_latitude_longitude_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeSubscription.EarthquakeSubscription_guildId_idx",
+    "label": "Create index \"EarthquakeSubscription_guildId_idx\" on \"EarthquakeSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeSubscription_guildId_idx",
+        "table": "EarthquakeSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeSubscription_guildId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_guildId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeSubscription_guildId_idx\"",
+        "sql": "CREATE INDEX \"EarthquakeSubscription_guildId_idx\" ON \"public\".\"EarthquakeSubscription\" (\"guildId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeSubscription_guildId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_guildId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.EarthquakeSubscription.EarthquakeSubscription_snowflake_key",
+    "label": "Create index \"EarthquakeSubscription_snowflake_key\" on \"EarthquakeSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EarthquakeSubscription_snowflake_key",
+        "table": "EarthquakeSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EarthquakeSubscription_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EarthquakeSubscription_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"EarthquakeSubscription_snowflake_key\" ON \"public\".\"EarthquakeSubscription\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EarthquakeSubscription_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EarthquakeSubscription_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.FeedbackBan.FeedbackBan_userId_idx",
+    "label": "Create index \"FeedbackBan_userId_idx\" on \"FeedbackBan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "FeedbackBan_userId_idx",
+        "table": "FeedbackBan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"FeedbackBan_userId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan_userId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"FeedbackBan_userId_idx\"",
+        "sql": "CREATE INDEX \"FeedbackBan_userId_idx\" ON \"public\".\"FeedbackBan\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"FeedbackBan_userId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan_userId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.FeedbackBan.FeedbackBan_userId_key",
+    "label": "Create index \"FeedbackBan_userId_key\" on \"FeedbackBan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "FeedbackBan_userId_key",
+        "table": "FeedbackBan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"FeedbackBan_userId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan_userId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"FeedbackBan_userId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"FeedbackBan_userId_key\" ON \"public\".\"FeedbackBan\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"FeedbackBan_userId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"FeedbackBan_userId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ForecastDestination.ForecastDestination_guildId_idx",
+    "label": "Create index \"ForecastDestination_guildId_idx\" on \"ForecastDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ForecastDestination_guildId_idx",
+        "table": "ForecastDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ForecastDestination_guildId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_guildId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ForecastDestination_guildId_idx\"",
+        "sql": "CREATE INDEX \"ForecastDestination_guildId_idx\" ON \"public\".\"ForecastDestination\" (\"guildId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ForecastDestination_guildId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_guildId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ForecastDestination.ForecastDestination_messageId_key",
+    "label": "Create index \"ForecastDestination_messageId_key\" on \"ForecastDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ForecastDestination_messageId_key",
+        "table": "ForecastDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ForecastDestination_messageId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_messageId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ForecastDestination_messageId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"ForecastDestination_messageId_key\" ON \"public\".\"ForecastDestination\" (\"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ForecastDestination_messageId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_messageId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ForecastDestination.ForecastDestination_snowflake_key",
+    "label": "Create index \"ForecastDestination_snowflake_key\" on \"ForecastDestination\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ForecastDestination_snowflake_key",
+        "table": "ForecastDestination"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ForecastDestination_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ForecastDestination_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"ForecastDestination_snowflake_key\" ON \"public\".\"ForecastDestination\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ForecastDestination_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ForecastDestination_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Incident.Incident_active_key_key",
+    "label": "Create index \"Incident_active_key_key\" on \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Incident_active_key_key",
+        "table": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Incident_active_key_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_active_key_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Incident_active_key_key\"",
+        "sql": "CREATE UNIQUE INDEX \"Incident_active_key_key\" ON \"public\".\"Incident\" (\"key\") WHERE ((status = 'ACTIVE'::\"IncidentStatus\"))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Incident_active_key_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_active_key_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Incident.Incident_createdAt_idx",
+    "label": "Create index \"Incident_createdAt_idx\" on \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Incident_createdAt_idx",
+        "table": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Incident_createdAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_createdAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Incident_createdAt_idx\"",
+        "sql": "CREATE INDEX \"Incident_createdAt_idx\" ON \"public\".\"Incident\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Incident_createdAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_createdAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Incident.Incident_severity_idx",
+    "label": "Create index \"Incident_severity_idx\" on \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Incident_severity_idx",
+        "table": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Incident_severity_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_severity_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Incident_severity_idx\"",
+        "sql": "CREATE INDEX \"Incident_severity_idx\" ON \"public\".\"Incident\" (\"severity\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Incident_severity_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_severity_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Incident.Incident_snowflake_key",
+    "label": "Create index \"Incident_snowflake_key\" on \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Incident_snowflake_key",
+        "table": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Incident_snowflake_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_snowflake_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Incident_snowflake_key\"",
+        "sql": "CREATE UNIQUE INDEX \"Incident_snowflake_key\" ON \"public\".\"Incident\" (\"snowflake\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Incident_snowflake_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_snowflake_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Incident.Incident_status_idx",
+    "label": "Create index \"Incident_status_idx\" on \"Incident\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Incident_status_idx",
+        "table": "Incident"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Incident_status_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_status_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Incident_status_idx\"",
+        "sql": "CREATE INDEX \"Incident_status_idx\" ON \"public\".\"Incident\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Incident_status_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Incident_status_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SentAlert.SentAlert_alertId_guildId_channelId_key",
+    "label": "Create index \"SentAlert_alertId_guildId_channelId_key\" on \"SentAlert\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SentAlert_alertId_guildId_channelId_key",
+        "table": "SentAlert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SentAlert_alertId_guildId_channelId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_alertId_guildId_channelId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SentAlert_alertId_guildId_channelId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"SentAlert_alertId_guildId_channelId_key\" ON \"public\".\"SentAlert\" (\"alertId\", \"guildId\", \"channelId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SentAlert_alertId_guildId_channelId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_alertId_guildId_channelId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SentAlert.SentAlert_expiresAt_idx",
+    "label": "Create index \"SentAlert_expiresAt_idx\" on \"SentAlert\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SentAlert_expiresAt_idx",
+        "table": "SentAlert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SentAlert_expiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_expiresAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SentAlert_expiresAt_idx\"",
+        "sql": "CREATE INDEX \"SentAlert_expiresAt_idx\" ON \"public\".\"SentAlert\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SentAlert_expiresAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_expiresAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SentAlert.SentAlert_guildId_channelId_alertId_idx",
+    "label": "Create index \"SentAlert_guildId_channelId_alertId_idx\" on \"SentAlert\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SentAlert_guildId_channelId_alertId_idx",
+        "table": "SentAlert"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SentAlert_guildId_channelId_alertId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_guildId_channelId_alertId_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SentAlert_guildId_channelId_alertId_idx\"",
+        "sql": "CREATE INDEX \"SentAlert_guildId_channelId_alertId_idx\" ON \"public\".\"SentAlert\" (\"guildId\", \"channelId\", \"alertId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SentAlert_guildId_channelId_alertId_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SentAlert_guildId_channelId_alertId_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.VolatileMessage.VolatileMessage_expiresAt_idx",
+    "label": "Create index \"VolatileMessage_expiresAt_idx\" on \"VolatileMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "VolatileMessage_expiresAt_idx",
+        "table": "VolatileMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"VolatileMessage_expiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage_expiresAt_idx\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"VolatileMessage_expiresAt_idx\"",
+        "sql": "CREATE INDEX \"VolatileMessage_expiresAt_idx\" ON \"public\".\"VolatileMessage\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"VolatileMessage_expiresAt_idx\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage_expiresAt_idx\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.VolatileMessage.VolatileMessage_messageId_key",
+    "label": "Create index \"VolatileMessage_messageId_key\" on \"VolatileMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "VolatileMessage_messageId_key",
+        "table": "VolatileMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"VolatileMessage_messageId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage_messageId_key\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"VolatileMessage_messageId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"VolatileMessage_messageId_key\" ON \"public\".\"VolatileMessage\" (\"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"VolatileMessage_messageId_key\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VolatileMessage_messageId_key\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AnnouncementDelivery.AnnouncementDelivery_announcementId_fkey",
+    "label": "Add foreign key \"AnnouncementDelivery_announcementId_fkey\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AnnouncementDelivery_announcementId_fkey",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AnnouncementDelivery_announcementId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AnnouncementDelivery_announcementId_fkey",
+          "public",
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AnnouncementDelivery_announcementId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AnnouncementDelivery\"\nADD CONSTRAINT \"AnnouncementDelivery_announcementId_fkey\"\nFOREIGN KEY (\"announcementId\")\nREFERENCES \"public\".\"Announcement\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AnnouncementDelivery_announcementId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AnnouncementDelivery_announcementId_fkey",
+          "public",
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AnnouncementDelivery.AnnouncementDelivery_subscriptionId_fkey",
+    "label": "Add foreign key \"AnnouncementDelivery_subscriptionId_fkey\" on \"AnnouncementDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AnnouncementDelivery_subscriptionId_fkey",
+        "table": "AnnouncementDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AnnouncementDelivery_subscriptionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AnnouncementDelivery_subscriptionId_fkey",
+          "public",
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AnnouncementDelivery_subscriptionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AnnouncementDelivery\"\nADD CONSTRAINT \"AnnouncementDelivery_subscriptionId_fkey\"\nFOREIGN KEY (\"subscriptionId\")\nREFERENCES \"public\".\"AnnouncementSubscription\" (\"id\")\nON DELETE CASCADE\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AnnouncementDelivery_subscriptionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AnnouncementDelivery_subscriptionId_fkey",
+          "public",
+          "\"public\".\"AnnouncementDelivery\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.EarthquakeDelivery.EarthquakeDelivery_eventId_fkey",
+    "label": "Add foreign key \"EarthquakeDelivery_eventId_fkey\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "EarthquakeDelivery_eventId_fkey",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"EarthquakeDelivery_eventId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EarthquakeDelivery_eventId_fkey",
+          "public",
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"EarthquakeDelivery_eventId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"EarthquakeDelivery\"\nADD CONSTRAINT \"EarthquakeDelivery_eventId_fkey\"\nFOREIGN KEY (\"eventId\")\nREFERENCES \"public\".\"EarthquakeEvent\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"EarthquakeDelivery_eventId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EarthquakeDelivery_eventId_fkey",
+          "public",
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.EarthquakeDelivery.EarthquakeDelivery_subscriptionId_fkey",
+    "label": "Add foreign key \"EarthquakeDelivery_subscriptionId_fkey\" on \"EarthquakeDelivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "EarthquakeDelivery_subscriptionId_fkey",
+        "table": "EarthquakeDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"EarthquakeDelivery_subscriptionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EarthquakeDelivery_subscriptionId_fkey",
+          "public",
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"EarthquakeDelivery_subscriptionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"EarthquakeDelivery\"\nADD CONSTRAINT \"EarthquakeDelivery_subscriptionId_fkey\"\nFOREIGN KEY (\"subscriptionId\")\nREFERENCES \"public\".\"EarthquakeSubscription\" (\"id\")\nON DELETE CASCADE\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"EarthquakeDelivery_subscriptionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EarthquakeDelivery_subscriptionId_fkey",
+          "public",
+          "\"public\".\"EarthquakeDelivery\""
+        ]
+      }
+    ]
+  }
+]

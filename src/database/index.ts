@@ -1,19 +1,35 @@
+import 'temporal-polyfill/global';
+import { Pool } from 'pg';
 import { env } from '@env';
-import { PrismaClient } from './generated/client';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
+import contractJson from './contract/contract.json';
+import postgres from '@prisma/orm-postgres/runtime';
+import type { Contract } from './contract/contract';
 
-// Extensions
-import exists from './extensions/exists';
-import autoRadarCountByGuild from './extensions/auto-radar-count-by-guild';
-import alertDestinationCountByGuild from './extensions/alert-destination-count-by-guild';
-import forecastDestinationCountByGuild from './extensions/forecast-destination-count-by-guild';
+const connectionString = env.get('DATABASE_URL');
+if (!['postgres:', 'postgresql:'].includes(new URL(connectionString).protocol))
+	throw new Error('WeatherGoat requires a PostgreSQL DATABASE_URL');
 
-const adapter = new PrismaLibSql({ url: env.get('DATABASE_URL') });
+const pool = new Pool({
+	connectionString,
+	max: 4,
+	connectionTimeoutMillis: 5_000,
+	idleTimeoutMillis: 30_000,
+	options: '-c timezone=UTC -c statement_timeout=30000 -c search_path=public',
+});
+const client = postgres<Contract>({ contractJson, pg: pool });
 
-export const db = new PrismaClient({ adapter })
-	.$extends(exists)
-	.$extends(autoRadarCountByGuild)
-	.$extends(alertDestinationCountByGuild)
-	.$extends(forecastDestinationCountByGuild);
+let closing: Promise<void> | undefined;
+const close = () =>
+	(closing ??= (async () => {
+		try {
+			await client.close();
+		} finally {
+			await pool.end();
+		}
+	})());
 
-export * from '.';
+export const db = {
+	...client,
+	close,
+	[Symbol.asyncDispose]: close,
+};

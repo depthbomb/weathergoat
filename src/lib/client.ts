@@ -1,7 +1,7 @@
 import { env } from '@env';
+import { db } from '@database';
 import { join } from 'node:path';
 import { Beacon } from './beacon';
-import { createCacheOptions } from './cache-options';
 import { BaseJob } from '@infra/jobs';
 import { container } from '@container';
 import { DOMAINS_DIR } from '@constants';
@@ -9,11 +9,14 @@ import { inject } from '@needle-di/core';
 import { BaseEvent } from '@infra/events';
 import { DomainModuleKind } from '@domain';
 import { readdir } from 'node:fs/promises';
+import { WorkTracker } from './work-tracker';
 import { BaseCommand } from '@infra/commands';
 import { RedisService } from '@services/redis';
 import { logger, reportError } from '@lib/logger';
+import { createCacheOptions } from './cache-options';
 import { FeaturesService } from '@services/features';
 import { Path } from '@depthbomb/node-common/pathlib';
+import { AlertDeliveryService } from '@services/alert-delivery';
 import { Flag, ResettableValue } from '@depthbomb/common/state';
 import { findFilesRecursivelyRegex } from '@sapphire/node-utilities';
 import { TimerManager, parseDuration } from '@depthbomb/common/timing';
@@ -55,7 +58,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	private commandLinksLoaded        = false;
 	private commandLinksLoadPromise?: Promise<void>;
-	private readonly activeJobExecutions = new Set<Promise<void>>();
+	private readonly work = new WorkTracker();
 
 	private readonly legacyCommandAliases = new Collection<string, BaseLegacyCommand>();
 	private readonly beacon               = new Beacon();
@@ -103,15 +106,14 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 
 	public async destroy() {
 		this.logger.info('Shutting down');
+		this.maintenanceModeFlag.setTrue();
+
+		const drained = this.work.closeAndDrain();
 
 		TimerManager.clearAll();
-		if (this.activeJobExecutions.size > 0) {
-			this.logger
-				.withMetadata({ count: this.activeJobExecutions.size })
-				.info('Waiting for active jobs to finish');
 
-			await Promise.allSettled(this.activeJobExecutions);
-		}
+		await drained;
+		await container.get(AlertDeliveryService).flushReceipts();
 
 		this.user?.setPresence({ status: 'invisible' });
 
@@ -119,6 +121,9 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 		this.redis.close();
 
 		await super.destroy();
+		await db.close();
+
+		this.logger.info('Shutdown complete: jobs and event handlers drained, delivery receipts persisted, database disconnected');
 	}
 
 	public async getCommandLink(commandName: string, ...path: string[]) {
@@ -229,19 +234,13 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 	}
 
 	private executeJob(job: BaseJob) {
-		const execution = (async () => {
+		void this.work.run(async () => {
 			try {
 				await job.callExecute(this);
 			} catch (err) {
 				reportError('Error executing job', err, { name: job.name });
 			}
-		})();
-
-		this.activeJobExecutions.add(execution);
-		void execution.then(
-			() => this.activeJobExecutions.delete(execution),
-			() => this.activeJobExecutions.delete(execution)
-		);
+		});
 	}
 
 	private async registerEvents() {
@@ -273,10 +272,14 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 					continue;
 				}
 
+				const handle = (...args: any[]) => {
+					void this.work.run(() => event.handle(...args)).catch(err => reportError('Error executing event', err, { name }));
+				};
+
 				if (once) {
-					this.once(name, async (...args) => await event.handle(...args));
+					this.once(name, handle);
 				} else {
-					this.on(name, async (...args) => await event.handle(...args));
+					this.on(name, handle);
 				}
 
 				this.events.set(name, event);

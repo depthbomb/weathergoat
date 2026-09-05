@@ -3,7 +3,7 @@ import { EMOJI } from '@constants';
 import { $msg } from '@lib/messages';
 import { BaseCommand } from '@infra/commands';
 import { createWarningMessageComponent } from '@utils/components';
-import { IncidentStatus, IncidentSeverity } from '@database/generated/enums';
+import { IncidentStatus, IncidentSeverity } from '@database/models';
 import { time, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
@@ -12,18 +12,20 @@ export class IncidentsCommand extends BaseCommand {
 		super({
 			data: new SlashCommandBuilder()
 				.setName('incidents')
-				.setDescription('View active incidents affecting my operations.')
+				.setDescription('View active incidents affecting my operations.'),
 		});
 	}
 
 	public async handle(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 
-		const activeIncidents = await db.incident.findMany({ where: { status: IncidentStatus.ACTIVE }, take: 10 });
+		const activeIncidents = await db.orm.public.Incident.where((f) => f.status.eq(IncidentStatus.ACTIVE))
+			.limit(10)
+			.all();
 		if (activeIncidents.length === 0) {
 			await interaction.editReply({
 				components: [createWarningMessageComponent($msg.incidents.command.noActiveIncidents())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 			return;
 		}
@@ -31,20 +33,22 @@ export class IncidentsCommand extends BaseCommand {
 		const embeds = [] as EmbedBuilder[];
 		for (const incident of activeIncidents) {
 			const embed = new EmbedBuilder()
-				.setTitle(`${this.getSeverityEmoji(incident.severity)} ${incident.severity.bracketWrap()} ${incident.title}`)
+				.setTitle(
+					`${this.getSeverityEmoji(incident.severity)} ${incident.severity.bracketWrap()} ${incident.title}`,
+				)
 				.setDescription(incident.description)
 				.setFields([
 					{
 						name: $msg.incidents.command.createdFieldTitle(),
-						value: time(incident.createdAt, 'R'),
+						value: time(Math.floor(incident.createdAt.epochMilliseconds / 1000), 'R'),
 						inline: true,
-					}
+					},
 				]);
 
 			if (incident.autoResolveAt) {
 				embed.addFields({
 					name: $msg.incidents.command.autoResolveFieldTitle(),
-					value: time(incident.autoResolveAt, 'R'),
+					value: time(Math.floor(incident.autoResolveAt.epochMilliseconds / 1000), 'R'),
 					inline: true,
 				});
 			}

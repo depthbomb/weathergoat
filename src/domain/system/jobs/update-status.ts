@@ -4,9 +4,9 @@ import { uptime } from 'node:os';
 import { $msg } from '@lib/messages';
 import { BaseJob } from '@infra/jobs';
 import { inject } from '@needle-di/core';
+import { IncidentStatus } from '@database/models';
 import { FeaturesService } from '@services/features';
 import { formatDuration } from '@depthbomb/common/timing';
-import { IncidentStatus } from '@database/generated/enums';
 import { ActivityType, PresenceUpdateStatus } from 'discord.js';
 import type { WeatherGoat } from '@lib/client';
 
@@ -14,29 +14,36 @@ export class UpdateStatusJob extends BaseJob {
 	private lastEmoji = '';
 
 	private readonly emoji = {
-		spring: [
-			'☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌈', '💨', '🌬️', '☔', '☂️',
-			'🌫️', '🌪️',
-		],
+		spring: ['☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌈', '💨', '🌬️', '☔', '☂️', '🌫️', '🌪️'],
 		summer: [
-			'☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '💨', '🌬️', '☔', '☂️', '🌫️',
-			'🌪️', '🌊', '🌡️', '🏖️',
+			'☀️',
+			'🌤️',
+			'⛅',
+			'🌥️',
+			'☁️',
+			'🌦️',
+			'🌧️',
+			'⛈️',
+			'🌩️',
+			'💨',
+			'🌬️',
+			'☔',
+			'☂️',
+			'🌫️',
+			'🌪️',
+			'🌊',
+			'🌡️',
+			'🏖️',
 		],
-		autumn: [
-			'🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '💨', '🌬️', '☔', '☂️', '🌫️', '🌪️',
-		],
-		winter: [
-			'⛅', '🌥️', '☁️', '🌨️', '❄️', '🧊', '☃️', '⛄', '💨', '🌬️', '🌫️',
-		],
+		autumn: ['🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '💨', '🌬️', '☔', '☂️', '🌫️', '🌪️'],
+		winter: ['⛅', '🌥️', '☁️', '🌨️', '❄️', '🧊', '☃️', '⛄', '💨', '🌬️', '🌫️'],
 	} as const;
 
-	public constructor(
-		private readonly features = inject(FeaturesService)
-	) {
+	public constructor(private readonly features = inject(FeaturesService)) {
 		super({
 			name: UpdateStatusJob.name,
 			interval: '15s',
-			runImmediately: true
+			runImmediately: true,
 		});
 	}
 
@@ -51,30 +58,39 @@ export class UpdateStatusJob extends BaseJob {
 				activities: [
 					{
 						name: $msg.system.status.devEnvActivity(),
-						type: ActivityType.Custom
-					}
-				]
+						type: ActivityType.Custom,
+					},
+				],
 			});
 			return;
 		}
 
-		const duration       = formatDuration(uptime() * 1_000, { precision: 3 });
-		const incidentsCount = await db.incident.count({ where: { status: IncidentStatus.ACTIVE } });
+		const duration = formatDuration(uptime() * 1_000, { precision: 3 });
+		const incidentsCount = await db.orm.public.Incident.where((f) => f.status.eq(IncidentStatus.ACTIVE))
+			.aggregate((a) => ({ count: a.count() }))
+			.then((r) => r.count);
 
 		client.user.setPresence({
 			status: PresenceUpdateStatus.DoNotDisturb,
 			activities: [
 				{
 					name: $msg.system.status.activity(incidentsCount, this.pickRandomEmoji(), duration),
-					type: ActivityType.Custom
-				}
-			]
+					type: ActivityType.Custom,
+				},
+			],
 		});
 	}
 
 	private pickRandomEmoji() {
 		const month = new Date().getMonth();
-		const season = month >= 2 && month <= 4 ? 'spring' : month >= 5 && month <= 7 ? 'summer' : month >= 8 && month <= 10 ? 'autumn' : 'winter';
+		const season =
+			month >= 2 && month <= 4
+				? 'spring'
+				: month >= 5 && month <= 7
+					? 'summer'
+					: month >= 8 && month <= 10
+						? 'autumn'
+						: 'winter';
 		const emojis = this.emoji[season];
 
 		let index = Math.floor(Math.random() * emojis.length);

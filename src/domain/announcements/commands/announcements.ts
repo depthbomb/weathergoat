@@ -2,6 +2,7 @@ import { db } from '@database';
 import { $msg } from '@lib/messages';
 import { reportError } from '@lib/logger';
 import { BaseCommand } from '@infra/commands';
+import { requireRecord } from '@database/values';
 import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import {
 	createErrorMessageComponent,
@@ -11,7 +12,7 @@ import {
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 const enum Subcommands {
-	Subscribe   = 'subscribe',
+	Subscribe = 'subscribe',
 	Unsubscribe = 'unsubscribe',
 }
 
@@ -22,18 +23,18 @@ export class AnnouncementCommand extends BaseCommand {
 				.setName('announcements')
 				.setDescription('Commands related to developer announcements')
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-				.addSubcommand(sc => sc
+				.addSubcommand((sc) => sc
 					.setName(Subcommands.Subscribe)
-					.setDescription('Subscribe to receiving announcements via direct message')
+					.setDescription('Subscribe to receiving announcements via direct message'),
 				)
-				.addSubcommand(sc => sc
+				.addSubcommand((sc) => sc
 					.setName(Subcommands.Unsubscribe)
-					.setDescription('Unsubscribes from receiving announcements via direct message')
-				)
+					.setDescription('Unsubscribes from receiving announcements via direct message'),
+				),
 		});
 
 		this.configureSubcommands<Subcommands>({
-			[Subcommands.Subscribe]:   [],
+			[Subcommands.Subscribe]: [],
 			[Subcommands.Unsubscribe]: [],
 		});
 	}
@@ -47,26 +48,28 @@ export class AnnouncementCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
+		const existingSubscription = await db.orm.public.AnnouncementSubscription.where((f) =>
+			f.userId.eq(userId),
+		).first();
 		if (existingSubscription) {
 			await interaction.editReply({
 				components: [createWarningMessageComponent($msg.announcements.command.subscribe.alreadySubscribed())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 			return;
 		}
 
 		try {
-			await db.announcementSubscription.create({ data: { userId } });
+			await db.orm.public.AnnouncementSubscription.create({ userId: userId });
 			await interaction.editReply({
 				components: [createSuccessMessageComponent($msg.announcements.command.subscribe.success())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 		} catch (err) {
 			reportError('Unable to create announcement subscription record', err, { userId });
 			await interaction.editReply({
 				components: [createErrorMessageComponent($msg.announcements.command.subscribe.error())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 		}
 	}
@@ -76,26 +79,30 @@ export class AnnouncementCommand extends BaseCommand {
 
 		await interaction.deferReply();
 
-		const existingSubscription = await db.announcementSubscription.findFirst({ where: { userId } });
+		const existingSubscription = await db.orm.public.AnnouncementSubscription.where((f) =>
+			f.userId.eq(userId),
+		).first();
 		if (!existingSubscription) {
 			await interaction.editReply({
 				components: [createWarningMessageComponent($msg.announcements.command.unsubscribe.notSubscribed())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 			return;
 		}
 
 		try {
-			await db.announcementSubscription.delete({ where: { userId } });
+			await db.orm.public.AnnouncementSubscription.where((f) => f.userId.eq(userId))
+				.delete()
+				.then(requireRecord);
 			await interaction.editReply({
 				components: [createSuccessMessageComponent($msg.announcements.command.unsubscribe.success())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 		} catch (err) {
 			reportError('Unable to remove announcement subscription record', err, { userId });
 			await interaction.editReply({
 				components: [createErrorMessageComponent($msg.announcements.command.unsubscribe.error())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 		}
 	}

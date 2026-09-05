@@ -15,6 +15,7 @@
 		"node_modules/**",
 		".data/**",
 		"src/database/generated/**",
+		"src/database/contract/**",
 		"**/*.generated.ts"
 	]
 }

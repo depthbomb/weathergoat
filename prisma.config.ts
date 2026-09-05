@@ -1,12 +1,12 @@
 import 'dotenv/config';
-import { env, defineConfig } from 'prisma/config';
+import { definePrismaConfig } from 'prisma/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
-export default defineConfig({
-	schema: 'prisma/schema.prisma',
-	migrations: {
-		path: 'prisma/migrations',
-	},
-	datasource: {
-		url: env('DATABASE_URL'),
-	},
+export default definePrismaConfig({
+	orm: defineConfig({
+		contract: 'prisma/contract.prisma',
+		output: 'src/database/contract',
+		db: { connection: process.env['MIGRATION_DATABASE_URL'] ?? process.env['DATABASE_URL'] },
+		migrations: { dir: 'prisma/v8-migrations' }
+	})
 });

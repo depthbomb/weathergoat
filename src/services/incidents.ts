@@ -1,97 +1,82 @@
 import { db } from '@database';
 import { injectable } from '@needle-di/core';
+import { IncidentStatus } from '@database/models';
 import { generateSnowflake } from '@lib/snowflake';
-import { Prisma } from '@database/generated/client';
+import { and } from '@prisma/orm-postgres/orm-client';
 import { parseDuration } from '@depthbomb/common/timing';
-import { IncidentStatus } from '@database/generated/enums';
-import type { IncidentSeverity } from '@database/generated/enums';
+import { toInstant, requireRecord, isUniqueViolation } from '@database/values';
+import type { IncidentSeverity } from '@database/models';
 
 @injectable()
 export class IncidentsService {
 	public async isActive(key: string) {
-		const count = await db.incident.count({
-			where: {
-				key,
-				status: IncidentStatus.ACTIVE
-			}
-		});
+		const count = await db.orm.public.Incident
+			.where((f) => and(f.key.eq(key), f.status.eq(IncidentStatus.ACTIVE)))
+				.aggregate((a) => ({ count: a.count() }))
+				.then((r) => r.count);
 
 		return count > 0;
 	}
 
 	public async resolve(key: string) {
-		return db.incident.updateMany({
-			where: {
-				key,
-				status: IncidentStatus.ACTIVE
-			},
-			data: {
-				status: IncidentStatus.RESOLVED,
-				resolvedAt: new Date()
-			}
-		});
+		return db.orm.public.Incident.where((f) => and(f.key.eq(key), f.status.eq(IncidentStatus.ACTIVE)))
+			.updateAndCount({ status: IncidentStatus.RESOLVED, resolvedAt: toInstant(new Date()) })
+			.then((count) => ({ count }));
 	}
 
-	public async ensureActiveIncident(title: string, description: string, severity: IncidentSeverity, autoResolveDuration = '1 month') {
-		return this.getOrCreate(
-			severity,
-			title,
-			description,
-			autoResolveDuration
-		);
+	public async ensureActiveIncident(
+		title: string,
+		description: string,
+		severity: IncidentSeverity,
+		autoResolveDuration = '1 month',
+	) {
+		return this.getOrCreate(severity, title, description, autoResolveDuration);
 	}
 
-	public async getOrCreate(severity: IncidentSeverity, title: string, description: string, autoResolveDuration: string) {
-		const key           = title.toSlug();
-		const autoResolveAt = parseDuration(autoResolveDuration).fromNow();
-		const update        = {
+	public async getOrCreate(
+		severity: IncidentSeverity,
+		title: string,
+		description: string,
+		autoResolveDuration: string,
+	) {
+		const key = title.toSlug();
+		const autoResolveAt = toInstant(parseDuration(autoResolveDuration).fromNow());
+		const update = {
 			severity,
 			description,
-			autoResolveAt
+			autoResolveAt,
 		};
 
-		const activeIncident = await db.incident.findFirst({
-			where: {
-				key,
-				status: IncidentStatus.ACTIVE
-			}
-		});
+		const activeIncident = await db.orm.public.Incident.where((f) => and(f.key.eq(key), f.status.eq(IncidentStatus.ACTIVE))).first();
 		if (activeIncident) {
-			return db.incident.update({
-				where: { id: activeIncident.id },
-				data: update
-			});
+			return db.orm.public.Incident.where((f) => f.id.eq(activeIncident.id))
+				.update(update)
+				.then(requireRecord);
 		}
 
 		try {
-			return await db.incident.create({
-				data: {
-					snowflake: generateSnowflake(),
-					key,
-					title,
-					description,
-					severity,
-					autoResolveAt
-				}
+			return await db.orm.public.Incident.create({
+				snowflake: generateSnowflake(),
+				key: key,
+				title: title,
+				description: description,
+				severity: severity,
+				autoResolveAt: toInstant(autoResolveAt),
 			});
 		} catch (err) {
-			if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2002') {
+			if (!isUniqueViolation(err)) {
 				throw err;
 			}
 
 			// Another caller created the active incident after our initial lookup. Reuse that row
 			// instead of surfacing the partial unique-index race to the caller.
-			const concurrentIncident = await db.incident.findFirstOrThrow({
-				where: {
-					key,
-					status: IncidentStatus.ACTIVE
-				}
-			});
+			const concurrentIncident = await db.orm.public.Incident.where((f) => and(f.key.eq(key), f.status.eq(IncidentStatus.ACTIVE)))
+				.first()
+				.then(requireRecord);
 
-			return db.incident.update({
-				where: { id: concurrentIncident.id },
-				data: update
-			});
+			return db.orm.public.Incident.where((f) => f.id.eq(concurrentIncident.id))
+				.update(update)
+				.then(requireRecord);
 		}
 	}
 }

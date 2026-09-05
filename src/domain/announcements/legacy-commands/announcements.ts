@@ -7,7 +7,7 @@ import type { Message } from 'discord.js';
 
 const enum Subcommands {
 	CountSubscriptions = 'count-subscriptions',
-	Create             = 'create',
+	Create = 'create',
 }
 
 export class AnnouncementsCommand extends BaseLegacyCommand {
@@ -27,16 +27,13 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 
 	public async [Subcommands.CountSubscriptions](message: Message) {
 		try {
-			const count = await db.announcementSubscription.count();
+			const count = await db.orm.public.AnnouncementSubscription.aggregate((a) => ({
+				count: a.count(),
+			})).then((r) => r.count);
 			await message.reply($msg.announcements.legacy.count.success(count));
 		} catch (err) {
 			reportError('Unable to count announcement records', err);
-			await message.reply(
-				$msg.announcements.legacy.count.error(
-					(err as Error).name,
-					(err as Error).stack,
-				)
-			);
+			await message.reply($msg.announcements.legacy.count.error((err as Error).name, (err as Error).stack));
 		}
 	}
 
@@ -52,37 +49,27 @@ export class AnnouncementsCommand extends BaseLegacyCommand {
 		const snowflake = generateSnowflake();
 
 		try {
-			await db.$transaction(async tx => {
-				const subscriptions = await tx.announcementSubscription.findMany({
-					select: { id: true }
-				});
-				const announcement = await tx.announcement.create({
-					data: {
-						snowflake,
-						title,
-						body
-					},
-					select: { id: true }
+			await db.transaction(async (tx) => {
+				const subscriptions = await tx.orm.public.AnnouncementSubscription.select('id').all();
+				const announcement = await tx.orm.public.Announcement.select('id').create({
+					snowflake: snowflake,
+					title: title,
+					body: body,
 				});
 
 				if (subscriptions.length > 0) {
-					await tx.announcementDelivery.createMany({
-						data: subscriptions.map(subscription => ({
+					await tx.orm.public.AnnouncementDelivery.createAndCount(
+						subscriptions.map((subscription) => ({
 							announcementId: announcement.id,
-							subscriptionId: subscription.id
-						}))
-					});
+							subscriptionId: subscription.id,
+						})),
+					).then((count) => ({ count }));
 				}
 			});
 			await message.reply($msg.announcements.legacy.create.success());
 		} catch (err) {
 			reportError('Unable to create announcement record', err, { snowflake });
-			await message.reply(
-				$msg.announcements.legacy.create.error(
-					(err as Error).name,
-					(err as Error).stack,
-				)
-			);
+			await message.reply($msg.announcements.legacy.create.error((err as Error).name, (err as Error).stack));
 		}
 	}
 }

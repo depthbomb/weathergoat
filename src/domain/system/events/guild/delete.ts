@@ -5,9 +5,7 @@ import { EventBusService } from '@services/event-bus';
 import type { Guild } from 'discord.js';
 
 export class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
-	public constructor(
-		private readonly eventBus = inject(EventBusService),
-	) {
+	public constructor(private readonly eventBus = inject(EventBusService)) {
 		super({ name: 'guildDelete' });
 	}
 
@@ -17,13 +15,25 @@ export class GuildDeleteEvent extends BaseEvent<'guildDelete'> {
 
 		const where = { guildId: guild.id };
 
-		this.logger.withMetadata({ id: guild.id, name: guild.name }).info('No longer operating in a guild, cleaning up database');
+		this.logger
+			.withMetadata({ id: guild.id, name: guild.name })
+			.info('No longer operating in a guild, cleaning up database');
 
-		await db.alertDestination.deleteMany({ where });
-		await db.forecastDestination.deleteMany({ where });
-		await db.autoRadarMessage.deleteMany({ where });
-		await db.volatileMessage.deleteMany({ where });
-		await db.sentAlert.deleteMany({ where });
+		await db.orm.public.AlertDestination.where(where)
+			.deleteAndCount()
+			.then((count) => ({ count }));
+		await db.orm.public.ForecastDestination.where(where)
+			.deleteAndCount()
+			.then((count) => ({ count }));
+		await db.orm.public.AutoRadarMessage.where(where)
+			.deleteAndCount()
+			.then((count) => ({ count }));
+		await db.orm.public.VolatileMessage.where(where)
+			.deleteAndCount()
+			.then((count) => ({ count }));
+		await db.orm.public.SentAlert.where(where)
+			.deleteAndCount()
+			.then((count) => ({ count }));
 
 		this.eventBus.emit('alert-destinations:updated');
 	}

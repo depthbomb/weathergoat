@@ -32,20 +32,28 @@ import {
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 export class ForecastCommand extends BaseCommand {
-	public constructor(
-		private readonly location = inject(LocationService)
-	) {
+	public constructor(private readonly location = inject(LocationService)) {
 		super({
 			data: new SlashCommandBuilder()
 				.setName('forecasts')
 				.setDescription('Designates a channel for posting hourly weather forecasts to')
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-				.addStringOption(o => o.setName('latitude').setDescription('The latitude of the area to report the forecast of').setRequired(true))
-				.addStringOption(o => o.setName('longitude').setDescription('The longitude of the area to report the forecast of').setRequired(true))
-				.addChannelOption(o => o.setName('channel').setDescription('The channel in which to send hourly forecasts to').setRequired(true)),
-			preconditions: [
-				new CooldownPrecondition({ duration: '5s', global: true })
-			]
+				.addStringOption((o) => o
+					.setName('latitude')
+					.setDescription('The latitude of the area to report the forecast of')
+					.setRequired(true),
+				)
+				.addStringOption((o) => o
+					.setName('longitude')
+					.setDescription('The longitude of the area to report the forecast of')
+					.setRequired(true),
+				)
+				.addChannelOption((o) => o
+					.setName('channel')
+					.setDescription('The channel in which to send hourly forecasts to')
+					.setRequired(true),
+				),
+			preconditions: [new CooldownPrecondition({ duration: '5s', global: true })],
 		});
 	}
 
@@ -58,14 +66,20 @@ export class ForecastCommand extends BaseCommand {
 
 		GuildOnlyInvocationInNonGuildError.assert(guildId);
 
-		const existingCount = await db.forecastDestination.countByGuild(guildId);
+		const existingCount = await db.orm.public.ForecastDestination.where((f) => f.guildId.eq(guildId))
+			.aggregate((a) => ({ count: a.count() }))
+			.then((r) => r.count);
 
-		MaxDestinationError.assert(existingCount < maxCount, $msg.forecasts.command.errors.maxDestinationsReached(), { max: maxCount });
+		MaxDestinationError.assert(
+			existingCount < maxCount,
+			$msg.forecasts.command.errors.maxDestinationsReached(),
+			{ max: maxCount },
+		);
 
 		if (!this.location.isValidCoordinates(latitude, longitude)) {
 			await interaction.reply({
 				components: [createErrorMessageComponent($msg.shared.errors.invalidCoordinates())],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 			return;
 		}
@@ -76,61 +90,64 @@ export class ForecastCommand extends BaseCommand {
 			const location = await this.location.resolveCoordinates(latitude, longitude);
 			const locationPrompt = location.wasAdjusted
 				? $msg.shared.prompts.locationConfirmAdjusted(
-					location.requested.latitude,
-					location.requested.longitude,
-					location.latitude,
-					location.longitude,
-					location.name
-				)
+						location.requested.latitude,
+						location.requested.longitude,
+						location.latitude,
+						location.longitude,
+						location.name,
+					)
 				: $msg.shared.prompts.locationConfirm(location.latitude, location.longitude, location.name);
 
 			const container = new ContainerBuilder()
-				.addTextDisplayComponents(t => t.setContent(locationPrompt))
-				.addActionRowComponents(a => a
+				.addTextDisplayComponents((t) => t.setContent(locationPrompt))
+				.addActionRowComponents((a) => a
 					.addComponents(
 						new ButtonBuilder()
 							.setCustomId('confirm')
 							.setLabel($msg.shared.buttons.yes())
-							.setStyle(ButtonStyle.Success)
+							.setStyle(ButtonStyle.Success),
 					)
 					.addComponents(
 						new ButtonBuilder()
 							.setCustomId('deny')
 							.setLabel($msg.shared.buttons.no())
-							.setStyle(ButtonStyle.Danger)
-					)
+							.setStyle(ButtonStyle.Danger),
+					),
 				);
 
 			const initialReply = await interaction.editReply({
 				components: [container],
-				flags: [MessageFlags.IsComponentsV2]
+				flags: [MessageFlags.IsComponentsV2],
 			});
 
-			const confirmation = await initialReply.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id && ['confirm', 'deny'].includes(i.customId), time: 30_000 });
+			const confirmation = await initialReply.awaitMessageComponent({
+				filter: (i) => i.user.id === interaction.user.id && ['confirm', 'deny'].includes(i.customId),
+				time: 30_000,
+			});
+
 			await confirmation.deferUpdate();
+
 			const { customId } = confirmation;
 			if (customId === 'confirm') {
 				const initialMessage = await channel.send({
 					content: $msg.forecasts.command.placeholderMessage(location.name),
-					flags: MessageFlags.SuppressNotifications
+					flags: MessageFlags.SuppressNotifications,
 				});
 				const snowflake = generateSnowflake();
 
-				await db.forecastDestination.create({
-					data: {
-						snowflake,
-						latitude: location.latitude,
-						longitude: location.longitude,
-						guildId,
-						channelId: channel.id,
-						messageId: initialMessage.id,
-						radarImageUrl: location.radar.reflectivityImageUrl
-					}
+				await db.orm.public.ForecastDestination.create({
+					snowflake: snowflake,
+					latitude: location.latitude,
+					longitude: location.longitude,
+					guildId: guildId,
+					channelId: channel.id,
+					messageId: initialMessage.id,
+					radarImageUrl: location.radar.reflectivityImageUrl,
 				});
 
 				await interaction.editReply({
 					components: [createSuccessMessageComponent($msg.forecasts.command.created(channel.toString()))],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			} else {
 				await initialReply.delete();
@@ -140,24 +157,26 @@ export class ForecastCommand extends BaseCommand {
 				if (err.code === 404) {
 					await interaction.editReply({
 						components: [createErrorMessageComponent($msg.shared.errors.locationNotFound())],
-						flags: MessageFlags.IsComponentsV2
+						flags: MessageFlags.IsComponentsV2,
 					});
 				} else {
 					await interaction.editReply({
-						components: [createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status))],
-						flags: MessageFlags.IsComponentsV2
+						components: [
+							createErrorMessageComponent($msg.shared.errors.locationLookupHttpError(err.code, err.status)),
+						],
+						flags: MessageFlags.IsComponentsV2,
 					});
 				}
 			} else if (isDiscordJSError(err, DiscordjsErrorCodes.InteractionCollectorError)) {
 				await interaction.editReply({
 					components: [createWarningMessageComponent($msg.shared.notices.promptTimedOut())],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			} else {
 				reportError('Error creating forecast destination', err);
 				await interaction.editReply({
 					components: [createErrorMessageComponent($msg.shared.errors.unknown())],
-					flags: MessageFlags.IsComponentsV2
+					flags: MessageFlags.IsComponentsV2,
 				});
 			}
 		}

@@ -1,10 +1,11 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
+import { requireRecord } from '@database/values';
 import { BaseLegacyCommand, LegacyCommandParam } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
 
 const enum Subcommands {
-	Ban   = 'ban',
+	Ban = 'ban',
 	Unban = 'unban',
 }
 
@@ -18,9 +19,7 @@ export class FeedbackCommand extends BaseLegacyCommand {
 					LegacyCommandParam.string('user-id'),
 					LegacyCommandParam.string('reason', { required: false, rest: true }),
 				],
-				[Subcommands.Unban]: [
-					LegacyCommandParam.string('user-id'),
-				],
+				[Subcommands.Unban]: [LegacyCommandParam.string('user-id')],
 			},
 		});
 	}
@@ -30,7 +29,7 @@ export class FeedbackCommand extends BaseLegacyCommand {
 		const reason = this.ctx.params.getString('reason') ?? 'No reason specified.';
 
 		try {
-			await db.feedbackBan.create({ data: { userId, reason } });
+			await db.orm.public.FeedbackBan.create({ userId: userId, reason: reason });
 			await message.reply($msg.feedback.legacy.ban.success());
 		} catch (err) {
 			await message.reply($msg.feedback.legacy.ban.error((err as Error).stack?.toCodeBlock()));
@@ -41,7 +40,9 @@ export class FeedbackCommand extends BaseLegacyCommand {
 		const userId = this.ctx.params.getString('user-id', true);
 
 		try {
-			await db.feedbackBan.delete({ where: { userId } });
+			await db.orm.public.FeedbackBan.where((f) => f.userId.eq(userId))
+				.delete()
+				.then(requireRecord);
 			await message.reply($msg.feedback.legacy.unban.success());
 		} catch (err) {
 			await message.reply($msg.feedback.legacy.unban.error((err as Error).stack?.toCodeBlock()));

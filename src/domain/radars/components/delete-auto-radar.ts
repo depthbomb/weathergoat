@@ -1,5 +1,6 @@
 import { db } from '@database';
 import { $msg } from '@lib/messages';
+import { requireRecord } from '@database/values';
 import { assume } from '@depthbomb/common/typing';
 import { BaseComponent } from '@infra/components';
 import { isGuildMember } from '@sapphire/discord.js-utilities';
@@ -20,7 +21,7 @@ export class DeleteAutoRadarButton extends BaseComponent {
 		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
 			await interaction.reply({
 				content: $msg.radar.components.deleteAutoRadarButton.noPermission(),
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
@@ -28,23 +29,23 @@ export class DeleteAutoRadarButton extends BaseComponent {
 		await interaction.deferUpdate();
 
 		const { guildId, channelId } = interaction;
-		const [messageId]            = match.wildcards;
+		const [messageId] = match.wildcards;
 
 		assume<string>(guildId);
 		assume<string>(channelId);
 
 		const where = { guildId, channelId, messageId };
 
-		const autoRadarMessage = await db.autoRadarMessage.findFirst({ where });
+		const autoRadarMessage = await db.orm.public.AutoRadarMessage.where(where).first();
 		if (!autoRadarMessage) {
 			await interaction.followUp({
 				content: $msg.radar.components.deleteAutoRadarButton.couldNotFindMessage(),
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
 			});
 			return;
 		}
 
-		await db.autoRadarMessage.delete({ where });
+		await db.orm.public.AutoRadarMessage.where(where).delete().then(requireRecord);
 		await interaction.message.delete();
 	}
 }
