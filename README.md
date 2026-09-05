@@ -40,6 +40,10 @@ For managing application commands, see owner-only commands below.
 
 # Development
 
+Run `bun install --frozen-lockfile` to install dependencies, `bun run lint` to check code with Oxlint, and `bun run lint:fix` to apply automatic fixes. Linting covers source, tests, scripts, and root configuration files; generated Prisma clients, generated message catalogs, and local data are excluded in `.oxlintrc.json`. Correctness rules are enabled, and warnings fail the lint command.
+
+Run `bun test` and `bunx tsc --noEmit` for tests and TypeScript validation. Oxlint does not replace typechecking. For editor diagnostics, install the [official Oxc VS Code extension](https://oxc.rs/docs/guide/usage/linter/editors.html).
+
 As of version `2026.4.3`, owner-only commands now use the legacy prefixed commands system and the bot requires the `MESSAGE_CONTENT` intent. These commands should be called in the direct messages channel with the bot. These commands will only work for the owner of the application or an admin or developer if the application is owned by a team.
 
 Use the `commands create-global` command to register application commands globally or `commands create [guildIds:string...]` to register commands to specific guilds. Use `delete`/`delete-global` to delete application commands in specific guilds or globally.

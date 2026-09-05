@@ -4,6 +4,8 @@
 	"module": "src/index.ts",
 	"type": "module",
 	"scripts": {
+		"lint": "oxlint --deny-warnings .",
+		"lint:fix": "oxlint --fix --deny-warnings .",
 		"start": "bun src/index.ts",
 		"update": "bash update.sh",
 		"deploy": "bun scripts/deploy.ts",
@@ -25,7 +27,7 @@
 		"@loglayer/plugin-sprintf": "^3.3.0",
 		"@loglayer/transport-log-file-rotation": "^3.3.0",
 		"@loglayer/transport-simple-pretty-terminal": "^3.3.0",
-		"@needle-di/core": "^1.2.0",
+		"@needle-di/core": "^1.2.1",
 		"@prisma/adapter-libsql": "^7.10.0",
 		"@prisma/client": "^7.10.0",
 		"@resvg/resvg-js": "^2.6.2",
@@ -45,7 +47,8 @@
 		"utf-8-validate": "^6.0.6"
 	},
 	"devDependencies": {
-		"bun-types": "1.4.0",
+		"bun-types": "1.4.1",
+		"oxlint": "1.81.0",
 		"prisma": "^7.10.0",
 		"typescript": "7.0.2"
 	}

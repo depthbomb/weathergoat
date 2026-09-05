@@ -177,7 +177,7 @@ export class HTTPClient {
 			return this._doRequest(urlOrOptions, { method: 'GET', ...options });
 		}
 
-		return this._doRequest(undefined, { method: 'GET', ...(urlOrOptions ?? {}) });
+		return this._doRequest(undefined, { method: 'GET', ...urlOrOptions });
 	}
 
 	private async _doRequest(input?: string | URL, init?: RequestOptions) {

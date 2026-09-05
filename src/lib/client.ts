@@ -108,7 +108,7 @@ export class WeatherGoat<T extends boolean = boolean> extends Client<T> {
 				.withMetadata({ count: this.activeJobExecutions.size })
 				.info('Waiting for active jobs to finish');
 
-			await Promise.allSettled([...this.activeJobExecutions]);
+			await Promise.allSettled(this.activeJobExecutions);
 		}
 
 		this.user?.setPresence({ status: 'invisible' });

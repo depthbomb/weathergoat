@@ -111,9 +111,9 @@ export abstract class BaseCommand {
 	/**
 	 * When overridden, handles autocomplete interactions for this command.
 	 *
-	 * @param interaction The {@link AutocompleteInteraction}.
+	 * @param _interaction The {@link AutocompleteInteraction}.
 	 */
-	public async handleAutocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
+	public async handleAutocomplete(_interaction: AutocompleteInteraction): Promise<unknown> {
 		return Promise.resolve();
 	}
 

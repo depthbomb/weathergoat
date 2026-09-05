@@ -30,7 +30,7 @@ export class MsgCommand extends BaseLegacyCommand {
 			if (deleteInvoker) {
 				await message.delete();
 			}
-		} catch (err) {
+		} catch {
 			await message.reply('I am unable to delete that message.');
 		}
 	}
