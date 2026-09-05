@@ -26,7 +26,8 @@ export class UpdateRadarMessagesJob extends BaseJob {
 	];
 
 	public constructor(
-		private readonly features = inject(FeaturesService)
+		private readonly features = inject(FeaturesService),
+		private readonly database = db
 	) {
 		super({
 			name: UpdateRadarMessagesJob.name,
@@ -40,10 +41,11 @@ export class UpdateRadarMessagesJob extends BaseJob {
 			return;
 		}
 
-		const dueMessages = await db.autoRadarMessage.findMany({
+		const dueMessages = await this.database.autoRadarMessage.findMany({
 			where: {
 				nextUpdate: { lte: new Date() }
 			},
+			orderBy: [{ nextUpdate: 'asc' }, { id: 'asc' }],
 			take: 100
 		});
 		for (const { id, guildId, channelId, messageId, location, radarStation, radarImageUrl, velocityRadarImageUrl, showReflectivity, showVelocity, updateInterval } of dueMessages) {
@@ -54,7 +56,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 						.withMetadata({ guildId, channelId, messageId, location })
 						.warn('Radar channel is not a text channel, deleting record');
 
-					await db.autoRadarMessage.delete({ where: { id } });
+					await this.database.autoRadarMessage.delete({ where: { id } });
 					continue;
 				}
 
@@ -64,7 +66,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 						.withMetadata({ guildId, channelId, messageId })
 						.warn('Auto radar message is not editable, deleting record');
 
-					await db.autoRadarMessage.delete({ where: { id } });
+					await this.database.autoRadarMessage.delete({ where: { id } });
 					continue;
 				}
 
@@ -105,7 +107,7 @@ export class UpdateRadarMessagesJob extends BaseJob {
 				container.addActionRowComponents(a => a.addComponents(deleteButton));
 
 				await message.edit({ content: String.empty(), components: [container] });
-				await db.autoRadarMessage.update({ data: { nextUpdate }, where: { id } });
+				await this.database.autoRadarMessage.update({ data: { nextUpdate }, where: { id } });
 			} catch (err) {
 				if (isDiscordAPIError(err)) {
 					const { code, message } = err;
@@ -114,11 +116,17 @@ export class UpdateRadarMessagesJob extends BaseJob {
 							.withMetadata({ guildId, channelId, messageId, location, code, message })
 							.error('Could not fetch required resource(s), deleting corresponding record');
 
-						await db.autoRadarMessage.delete({ where: { id } });
+						await this.database.autoRadarMessage.delete({ where: { id } });
+						continue;
 					}
-				} else {
-					throw err;
 				}
+
+				// Keep subscriptions recoverable when permissions or the network recover,
+				// but move failed work behind other due messages.
+				const nextUpdate = new Date(Date.now() + 5 * 60_000);
+				this.logger.withError(err).withMetadata({ id, guildId, channelId, messageId, nextUpdate })
+					.warn('Radar update failed; retrying in five minutes');
+				await this.database.autoRadarMessage.update({ data: { nextUpdate }, where: { id } });
 			}
 		}
 	}
