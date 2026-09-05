@@ -2,6 +2,20 @@ import { test, expect, describe } from 'bun:test';
 import { HourlyProgressTracker } from './hourly-progress-tracker';
 
 describe('hourly progress tracking', () => {
+	test('discovers new destinations after an empty or completed hourly pass', () => {
+		const tracker = new HourlyProgressTracker<number>();
+		const now = new Date('2026-09-04T12:00:00Z');
+		tracker.begin(now);
+		tracker.finish([]);
+		expect(tracker.begin(now, [1])).toBeTrue();
+		tracker.markCompleted(1);
+		tracker.finish([1]);
+		expect(tracker.begin(now, [1])).toBeFalse();
+		expect(tracker.begin(now, [1, 2])).toBeTrue();
+		expect(tracker.hasCompleted(1)).toBeTrue();
+		expect(tracker.hasCompleted(2)).toBeFalse();
+	});
+
 	test('retries only incomplete work during the same hour', () => {
 		const tracker = new HourlyProgressTracker<number>();
 		const now     = new Date('2026-08-15T12:00:00Z');

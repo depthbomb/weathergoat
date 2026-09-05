@@ -40,10 +40,6 @@ export class ReportForecastsJob extends BaseJob {
 			return;
 		}
 
-		if (!this.progress.begin(new Date())) {
-			return;
-		}
-
 		const destinations = await db.forecastDestination.findMany({
 			select: {
 				id: true,
@@ -55,6 +51,10 @@ export class ReportForecastsJob extends BaseJob {
 				radarImageUrl: true,
 			}
 		});
+		if (!this.progress.begin(new Date(), destinations.map(destination => destination.id))) {
+			return;
+		}
+
 		for (const { id, latitude, longitude, guildId, channelId, messageId, radarImageUrl } of destinations) {
 			if (this.progress.hasCompleted(id)) {
 				continue;

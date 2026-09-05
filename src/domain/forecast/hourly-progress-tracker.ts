@@ -5,12 +5,19 @@ export class HourlyProgressTracker<T> {
 	private hourComplete = false;
 	private readonly completed = new Set<T>();
 
-	public begin(now: Date) {
+	public begin(now: Date, items: Iterable<T> = []) {
 		const hourKey = Math.floor(now.getTime() / HOUR_MS);
 		if (hourKey !== this.hourKey) {
 			this.hourKey = hourKey;
 			this.hourComplete = false;
 			this.completed.clear();
+		}
+
+		for (const item of items) {
+			if (!this.completed.has(item)) {
+				this.hourComplete = false;
+				break;
+			}
 		}
 
 		return !this.hourComplete;
