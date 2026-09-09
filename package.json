@@ -22,7 +22,7 @@
 		"@abraham/reflection": "^0.13.0",
 		"@depthbomb/common": "^3.3.0",
 		"@depthbomb/env": "^3.0.0",
-		"@depthbomb/node-common": "^2.5.0",
+		"@depthbomb/node-common": "^3.0.0",
 		"@depthbomb/serde": "^2.0.0",
 		"@loglayer/plugin-redaction": "^4.1.0",
 		"@loglayer/plugin-sprintf": "^3.3.0",
