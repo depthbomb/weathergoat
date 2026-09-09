@@ -47,6 +47,9 @@
 		"temporal-polyfill": "^1.0.4",
 		"utf-8-validate": "^6.0.6"
 	},
+	"overrides": {
+		"@types/pg": "8.23.1"
+	},
 	"devDependencies": {
 		"@types/pg": "8.23.1",
 		"bun-types": "1.4.2",
