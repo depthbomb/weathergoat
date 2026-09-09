@@ -48,7 +48,7 @@
 		"utf-8-validate": "^6.0.6"
 	},
 	"devDependencies": {
-		"@types/pg": "8.20.4",
+		"@types/pg": "8.23.1",
 		"bun-types": "1.4.2",
 		"oxlint": "1.81.0",
 		"prisma": "8.0.0-rc.13",
