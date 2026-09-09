@@ -22,7 +22,7 @@
 		"@abraham/reflection": "^0.13.0",
 		"@depthbomb/common": "^4.0.0",
 		"@depthbomb/env": "^3.0.0",
-		"@depthbomb/node-common": "^2.5.0",
+		"@depthbomb/node-common": "^3.0.0",
 		"@depthbomb/serde": "^2.0.0",
 		"@loglayer/plugin-redaction": "^4.1.0",
 		"@loglayer/plugin-sprintf": "^3.3.0",
@@ -47,8 +47,11 @@
 		"temporal-polyfill": "^1.0.4",
 		"utf-8-validate": "^6.0.6"
 	},
+	"overrides": {
+		"@types/pg": "8.23.1"
+	},
 	"devDependencies": {
-		"@types/pg": "8.20.4",
+		"@types/pg": "8.23.1",
 		"bun-types": "1.4.2",
 		"oxlint": "1.81.0",
 		"prisma": "8.0.0-rc.13",
