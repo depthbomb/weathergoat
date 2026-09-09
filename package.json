@@ -20,7 +20,7 @@
 	},
 	"dependencies": {
 		"@abraham/reflection": "^0.13.0",
-		"@depthbomb/common": "^3.3.0",
+		"@depthbomb/common": "^4.0.0",
 		"@depthbomb/env": "^3.0.0",
 		"@depthbomb/node-common": "^2.5.0",
 		"@depthbomb/serde": "^2.0.0",
