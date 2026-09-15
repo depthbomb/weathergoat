@@ -29,7 +29,7 @@
 		"@loglayer/transport-log-file-rotation": "^3.3.0",
 		"@loglayer/transport-simple-pretty-terminal": "^3.3.0",
 		"@needle-di/core": "^1.2.1",
-		"@prisma/orm-postgres": "8.0.0-rc.8",
+		"@prisma/orm-postgres": "8.0.0-rc.10",
 		"@resvg/resvg-js": "^2.6.2",
 		"@sapphire/discord.js-utilities": "^7.3.3",
 		"@sapphire/node-utilities": "^1.0.2",
