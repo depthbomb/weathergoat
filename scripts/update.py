@@ -14,6 +14,13 @@ import sys
 import time
 
 
+# Prisma rc.15 changed the contract format without changing PostgreSQL storage.
+CONTRACT_FORMAT_UPGRADES = {
+    ('c4e4125ec44881fd0f718cbac03cc7eebbcd32205844bb79d5a87b67254c2640',
+     'eb189513284510eb29c118f2e7356d421c9b61d90257e0e59cf2f972c5aaf2ac'),
+}
+
+
 def run(args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
 
@@ -29,6 +36,37 @@ def prop(name):
 def journal(since):
     return output(['journalctl', '-u', 'wg.service', '--since', '@' + str(int(since)),
                    '--no-pager', '-o', 'short-iso-precise'])
+
+
+def prisma_result(text):
+    for line in text.splitlines():
+        entry = json.loads(line)
+        if entry.get('kind') == 'result':
+            envelope = entry['envelope']
+            if not envelope.get('ok') or not envelope.get('result', {}).get('ok'):
+                raise RuntimeError('Prisma did not confirm success')
+
+            return envelope['result']
+
+    raise RuntimeError('Prisma returned no result')
+
+
+def check_migrations(bun, root, env, from_contract=False):
+    args = [bun, 'node_modules/prisma/dist/prisma.js', 'db', 'migrate', '--show', '--json']
+    if from_contract:
+        args += ['--from', '@contract']
+    preview = output(args, cwd=root, env=env)
+    (root / '.data/migration-preview.jsonl').write_text(preview)
+    if prisma_result(preview).get('migrations') != []:
+        raise RuntimeError('Pending database migrations require review before deployment')
+
+
+def check_marker(expected_hash):
+    actual = output(['sudo', '-n', '-u', 'postgres', 'psql', '--dbname=weathergoat',
+                     '--no-psqlrc', '--tuples-only', '--no-align', '--command',
+                     "SELECT core_hash FROM prisma_contract.marker WHERE space = 'app'"])
+    if actual != expected_hash:
+        raise RuntimeError('Database contract changed during release preparation')
 
 
 def main():
@@ -106,15 +144,18 @@ def deploy(controller, revision, flags, home, config_dir, credentials_file):
                  ['run', 'generate-messages'], ['node_modules/typescript/bin/tsc', '--noEmit'],
                  ['run', 'lint'], ['run', 'test']]:
         run([bun, *args], cwd=root, env=env)
+    run([sys.executable, '-B', 'scripts/test_update.py'], cwd=root, env=env)
 
-    preview = output([bun, 'node_modules/prisma/dist/prisma.js', 'db', 'migrate', '--show', '--json'], cwd=root, env=env)
-    result = next(json.loads(line)['envelope']['result'] for line in preview.splitlines()
-                  if json.loads(line).get('kind') == 'result')
-    (data / 'migration-preview.jsonl').write_text(preview)
+    previous_hash = json.loads((live / 'src/database/contract/contract.json').read_text())['storage']['storageHash']
+    next_hash = json.loads((root / 'src/database/contract/contract.json').read_text())['storage']['storageHash']
+    refresh_contract = (previous_hash, next_hash) in CONTRACT_FORMAT_UPGRADES
+    if refresh_contract:
+        check_marker(previous_hash)
     # Automatic recovery to the previous application is safe only with unchanged
     # storage. Schema-changing releases require a separately reviewed migration.
-    if not result.get('ok') or result.get('migrations') != []:
-        raise RuntimeError('Pending database migrations require review before deployment; live service unchanged')
+    # A reviewed format upgrade is checked against the live schema below before
+    # its signature is refreshed, then checked against the real marker again.
+    check_migrations(bun, root, env, from_contract=refresh_contract)
     preflight = data / 'preflight.ts'
     preflight.write_text("""import { db } from '../src/database';
 import { createPostgresControlClient } from '@prisma/orm-postgres/control';
@@ -148,6 +189,7 @@ try {
         run(['sudo', '-n', 'systemctl', 'daemon-reload'])
 
     state = {'commit': revision, 'release': str(root), 'previous': str(live), 'stopRequestedAt': time.time()}
+    signature_attempted = False
     print('Candidate verified; draining service and taking final backup.', flush=True)
     try:
         run(['sudo', '-n', 'systemctl', 'stop', 'wg.service'], timeout=90)
@@ -159,6 +201,16 @@ try {
             run(['sudo', '-n', '-u', 'postgres', 'pg_dump', '--format=custom', '--dbname=weathergoat'], stdout=handle, timeout=30)
         state['backup'] = str(backup)
         state['backupSha256'] = hashlib.sha256(backup.read_bytes()).hexdigest()
+        if refresh_contract:
+            check_marker(previous_hash)
+            signature_attempted = True
+            signed = output([bun, 'node_modules/prisma/dist/prisma.js', 'db', 'sign',
+                             '--no-advance-ref', '--json'], cwd=root, env=env)
+            prisma_result(signed)
+            (data / 'contract-signature.jsonl').write_text(signed)
+            check_marker(next_hash)
+            check_migrations(bun, root, env)
+            state['contractRefreshed'] = True
         install(config)
         state['startRequestedAt'] = time.time()
         run(['sudo', '-n', 'systemctl', 'start', 'wg.service'], timeout=30)
@@ -178,6 +230,12 @@ try {
     except Exception:
         run(['sudo', '-n', 'systemctl', 'stop', 'wg.service'], timeout=90)
         install(saved)
+        if signature_attempted:
+            restored = output([bun, 'node_modules/prisma/dist/prisma.js', 'db', 'sign', '--json'],
+                              cwd=live, env=env)
+            prisma_result(restored)
+            check_marker(previous_hash)
+            state['contractRestored'] = True
         run(['sudo', '-n', 'systemctl', 'start', 'wg.service'], timeout=30)
         state['recoveredPreviousAt'] = time.time()
         raise
