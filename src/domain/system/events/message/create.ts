@@ -2,7 +2,7 @@ import { env } from '@env';
 import { $msg } from '@lib/messages';
 import { BaseEvent } from '@infra/events';
 import { reportError } from '@lib/logger';
-import { TeamMemberRole } from 'discord.js';
+import { ChannelType, TeamMemberRole } from 'discord.js';
 import { Stopwatch } from '@sapphire/stopwatch';
 import { LegacyCommandError, LegacyCommandArguments } from '@infra/legacy-commands';
 import type { Message } from 'discord.js';
@@ -13,12 +13,17 @@ export class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 	}
 
 	public async handle(message: Message) {
-		if (message.author.bot || !message.content.length) {
+		if (message.author.bot || message.channel.type !== ChannelType.DM || !message.content.length) {
 			return;
 		}
 
 		const prefix = env.get('OWNER_PREFIX');
 		if (!message.content.startsWith(prefix)) {
+			return;
+		}
+
+		const isOwner = this.isOwner(message);
+		if (!isOwner) {
 			return;
 		}
 
@@ -48,11 +53,6 @@ export class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 			return;
 		}
 
-		const isOwner = this.isOwner(message);
-		if (!isOwner) {
-			return;
-		}
-
 		const sw = new Stopwatch();
 
 		try {
@@ -79,9 +79,13 @@ export class MessageCreateEvent extends BaseEvent<'messageCreate'> {
 		}
 	}
 
-	private async isOwner(message: Message) {
+	private isOwner(message: Message): boolean {
 		const userId = message.author.id;
-		const owner  = message.client.application.owner!;
+		const owner  = message.client.application?.owner;
+		if (!owner) {
+			return false;
+		}
+
 		if ('members' in owner) {
 			return owner.members.some(
 				m => m.id === userId && (
