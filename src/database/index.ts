@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import { env } from '@env';
 import contractJson from './contract/contract.json';
 import postgres from '@prisma/orm-postgres/runtime';
+import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from './contract/contract';
 
 const connectionString = env.get('DATABASE_URL');
@@ -16,7 +17,11 @@ const pool = new Pool({
 	idleTimeoutMillis: 30_000,
 	options: '-c timezone=UTC -c statement_timeout=30000 -c search_path=public',
 });
-const client = postgres<Contract>({ contractJson, pg: pool });
+const contract = contractFromJson<Contract>(contractJson);
+const client   = postgres({
+	contract,
+	pg: pool
+});
 
 let closing: Promise<void> | undefined;
 const close = () =>

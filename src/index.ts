@@ -48,7 +48,36 @@ async function main() {
 
 	if (sentryDSN && mode === 'production') {
 		const { init: initSentry } = await import('@sentry/bun');
-		initSentry({ dsn: sentryDSN.release() });
+		initSentry({
+			dsn: sentryDSN.release(),
+			// Preserve the collection defaults from Sentry 10 when upgrading the SDK.
+			dataCollection: {
+				userInfo: false,
+				cookies:  false,
+				httpHeaders: {
+					request: {
+						deny: ['forwarded', '-ip', 'remote-', 'via', '-user']
+					},
+					response: {
+						deny: ['forwarded', '-ip', 'remote-', 'via', '-user']
+					}
+				},
+				httpBodies: [],
+				urlQueryParams: {
+					deny: ['forwarded', '-ip', 'remote-', 'via', '-user']
+				},
+				genAI: {
+					inputs:  false,
+					outputs: false
+				},
+				databaseQueryData: false,
+				queues:            false,
+				graphQL: {
+					document:  false,
+					variables: false
+				}
+			}
+		});
 	}
 
 	container.bind(WeatherGoat);

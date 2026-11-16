@@ -19,7 +19,7 @@ export class RedisService {
 		);
 	}
 
-	public async set(key: string, value: unknown, ttl?: string) {
+	public async set(key: string, value: string, ttl?: string) {
 		if (ttl) {
 			const duration = parseDuration(ttl);
 			return this.client.set(
