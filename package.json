@@ -53,9 +53,9 @@
 	},
 	"devDependencies": {
 		"@types/pg": "8.23.1",
-		"bun-types": "1.4.4",
+		"bun-types": "1.4.5",
 		"dotenv": "^18.0.10",
-		"oxlint": "1.94.0",
+		"oxlint": "1.95.0",
 		"prisma": "8.0.0-rc.34",
 		"typescript": "7.0.2"
 	}
